@@ -29,7 +29,7 @@ return graphicsLayer {
 
 400 ms of pop animation costs zero recompositions. Written as `Modifier.scale(scale.value)`, every frame would re-run the enclosing composable.
 
-**Recomposition is not re-rendering.** Compose recomposes *scopes*, not screens: only the composable functions that actually read the changed state re-run, and even those skip when their parameters are unchanged. Sections 6 to 9 are about making that granularity work for you.
+**Recomposition is not re-rendering.** Compose recomposes *scopes*, not screens: only the composable functions that actually read the changed state re-run, and even those skip when their parameters are unchanged. Sections 7 to 10 are about making that granularity work for you.
 
 ## 3. State — the full menu
 
@@ -253,7 +253,64 @@ Ask in order, and stop at the first yes:
 
 The common mistake is starting at 5 and never revisiting. The opposite mistake is putting an `Animatable` in a ViewModel because "state belongs in the ViewModel".
 
-## 6. What actually triggers a recomposition
+## 6. `CompositionLocal` — the implicit parameter
+
+A `CompositionLocal` is a value passed *down the tree* instead of *through the signature*. A provider puts it in scope; anything below reads it with `.current`, however deep, and every composable in between stays unaware.
+
+```kotlin
+val LocalMosaicColors = staticCompositionLocalOf {
+    MosaicColors(textTertiary = MosaicLightText3, like = MosaicLike)
+}
+
+CompositionLocalProvider(LocalMosaicColors provides mosaicColors(darkTheme)) { content() }
+
+val like = LocalMosaicColors.current.like
+```
+
+That is [MosaicColors.kt:18](../app/src/main/java/uno/lux/mosaic/app/theme/MosaicColors.kt#L18), provided by `MosaicTheme` at [Theme.kt:92](../app/src/main/java/uno/lux/mosaic/app/theme/Theme.kt#L92) and read at sixteen call sites that never mention it in a parameter list.
+
+### `compositionLocalOf` vs `staticCompositionLocalOf`
+
+The two differ in what happens when the provided value *changes*, and the trade is exact:
+
+| | Read cost | On change |
+|---|---|---|
+| `compositionLocalOf` | Tracked as a state read | Recomposes only the composables that read it |
+| `staticCompositionLocalOf` | No tracking at all — a plain lookup | Recomposes **the entire `content` lambda** under the provider |
+
+**Pick `static` for a value that effectively never changes** while the tree is alive, and `compositionLocalOf` for one that changes at runtime under a large subtree.
+
+This project has one of each, and both are the obvious choice for their value:
+
+- **`LocalMosaicColors` is static.** The token bag changes on exactly one event — a light/dark flip — and that event has to repaint everything anyway, so the "recompose the whole content" penalty buys back a tracked read on every color lookup in the app.
+- **`LocalVideoPlayback` is dynamic** ([VideoPlayback.kt:157](../app/src/main/java/uno/lux/mosaic/video/ui/VideoPlayback.kt#L157)). It is provided once around the whole back stack by `ProvideVideoPlayback` in [MosaicApp.kt:53](../app/src/main/java/uno/lux/mosaic/app/ui/MosaicApp.kt#L53), so the shared player an inline post is using is the same instance the full-screen page picks up.
+
+Note what is *not* a reason to reach for either one: the controller mutates constantly — which video is active, whether it is full screen — and none of that flows through the local. The local carries one stable instance whose fields are snapshot state, so playback changes invalidate only the composables that read those fields.
+
+### The default value is part of the design
+
+A `CompositionLocal` needs a default for the case where nothing provided it. There are three usable answers, and this project uses two of them:
+
+- **A real fallback.** `LocalMosaicColors` defaults to the light-mode tokens, so an unwrapped composable renders in *some* sane color rather than crashing.
+- **`null`, meaning "this feature is absent here".** `LocalVideoPlayback` defaults to null, and [VideoPostPlayer.kt:47](../app/src/main/java/uno/lux/mosaic/video/ui/VideoPostPlayer.kt#L47) reads that as "no player in reach — draw the thumbnail." That is what makes a video post previewable with no shell around it.
+- **`error("No X provided")`**, the common library idiom, when reading without a provider is a programming mistake there is no sensible answer to. Nothing here needs it.
+
+A fallback default is the reason the project's rule "wrap every `@Preview` in `MosaicTheme`" is about *correctness of colors*, not about avoiding a crash: without the wrapper a dark-mode preview silently draws light-mode tertiary text.
+
+### When a local is the right tool, and when it is not
+
+Use one for something **ambient**: needed at many depths, by composables that have no business knowing where it came from, and unchanging for the lifetime of a screen. Theme tokens, density, the context, the shared player. Compose's own locals are exactly this shape — `LocalContext`, `LocalDensity`, `LocalLifecycleOwner`, `LocalSoftwareKeyboardController`, all read in this codebase.
+
+The cost is that **a composable reading a local is no longer a function of its parameters.** Its dependency is invisible at the call site, a missing provider is a runtime surprise rather than a compile error, and both previewing and testing now need the tree above it to be set up correctly.
+
+Two places in this repo say no to a local on purpose, and they are the more instructive half:
+
+- **`VideoSurface` takes `player` as a parameter** ([VideoSurface.kt:30](../app/src/main/java/uno/lux/mosaic/video/ui/VideoSurface.kt#L30)) and looks up no local, even though `LocalVideoPlayback` is in scope wherever it is used. Two callers attach the *same* player and must disagree about it — the inline post detaches while the full-screen page holds the stream. Which player a surface shows is the caller's decision, so it belongs in the signature.
+- **`currentUserId` is threaded explicitly**, `MainActivity` → `MosaicApp` → `ScreenContent` → the screens that need it, rather than living in a `LocalCurrentUser`. It is a genuine ambient candidate, and passing it keeps "this screen behaves differently for its owner" visible in the screen's own signature. Everything below the screen gets it from a ViewModel through `@CurrentUserId` instead.
+
+**A local is not a state-hoisting shortcut, and never a channel for screen state.** Providing a page's mutable state through one means any composable below can read it, so nothing tells you what a change will invalidate, and the hoisting ladder in section 5 stops applying. If the answer to "who needs this?" is one subtree of one screen, it is a parameter.
+
+## 7. What actually triggers a recomposition
 
 Exactly one thing: **a composable read a snapshot state value, and that value changed.**
 
@@ -264,11 +321,11 @@ Skipping requires parameter comparison, which used to require *stability*. With 
 - Composables with **unstable** parameters can still skip, compared by **instance equality**.
 - **Lambdas are auto-remembered**, so you no longer wrap callbacks in `remember` to keep a child skippable.
 
-The practical consequence, stated in `AGENTS.md`: **do not wrap lambdas in `remember` by reflex, and do not chase `@Stable`/`@Immutable` annotations.** Feed rows skip fine even though `Post` carries an `Instant` and a `List`. Section 7 covers the cases where those annotations still earn their keep.
+The practical consequence, stated in `AGENTS.md`: **do not wrap lambdas in `remember` by reflex, and do not chase `@Stable`/`@Immutable` annotations.** Feed rows skip fine even though `Post` carries an `Instant` and a `List`. Section 8 covers the cases where those annotations still earn their keep.
 
-What strong skipping does *not* fix is identity churn. Sections 7 and 8 are about that.
+What strong skipping does *not* fix is identity churn. Sections 8 and 9 are about that.
 
-## 7. Stability — `@Stable` and `@Immutable`
+## 8. Stability — `@Stable` and `@Immutable`
 
 **Stability is the compiler's answer to one question: "if I skip this composable, can the UI go stale?"**
 
@@ -363,7 +420,7 @@ Worth remembering as the concrete form of "the compiler cannot verify these anno
 
 **Measure first** — recomposition counts in Layout Inspector, or `--profile`. Find what is actually recomposing, and only then decide whether the fix is identity preservation, a smaller read scope, or a stability annotation. In that order, because the first two are almost always the real answer.
 
-## 8. Preventing recomposition — preserve identity
+## 9. Preventing recomposition — preserve identity
 
 Because skipping compares by instance, **a mutation must leave every unchanged thing instance-identical.**
 
@@ -380,7 +437,7 @@ Two more identity rules:
 - **Key your lazy list items.** `items(posts, key = { it.id })` lets Compose match items across changes instead of composing by position. Without it, prepending one post recomposes the whole visible window.
 - **Do not build a new collection per recomposition where a child compares it.** Strong skipping auto-remembers lambdas, but not `posts.filter { ... }`. Hoist a derived list into `remember(posts) { ... }`, or into the ViewModel.
 
-## 9. Scoping state reads — read it as low and as late as you can
+## 10. Scoping state reads — read it as low and as late as you can
 
 Two techniques, both about shrinking the invalidated scope.
 
@@ -413,7 +470,7 @@ private fun HoldLabel(text: String, color: Color, alpha: () -> Float) {
 
 The same idea covers `Modifier.offset { IntOffset(...) }` over `Modifier.offset(x.dp)`, and `drawBehind { }` over a recomposed `Canvas`. A rule of thumb: **a short transition of a small subtree may animate in composition; anything larger, or anything per-frame, belongs in the layer or draw phase.**
 
-## 10. Effects — running non-UI work correctly
+## 11. Effects — running non-UI work correctly
 
 A composable must be free of side effects, because it can run at any time, on any thread, and be abandoned. Side effects go in effect APIs, and every one of them is keyed.
 
@@ -430,7 +487,7 @@ The matching trap is over-keying: keying on a value you only *read* inside the e
 
 `DisposableEffect(darkTheme)` in [MainActivity.kt:57](../app/src/main/java/uno/lux/mosaic/app/ui/MainActivity.kt#L57) re-applies edge-to-edge bar styling on a theme change; `DisposableEffect(lifecycleOwner, playback)` in [VideoPlayback.kt:174](../app/src/main/java/uno/lux/mosaic/video/ui/VideoPlayback.kt#L174) tears the player down.
 
-## 11. Bugs this document exists to prevent
+## 12. Bugs this document exists to prevent
 
 1. **`mutableStateOf` without `remember`.** The value resets on every recomposition. The IDE warns; believe it.
 2. **`remember` where `rememberSaveable` belongs.** Everything looks correct until a rotation closes the user's half-filled dialog.
@@ -438,13 +495,14 @@ The matching trap is over-keying: keying on a value you only *read* inside the e
 4. **Keying an effect on data you only read inside it.** The effect restarts constantly and throws away the work it had done.
 5. **Rewriting a whole collection to change one item.** Everything visible recomposes and, in a repository, a concurrent update gets clobbered by the stale snapshot read before the suspension point.
 
-## 12. Rapid-fire
+## 13. Rapid-fire
 
 - **`remember` vs `rememberSaveable`?** Recomposition, versus configuration change *and* process death. The second needs a value the saved state can store, or a `Saver`.
 - **Why does my `LaunchedEffect` run twice?** A key changed. Usually an unstable lambda or a fresh collection identity in the key list.
 - **`collectAsState` or `collectAsStateWithLifecycle`?** Always the lifecycle-aware one; the other collects in the background.
 - **Does the whole screen recompose when state changes?** No — only scopes that read that state, and children skip on equal parameters.
-- **Is `@Immutable` still needed?** Rarely, under strong skipping — see section 7. It buys `equals` comparison instead of instance comparison; preserving identity across mutations matters far more.
+- **Is `@Immutable` still needed?** Rarely, under strong skipping — see section 8. It buys `equals` comparison instead of instance comparison; preserving identity across mutations matters far more.
+- **`compositionLocalOf` or `staticCompositionLocalOf`?** Static for a value that never changes in practice — the read is free, but a change recomposes everything under the provider. Dynamic when the value changes at runtime, so only its readers recompose.
 - **Where does scroll position go?** `rememberLazyListState()` — it is already saveable internally.
 - **Why is hoisting worth the extra parameters?** It is what makes a composable previewable and testable without a ViewModel, which is the whole reason for the project's two-function screen split.
 
