@@ -86,7 +86,7 @@ viewModel: ProfileViewModel = hiltViewModel<ProfileViewModel, ProfileViewModel.F
 
 The generated `ViewModelProvider.Factory` bridges the assisted factory into the ViewModel store, so the instance is still scoped to the back-stack entry, survives configuration change, and is cleared when the page pops.
 
-Contrast with `@CurrentUserId` in [CurrentUserId.kt](../app/src/main/java/uno/lux/sample/app/di/CurrentUserId.kt): that *is* a graph binding, because there is exactly one signed-in user for the app's lifetime. A value belongs in the graph when the container can answer "which one?" without being told. `userId` on a profile page fails that test; the signed-in user passes it.
+Contrast with `@CurrentUserId` in [CurrentUserId.kt](../app/src/main/java/uno/lux/mosaic/app/di/CurrentUserId.kt): that *is* a graph binding, because there is exactly one signed-in user for the app's lifetime. A value belongs in the graph when the container can answer "which one?" without being told. `userId` on a profile page fails that test; the signed-in user passes it.
 
 ## The general shape (beyond Android)
 

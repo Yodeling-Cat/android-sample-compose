@@ -31,13 +31,13 @@ val localServerHost = devSetting("MOSAIC_LOCAL_HOST", "mosaic.localHost", "local
 val localServerPort = devSetting("MOSAIC_LOCAL_PORT", "mosaic.localPort", "3000")
 
 android {
-    namespace = "uno.lux.sample"
+    namespace = "uno.lux.mosaic"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "uno.lux.sample"
+        applicationId = "uno.lux.mosaic"
         minSdk = 26
         targetSdk = 37
         versionCode = 1

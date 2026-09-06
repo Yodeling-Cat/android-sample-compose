@@ -1,0 +1,990 @@
+package uno.lux.mosaic.profile.ui
+
+import androidx.annotation.DrawableRes
+import androidx.annotation.StringRes
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.FloatState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableFloatState
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import uno.lux.mosaic.R
+import uno.lux.mosaic.app.fixtures.SamplePosts
+import uno.lux.mosaic.app.fixtures.SampleUsers
+import uno.lux.mosaic.app.theme.LocalMosaicColors
+import uno.lux.mosaic.app.theme.MosaicElevations
+import uno.lux.mosaic.app.theme.MosaicGradients
+import uno.lux.mosaic.app.theme.MosaicTheme
+import uno.lux.mosaic.app.ui.components.ScrimIconButton
+import uno.lux.mosaic.app.util.compactCount
+import uno.lux.mosaic.app.util.createActionsProxy
+import uno.lux.mosaic.app.util.debouncedClickable
+import uno.lux.mosaic.app.util.rememberDebounced
+import uno.lux.mosaic.common.asText
+import uno.lux.mosaic.common.data.ReportReason
+import uno.lux.mosaic.common.ui.FailedAction
+import uno.lux.mosaic.common.ui.FailedActionEffect
+import uno.lux.mosaic.common.ui.FullScreenError
+import uno.lux.mosaic.common.ui.FullScreenProgress
+import uno.lux.mosaic.common.ui.LoadMoreEffect
+import uno.lux.mosaic.common.ui.LoadingMoreFooter
+import uno.lux.mosaic.post.data.domain.PostId
+import uno.lux.mosaic.post.ui.PostCard
+import uno.lux.mosaic.post.ui.PostCardData
+import uno.lux.mosaic.post.ui.ReportSendState
+import uno.lux.mosaic.profile.data.domain.Profile
+import uno.lux.mosaic.user.data.domain.User
+import uno.lux.mosaic.user.data.domain.UserId
+import uno.lux.mosaic.user.ui.Avatar
+import uno.lux.mosaic.video.data.domain.Video
+import kotlin.math.roundToInt
+
+/**
+ * The profile's ViewModel-backed intents — liking / bookmarking the viewed user's posts, plus
+ * navigation (opening a post, viewer or the editor, going back), which the ViewModel forwards
+ * to the injected `Navigator` — as one [Stable] seam the stateless [ProfileScreen] depends on.
+ * [ProfileViewModel] implements it, so the binder passes the ViewModel directly and a preview
+ * passes a no-op [createActionsProxy].
+ */
+@Stable
+interface ProfileActions {
+    fun onToggleLike(postId: PostId)
+
+    fun onToggleBookmark(postId: PostId)
+
+    fun onDeletePost(postId: PostId)
+
+    fun onReportPost(
+        postId: PostId,
+        reason: ReportReason,
+        details: String,
+    )
+
+    fun onReportClosed()
+
+    fun onToggleFollow()
+
+    fun onFailedActionShown()
+
+    fun loadMorePosts()
+
+    fun onSavedTabShown()
+
+    fun loadMoreBookmarks()
+
+    fun onLikesTabShown()
+
+    fun loadMoreLikes()
+
+    fun goBack()
+
+    fun openEditProfile()
+
+    fun openPost(postId: PostId)
+
+    fun openProfile(userId: UserId)
+
+    fun openVideo(video: Video)
+
+    fun openAlbum(imageUrls: List<String>, initialIndex: Int)
+
+    fun openAvatar(avatarUrl: String)
+}
+
+/**
+ * Stateful entry point: binds a [ProfileViewModel] for [userId] and forwards state and intent
+ * to the stateless overload below. [showBackButton] is false when the profile is shown as a
+ * root tab (no up-affordance); true when it was pushed over the feed.
+ */
+@Composable
+fun ProfileScreen(
+    userId: UserId,
+    modifier: Modifier = Modifier,
+    showBackButton: Boolean = false,
+    // The ViewModel store is per back-stack entry, so each opened profile page gets its own
+    // ProfileViewModel, created for that entry's userId and cleared when the page pops.
+    viewModel: ProfileViewModel = hiltViewModel<ProfileViewModel, ProfileViewModel.Factory>(
+        creationCallback = { factory -> factory.create(userId) },
+    ),
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    val failedAction by viewModel.failedAction.collectAsStateWithLifecycle()
+    val reportSend by viewModel.reportSend.collectAsStateWithLifecycle()
+
+    ProfileScreen(
+        uiState = uiState,
+        isRefreshing = isRefreshing,
+        failedAction = failedAction,
+        reportSend = reportSend,
+        onRefresh = viewModel::refresh,
+        onRetry = viewModel::retry,
+        actions = viewModel,
+        modifier = modifier,
+        onBack = if (showBackButton) viewModel::goBack else null,
+    )
+}
+
+/**
+ * Stateless profile screen — renders [uiState] and reports interactions through [actions].
+ * Holding no ViewModel makes it directly previewable and testable. [onBack] carries the one
+ * piece of navigation the interface can't: whether this instance shows an up-affordance at all
+ * (null on the root tab).
+ */
+@Composable
+internal fun ProfileScreen(
+    uiState: ProfileUiState,
+    isRefreshing: Boolean,
+    failedAction: FailedAction?,
+    reportSend: ReportSendState,
+    onRefresh: () -> Unit,
+    onRetry: () -> Unit,
+    actions: ProfileActions,
+    modifier: Modifier = Modifier,
+    onBack: (() -> Unit)? = null,
+) {
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // A delete or follow whose request failed after the tap left nothing on screen to fail
+    // visibly.
+    FailedActionEffect(failedAction, snackbarHostState, actions::onFailedActionShown)
+
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+    ) {
+        when (uiState) {
+            ProfileUiState.Loading -> {
+                FullScreenProgress()
+                if (onBack != null) PlainBackButton(onBack, Modifier.align(Alignment.TopStart))
+            }
+
+            is ProfileUiState.Error -> {
+                FullScreenError(
+                    message = uiState.error.asText(),
+                    onRetry = onRetry,
+                )
+                if (onBack != null) PlainBackButton(onBack, Modifier.align(Alignment.TopStart))
+            }
+
+            ProfileUiState.NotFound -> {
+                CenteredMessage(stringResource(R.string.profile_not_found))
+                if (onBack != null) PlainBackButton(onBack, Modifier.align(Alignment.TopStart))
+            }
+
+            // The loaded state owns its own scroll-reactive TopAppBar over the cover.
+            is ProfileUiState.Loaded -> {
+                ProfileContent(
+                    data = uiState.data,
+                    isCurrentUser = uiState.isCurrentUser,
+                    isRefreshing = isRefreshing,
+                    reportSend = reportSend,
+                    onRefresh = onRefresh,
+                    actions = actions,
+                    onBack = onBack,
+                )
+            }
+        }
+
+        // This screen has no Scaffold to host it in, so the snackbar overlays the Box instead —
+        // above the system bar the edge-to-edge content draws behind.
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding(),
+        )
+    }
+}
+
+/**
+ * Saves the header's collapse offset. Writing `rememberSaveable { mutableFloatStateOf(…) }` would
+ * resolve to the `MutableState<Float>` overload and hand back a boxed state, giving up the
+ * [FloatState] type the layout pass and the app bar read on every frame — so the float is saved by
+ * hand and the specialized state rebuilt from it.
+ */
+private val CollapseSaver = Saver<MutableFloatState, Float>(
+    save = { it.floatValue },
+    restore = { mutableFloatStateOf(it) },
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ProfileContent(
+    data: ProfileScreenData,
+    isCurrentUser: Boolean,
+    isRefreshing: Boolean,
+    reportSend: ReportSendState,
+    onRefresh: () -> Unit,
+    actions: ProfileActions,
+    onBack: (() -> Unit)?,
+) {
+    // Saved is the signed-in user's own private list, so it is not offered on anyone else's
+    // profile. isCurrentUser is fixed for the life of this screen, so the visible set is too.
+    val tabs = remember(isCurrentUser) {
+        ProfileTab.entries.filter { isCurrentUser || !it.ownerOnly }
+    }
+    var selectedTab by rememberSaveable { mutableStateOf(ProfileTab.POSTS) }
+    val listState = rememberLazyListState()
+
+    // A collapsing header. The cover + identity block is hoisted out of the posts list into a
+    // Column above it, and slides up behind the app bar as you scroll; the tab row rides up with
+    // it until it pins flush beneath the bar, after which the posts list scrolls under the tabs.
+    // The two motions are one continuous gesture because a shared `collapse` offset — advanced by
+    // the NestedScrollConnection below, which consumes upward scroll to collapse the header before
+    // the list moves — replaces the old faked spacer, so there is no dead scroll at the hand-off.
+    val density = LocalDensity.current
+    val barBottomPx = with(density) {
+        WindowInsets.statusBars.getTop(this) + ProfileBarHeight.roundToPx()
+    }
+    var headerHeightPx by remember { mutableIntStateOf(0) }
+    // Saveable, unlike the measured height above: the collapse *is* the top of this page's scroll
+    // position, and `rememberLazyListState` only remembers the part below it. Left as a plain
+    // `remember`, a profile scrolled less than one header's worth came back from a post detail —
+    // or a rotation — with the cover expanded again, reading as a scroll position thrown away.
+    val collapse = rememberSaveable(saver = CollapseSaver) { mutableFloatStateOf(0f) }
+    // The header collapses until its foot reaches the bar; past that the tabs are pinned and the
+    // list takes over. Keyed off the measured header height, never off `collapse`, so this scope
+    // does not recompose as you scroll — only the header relayouts and the bar (which reads it).
+    val maxCollapse = (headerHeightPx - barBottomPx).coerceAtLeast(0).toFloat()
+
+    val collapseConnection = remember(maxCollapse) {
+        object : NestedScrollConnection {
+            // Fold `dy` of scroll into the collapse offset, returning what it consumed (same sign):
+            // scrolling up (negative) collapses the header, scrolling down (positive) re-expands it.
+            fun consume(dy: Float): Offset {
+                val before = collapse.floatValue
+                collapse.floatValue = (before - dy).coerceIn(0f, maxCollapse)
+                return Offset(x = 0f, y = before - collapse.floatValue)
+            }
+
+            // Scrolling up collapses the header first, before the posts list scrolls.
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset =
+                if (available.y >= 0f) Offset.Zero else consume(available.y)
+
+            // Scrolling down re-expands the header, but only from the leftover once the list has
+            // reached its top — and, since pull-to-refresh wraps this, before the refresh sees it.
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource,
+            ): Offset =
+                if (available.y <= 0f) Offset.Zero else consume(available.y)
+        }
+    }
+
+    // Every tab pages the one posts list, so the effects follow whichever is showing.
+    when (selectedTab) {
+        ProfileTab.POSTS -> LoadMoreEffect(
+            listState = listState,
+            endReached = data.postsEndReached,
+            onLoadMore = actions::loadMorePosts,
+        )
+
+        ProfileTab.LIKES -> OnDemandTabEffects(
+            listState = listState,
+            list = data.likes,
+            onShown = actions::onLikesTabShown,
+            onLoadMore = actions::loadMoreLikes,
+        )
+
+        ProfileTab.SAVED -> OnDemandTabEffects(
+            listState = listState,
+            list = data.bookmarks,
+            onShown = actions::onSavedTabShown,
+            onLoadMore = actions::loadMoreBookmarks,
+        )
+    }
+
+    // Pull-to-refresh wraps the collapse Box so its connection sits *outside* the collapse one:
+    // scrolling down re-expands the header (collapse's onPostScroll) before the refresh gesture
+    // gets the leftover, so a downward drag never triggers a refresh while the header is collapsed.
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(collapseConnection),
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                ProfileHeader(
+                    user = data.user,
+                    isCurrentUser = isCurrentUser,
+                    onEditProfile = actions::openEditProfile,
+                    onToggleFollow = actions::onToggleFollow,
+                    onOpenAvatar = actions::openAvatar,
+                    // Reserve `collapse` less height and draw the full header shifted up by that
+                    // much: it slides up behind the bar while the tabs below move up to meet it,
+                    // with no gap left behind. `collapse` is read in the layout pass, so a scroll
+                    // reflows the header without recomposing this screen.
+                    modifier = Modifier.layout { measurable, constraints ->
+                        val placeable = measurable.measure(constraints)
+                        if (placeable.height != headerHeightPx) headerHeightPx = placeable.height
+
+                        val offset = collapse.floatValue.roundToInt()
+                        layout(placeable.width, (placeable.height - offset).coerceAtLeast(0)) {
+                            placeable.place(0, -offset)
+                        }
+                    },
+                )
+                ProfileTabs(
+                    tabs = tabs,
+                    selected = selectedTab,
+                    onSelect = { selectedTab = it },
+                )
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                ) {
+                    when (selectedTab) {
+                        ProfileTab.POSTS -> postItems(
+                            screenData = data,
+                            reportSend = reportSend,
+                            actions = actions,
+                            isCurrentUser = isCurrentUser,
+                        )
+
+                        ProfileTab.LIKES -> onDemandTabItems(
+                            list = data.likes,
+                            reportSend = reportSend,
+                            actions = actions,
+                            keyPrefix = "likes",
+                            emptyMessageRes = R.string.profile_empty_likes,
+                        )
+
+                        ProfileTab.SAVED -> onDemandTabItems(
+                            list = data.bookmarks,
+                            reportSend = reportSend,
+                            actions = actions,
+                            keyPrefix = "saved",
+                            emptyMessageRes = R.string.profile_empty_saved,
+                        )
+                    }
+                    item(key = "bottom-inset") {
+                        Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+                    }
+                }
+            }
+
+            ProfileTopBar(
+                userName = data.user.nickname,
+                collapse = collapse,
+                maxCollapse = maxCollapse,
+                onBack = onBack,
+            )
+        }
+    }
+}
+
+// region Header
+
+private val CoverHeight = 160.dp
+private val AvatarRingSize = 96.dp
+private val AvatarSize = 88.dp
+private val AvatarOverlap = 44.dp // how far the avatar hangs below the cover
+private val ProfileBarHeight = 64.dp // Material small TopAppBar content height (excl. status bar)
+
+@Composable
+private fun ProfileHeader(
+    user: User,
+    isCurrentUser: Boolean,
+    onEditProfile: () -> Unit,
+    onToggleFollow: () -> Unit,
+    onOpenAvatar: (avatarUrl: String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface),
+    ) {
+        // Cover + overlapping avatar + actions, in a box tall enough to contain the hanging
+        // avatar so nothing below paints over it (the avatar is the last child, so it wins
+        // the cover's z-order cleanly).
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(CoverHeight + (AvatarRingSize - AvatarOverlap)),
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(CoverHeight)
+                    .background(MosaicGradients.mediaBrush(user.id)),
+            )
+            // Primary action, bottom-right across from the avatar (settings live in the app
+            // bar): Edit profile on your own profile, Follow/Unfollow on anyone else's.
+            val actionModifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 16.dp)
+            if (isCurrentUser) {
+                FilledTonalButton(
+                    onClick = onEditProfile.rememberDebounced(),
+                    modifier = actionModifier,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_edit),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.profile_edit))
+                }
+            } else {
+                FollowButton(
+                    isFollowing = user.isFollowing,
+                    onToggleFollow = onToggleFollow,
+                    modifier = actionModifier,
+                )
+            }
+            AvatarRing(
+                user = user,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(start = 16.dp)
+                    .padding(top = CoverHeight - AvatarOverlap)
+                    .clip(CircleShape)
+                    .debouncedClickable(enabled = !user.avatarUrl.isNullOrEmpty(), onClick = {
+                        if (user.avatarUrl != null) onOpenAvatar(user.avatarUrl)
+                    }),
+            )
+        }
+
+        Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+            Text(
+                text = user.nickname,
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = user.handle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = LocalMosaicColors.current.textTertiary,
+            )
+            Spacer(Modifier.height(12.dp))
+            IdentityChips(user)
+            user.bio?.let { bio ->
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    text = bio,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Spacer(Modifier.height(14.dp))
+            StatsRow(user)
+            Spacer(Modifier.height(4.dp))
+        }
+    }
+}
+
+/** A circular avatar wrapped in a surface-colored ring, so it reads against the cover. */
+@Composable
+private fun AvatarRing(
+    user: User,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier
+            .size(AvatarRingSize)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.surface),
+        contentAlignment = Alignment.Center,
+    ) {
+        Avatar(user = user, size = AvatarSize)
+    }
+}
+
+/**
+ * Follow / Unfollow toggle for another user's profile. Filled while not yet following (the
+ * inviting primary action), tonal once following (a calmer "you're following" affordance) —
+ * both solid so the label stays legible over the cover gradient.
+ */
+@Composable
+private fun FollowButton(
+    isFollowing: Boolean,
+    onToggleFollow: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val onClick = onToggleFollow.rememberDebounced()
+
+    if (isFollowing) {
+        FilledTonalButton(onClick = onClick, modifier = modifier) {
+            Text(stringResource(R.string.profile_following))
+        }
+    } else {
+        Button(onClick = onClick, modifier = modifier) {
+            Text(stringResource(R.string.profile_follow))
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun IdentityChips(user: User) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        user.age?.let { age -> ProfileChip(text = age.toString()) }
+        user.gender?.let { gender -> ProfileChip(text = gender) }
+        user.location?.let { location ->
+            ProfileChip(text = location, leadingIcon = R.drawable.ic_place)
+        }
+    }
+}
+
+@Composable
+private fun ProfileChip(
+    text: String,
+    modifier: Modifier = Modifier,
+    @DrawableRes leadingIcon: Int? = null,
+) {
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(100.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(100.dp))
+            .padding(horizontal = 11.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (leadingIcon != null) {
+            Icon(
+                painter = painterResource(leadingIcon),
+                contentDescription = null,
+                tint = LocalMosaicColors.current.textTertiary,
+                modifier = Modifier.size(14.dp),
+            )
+            Spacer(Modifier.width(5.dp))
+        }
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
+private fun StatsRow(user: User, modifier: Modifier = Modifier) {
+    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+        Stat(value = user.followerCount, label = stringResource(R.string.profile_stat_followers))
+        Stat(value = user.followingCount, label = stringResource(R.string.profile_stat_following))
+    }
+}
+
+@Composable
+private fun Stat(value: Int, label: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = compactCount(value).asText(),
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(Modifier.width(5.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = LocalMosaicColors.current.textTertiary,
+        )
+    }
+}
+
+// endregion
+
+// region Tabs
+
+/**
+ * The profile's tab entries, in order. The row is generated by iterating [entries], so adding a
+ * tab is an enum addition plus its branch in [ProfileContent]. [ownerOnly] marks a tab that only
+ * belongs on the signed-in user's own profile — Saved holds what *they* bookmarked, which is
+ * private, so it is filtered out of the row on anyone else's profile (and the server refuses the
+ * list to a caller who isn't its owner regardless). Likes are deliberately not owner-only: what
+ * someone endorsed is public, and the server serves anyone's to anyone.
+ */
+private enum class ProfileTab(
+    @get:StringRes val labelRes: Int,
+    val ownerOnly: Boolean = false,
+) {
+    POSTS(R.string.profile_tab_posts),
+    LIKES(R.string.profile_tab_likes),
+    SAVED(R.string.profile_tab_saved, true),
+}
+
+@Composable
+private fun ProfileTabs(
+    tabs: List<ProfileTab>,
+    selected: ProfileTab,
+    onSelect: (ProfileTab) -> Unit,
+) {
+    // Opaque surface so it sits seamlessly under the filled bar it pins beneath, and hides the
+    // posts scrolling under it once pinned. It ends up flush below the bar because the header
+    // above it collapses to exactly the bar's height (see maxCollapse in ProfileContent).
+    PrimaryTabRow(
+        // The index into the *visible* tabs, which an ownerOnly entry makes narrower than
+        // the enum — so this is not the selected tab's ordinal.
+        selectedTabIndex = tabs.indexOf(selected),
+        containerColor = MaterialTheme.colorScheme.surface,
+    ) {
+        tabs.forEach { tab ->
+            Tab(
+                selected = tab == selected,
+                onClick = { onSelect(tab) },
+                selectedContentColor = MaterialTheme.colorScheme.primary,
+                unselectedContentColor = LocalMosaicColors.current.textTertiary,
+            ) {
+                Text(
+                    text = stringResource(tab.labelRes),
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.padding(vertical = 14.dp),
+                )
+            }
+        }
+    }
+}
+
+// endregion
+
+// region Tab content
+
+private fun LazyListScope.postItems(
+    screenData: ProfileScreenData,
+    reportSend: ReportSendState,
+    actions: ProfileActions,
+    isCurrentUser: Boolean,
+) {
+    val posts = screenData.posts
+    val author = screenData.user
+
+    if (posts.isEmpty()) {
+        item(key = "posts-empty") { EmptyTab(R.string.profile_empty_posts) }
+        return
+    }
+    items(posts, key = { it.id }) { post ->
+        PostCard(
+            // Every post here is by the profile's user, so "own post" is simply whose profile
+            // this is — no per-post comparison needed.
+            data = PostCardData(post, author, isOwn = isCurrentUser),
+            reportSend = reportSend,
+            onToggleLike = { actions.onToggleLike(post.id) },
+            onToggleBookmark = { actions.onToggleBookmark(post.id) },
+            // Already on this author's profile — tapping the header again is a no-op.
+            onOpenProfile = {},
+            onOpenVideo = actions::openVideo,
+            onOpenAlbum = actions::openAlbum,
+            onOpenPost = { actions.openPost(post.id) },
+            onReport = { reason, details -> actions.onReportPost(post.id, reason, details) },
+            onReportClosed = actions::onReportClosed,
+            onDelete = if (isCurrentUser) ({ actions.onDeletePost(post.id) }) else null,
+        )
+    }
+    if (!screenData.postsEndReached) {
+        item(key = "posts-loading-more") { LoadingMoreFooter() }
+    }
+}
+
+/**
+ * Fires an on-demand tab's first load when it becomes visible, and pages it thereafter. The two
+ * such tabs differ only in which list and callbacks they carry.
+ */
+@Composable
+private fun OnDemandTabEffects(
+    listState: LazyListState,
+    list: ProfilePostList?,
+    onShown: () -> Unit,
+    onLoadMore: () -> Unit,
+) {
+    LaunchedEffect(Unit) { onShown() }
+
+    LoadMoreEffect(
+        listState = listState,
+        endReached = list?.endReached ?: true,
+        onLoadMore = onLoadMore,
+    )
+}
+
+/**
+ * One on-demand tab's rows — Saved or Likes. A null [list] is the state before that tab's first
+ * fetch lands, so unlike the posts above it has a loading state of its own.
+ */
+private fun LazyListScope.onDemandTabItems(
+    list: ProfilePostList?,
+    reportSend: ReportSendState,
+    actions: ProfileActions,
+    keyPrefix: String,
+    @StringRes emptyMessageRes: Int,
+) {
+    if (list == null) {
+        item(key = "$keyPrefix-loading") { LoadingMoreFooter() }
+        return
+    }
+
+    if (list.posts.isEmpty()) {
+        item(key = "$keyPrefix-empty") { EmptyTab(emptyMessageRes) }
+        return
+    }
+
+    items(list.posts, key = { "$keyPrefix-${it.post.id}" }) { data ->
+        PostCard(
+            data = data,
+            reportSend = reportSend,
+            onToggleLike = { actions.onToggleLike(data.post.id) },
+            onToggleBookmark = { actions.onToggleBookmark(data.post.id) },
+            // A saved or liked post can be by anyone, so its header opens that author's
+            // profile — the one place this screen pushes another profile over itself.
+            onOpenProfile = { actions.openProfile(data.author.id) },
+            onOpenVideo = actions::openVideo,
+            onOpenAlbum = actions::openAlbum,
+            onOpenPost = { actions.openPost(data.post.id) },
+            onReport = { reason, details -> actions.onReportPost(data.post.id, reason, details) },
+            onReportClosed = actions::onReportClosed,
+            onDelete = if (data.isOwn) ({ actions.onDeletePost(data.post.id) }) else null,
+        )
+    }
+
+    if (!list.endReached) {
+        item(key = "$keyPrefix-loading-more") { LoadingMoreFooter() }
+    }
+}
+
+@Composable
+private fun EmptyTab(
+    @StringRes messageRes: Int,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 48.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = stringResource(messageRes),
+            style = MaterialTheme.typography.bodyLarge,
+            color = LocalMosaicColors.current.textTertiary,
+        )
+    }
+}
+
+// endregion
+
+// region Shared
+
+/** A plain back button for the loading / not-found states, which have no cover to scrim over. */
+@Composable
+private fun PlainBackButton(onBack: () -> Unit, modifier: Modifier = Modifier) {
+    IconButton(
+        onClick = onBack.rememberDebounced(),
+        modifier = modifier
+            .statusBarsPadding()
+            .padding(start = 4.dp, top = 4.dp),
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_arrow_back),
+            contentDescription = stringResource(R.string.navigate_back),
+            tint = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
+/** How far into the header's collapse the bar has finished filling to the surface color. */
+private const val BAR_FILL_FRACTION = 0.5f
+
+/**
+ * A transparent app bar over the cover that fills to the surface color as the header collapses. Its
+ * buttons carry a gray circular scrim with a white icon over the cover, and fade that to a bare
+ * on-surface icon once the bar fills — both driven by the same [progress], so bar and buttons move
+ * in lockstep, reaching opaque [BAR_FILL_FRACTION] of the way through the collapse rather than at the
+ * very end, so the chrome settles while the cover is still on its way out.
+ *
+ * Once the tab row pins flush beneath it the bar drops its shadow: the bar and the tabs are
+ * separate stacked surfaces (the bar paints over the tabs), so a shadow here would only fall
+ * across the seam onto the tabs. Going flat at that point reads cleaner than that seam. That is
+ * keyed off the *raw* collapse, not [progress], since it tracks where the tabs actually are.
+ *
+ * [collapse] is read here rather than at the screen scope so a scroll recomposes only the bar.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ProfileTopBar(
+    userName: String,
+    collapse: FloatState,
+    maxCollapse: Float,
+    onBack: (() -> Unit)?,
+) {
+    val collapsed = if (maxCollapse > 0f) {
+        (collapse.floatValue / maxCollapse).coerceIn(0f, 1f)
+    } else {
+        0f
+    }
+    val progress = (collapsed / BAR_FILL_FRACTION).coerceIn(0f, 1f)
+    // `collapsed` is clamped to [0, 1] and reaches exactly 1f at full collapse, so this is the true
+    // pinned state. Animated with the same default spec as the tab row's shadow, easing in step.
+    val pinned by animateFloatAsState(if (collapsed >= 1f) 1f else 0f, label = "appBarPinned")
+
+    TopAppBar(
+        modifier = Modifier.shadow(
+            elevation = MosaicElevations.ScrolledBar * progress * (1f - pinned),
+        ),
+        title = {
+            Text(
+                text = userName,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = progress),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        },
+        navigationIcon = {
+            if (onBack != null) {
+                ScrimIconButton(
+                    iconRes = R.drawable.ic_arrow_back,
+                    contentDescription = stringResource(R.string.navigate_back),
+                    progress = progress,
+                    onClick = onBack,
+                )
+            }
+        },
+        actions = {},
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = progress),
+        ),
+    )
+}
+
+@Composable
+private fun CenteredMessage(message: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+// endregion
+
+// region Previews
+
+private fun sampleProfileData(): ProfileScreenData {
+    val user = SampleUsers.first()
+    val posts = SamplePosts.filter { it.authorId == user.id }
+
+    return ProfileScreenData(
+        user = user,
+        profile = Profile(userId = user.id, postsCount = posts.size),
+        posts = posts,
+    )
+}
+
+@Preview(showBackground = true, name = "My user")
+@Composable
+private fun ProfileScreenPreview() {
+    MosaicTheme {
+        ProfileScreen(
+            uiState = ProfileUiState.Loaded(sampleProfileData(), isCurrentUser = true),
+            isRefreshing = false,
+            failedAction = null,
+            reportSend = ReportSendState.IDLE,
+            onRefresh = {},
+            onRetry = {},
+            actions = createActionsProxy(),
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Another user")
+@Composable
+private fun ProfileScreenOtherUserPreview() {
+    MosaicTheme {
+        ProfileScreen(
+            uiState = ProfileUiState.Loaded(sampleProfileData(), isCurrentUser = false),
+            isRefreshing = false,
+            failedAction = null,
+            reportSend = ReportSendState.IDLE,
+            onRefresh = {},
+            onRetry = {},
+            actions = createActionsProxy(),
+        )
+    }
+}
+
+// endregion
