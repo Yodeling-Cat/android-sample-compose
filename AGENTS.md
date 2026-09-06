@@ -56,20 +56,32 @@ The backend is a **Ruby on Rails** app. `NetworkModule` holds the host as `BASE_
 `BASE_URL` is a `buildConfigField`, set by the **`server` flavor dimension** in `app/build.gradle.kts`. There is no in-app switch, and both flavors keep the one `applicationId`, so swapping servers is the Build Variants dropdown — or a `Remote`/`Local` task name — and never a reinstall under a different package.
 
 - **`remote`** (`isDefault`) — the deployed host, `https://mosaic.tree-among-shrubs.com`.
-- **`local`** — `http://10.0.2.2:3000`, the emulator's alias for the host machine.
+- **`local`** — `http://localhost:3000`, reached through an adb reverse tunnel.
 
-A **physical device** cannot resolve `10.0.2.2`, so it needs the dev machine's LAN address. Two settings override the host and port, each read from an environment variable first, then a Gradle property (`~/.gradle/gradle.properties`, or `-P` on the command line):
+**The tunnel is the setup step**, and it has to be re-run after an emulator or adb restart:
+
+```
+adb reverse tcp:3000 tcp:3000
+```
+
+It forwards the device's own port 3000 to the dev machine's, over adb. This is the route that works on the emulator and over USB alike, with no firewall rule, no admin, and nothing to change when the machine's IP moves.
+
+Two settings override the host and port, each read from an environment variable first, then a Gradle property (`~/.gradle/gradle.properties`, or `-P` on the command line):
 
 | Setting | Environment variable | Gradle property | Default |
 | --- | --- | --- | --- |
-| Host | `MOSAIC_LOCAL_HOST` | `mosaic.localHost` | `10.0.2.2` |
+| Host | `MOSAIC_LOCAL_HOST` | `mosaic.localHost` | `localhost` |
 | Port | `MOSAIC_LOCAL_PORT` | `mosaic.localPort` | `3000` |
 
 Both are read through `providers`, so they stay compatible with the configuration cache.
 
 **Cleartext HTTP is scoped to the `local` flavor**, through `app/src/local/`'s manifest and network security config. The address is a build-time setting, so the exemption cannot name a domain — which is why it is a `base-config` on a flavor that only ever points at a dev machine. Every `remote` build, release included, keeps cleartext blocked.
 
-Rails must listen on all interfaces for either case to work: `bin/rails server -b 0.0.0.0`. Running it under WSL also needs the port reachable from Windows — mirrored networking (`networkingMode=mirrored` in `.wslconfig`) is the version that needs no port proxy.
+**Why the tunnel rather than an IP.** The server runs under WSL, and WSL's mirrored networking (`networkingMode=mirrored`) relays a Linux listener to Windows *processes* only — it opens no Windows listening socket. So `10.0.2.2:3000`, the emulator's alias for the host machine, is refused, and the dev machine's LAN address times out, even with an inbound Hyper-V firewall rule allowing the port. Both were measured: a Windows-native listener on another port answered the emulator on both addresses at the same moment Rails on 3000 did not. adb sidesteps the whole question.
+
+Rails still has to listen broadly: `bin/rails server -b 0.0.0.0 -p 3000`.
+
+Reaching the server from a device over **Wi-Fi** rather than USB needs a real Windows listener in front of it — `netsh interface portproxy add v4tov4 listenport=3000 listenaddress=0.0.0.0 connectport=3000 connectaddress=127.0.0.1`, plus an inbound Windows firewall rule — and then `MOSAIC_LOCAL_HOST` set to the machine's LAN address.
 
 **There is no sign-in.** The app seeds the signed-in user from `app/fixtures/SampleData.kt` and sends it as an `X-User-Id` header. The server uses this header to scope viewer state (`isLiked`, `isBookmarked`) and to enforce ownership. Deleting someone else's post and reading someone else's bookmarks both return a 403 from the server, not only from the client.
 

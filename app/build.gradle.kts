@@ -23,9 +23,11 @@ fun devSetting(
         .orElse(providers.gradleProperty(gradleProperty))
         .getOrElse(default)
 
-// Where the `local` flavor looks for the Rails server. The default is the emulator's alias for the
-// host machine; a physical device on the same network needs the host machine's LAN address instead.
-val localServerHost = devSetting("MOSAIC_LOCAL_HOST", "mosaic.localHost", "10.0.2.2")
+// Where the `local` flavor looks for the Rails server. The default pairs with
+// `adb reverse tcp:3000 tcp:3000`, which tunnels the device's own port 3000 to the dev machine over
+// adb — the one route that needs no firewall rule and works on the emulator and over USB alike.
+// A device reaching the server over the network instead needs the dev machine's LAN address here.
+val localServerHost = devSetting("MOSAIC_LOCAL_HOST", "mosaic.localHost", "localhost")
 val localServerPort = devSetting("MOSAIC_LOCAL_PORT", "mosaic.localPort", "3000")
 
 android {
