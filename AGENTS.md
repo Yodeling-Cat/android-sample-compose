@@ -58,13 +58,11 @@ The backend is a **Ruby on Rails** app. `NetworkModule` holds the host as `BASE_
 - **`remote`** (`isDefault`) — the deployed host, `https://mosaic.tree-among-shrubs.com`.
 - **`local`** — `http://localhost:3000`, reached through an adb reverse tunnel.
 
-**The tunnel is the setup step**, and it has to be re-run after an emulator or adb restart:
+**The tunnel opens itself.** `adbReverseLocalServer` in `app/build.gradle.kts` runs `adb reverse tcp:3000 tcp:3000` for every attached device, and it finalizes every `assembleLocal*` and `installLocal*` task. It hangs off *assemble* rather than install because Android Studio's Run button deploys the APK itself and never calls the install task.
 
-```
-adb reverse tcp:3000 tcp:3000
-```
+The tunnel forwards the device's own port 3000 to the dev machine's, over adb — the route that works on the emulator and over USB alike, with no firewall rule, no admin, and nothing to change when the machine's IP moves. It dies with the emulator and with the adb server, which is why the task is never up to date and simply re-runs.
 
-It forwards the device's own port 3000 to the dev machine's, over adb. This is the route that works on the emulator and over USB alike, with no firewall rule, no admin, and nothing to change when the machine's IP moves.
+**The task never fails the build.** No device attached, no adb on the machine, an adb that errors — each is one line on the console and nothing more, because assembling an APK without a device is ordinary. It also wires up nothing at all when the host below is overridden away from loopback, since a device reaching the server over the network needs no tunnel.
 
 Two settings override the host and port, each read from an environment variable first, then a Gradle property (`~/.gradle/gradle.properties`, or `-P` on the command line):
 
