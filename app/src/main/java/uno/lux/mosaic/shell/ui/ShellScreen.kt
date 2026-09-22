@@ -27,7 +27,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import uno.lux.mosaic.app.navigation.Screen
 import uno.lux.mosaic.app.theme.LocalMosaicColors
 import uno.lux.mosaic.app.ui.components.DividedNavigationSuiteScaffold
-import uno.lux.mosaic.feed.ui.HomeScreen
+import uno.lux.mosaic.home.ui.HomeScreen
 import uno.lux.mosaic.profile.ui.ProfileScreen
 import uno.lux.mosaic.user.data.domain.UserId
 

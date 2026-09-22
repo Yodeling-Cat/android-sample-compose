@@ -50,7 +50,8 @@ class Navigator(
      * entry with it, and tests build a stack the way the app builds one; it is not part of the
      * surface ViewModels navigate through.
      */
-    internal fun entryFor(screen: Screen) = BackStackEntry(screen, screen.sharedId ?: nextId())
+    internal fun entryFor(screen: Screen) =
+        BackStackEntry(screen, screen.sharedId ?: nextId())
 
     /**
      * Pushes [screen] on top of the back stack. Deliberately allows a screen equal to the current

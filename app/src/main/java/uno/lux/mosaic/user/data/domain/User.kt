@@ -5,12 +5,9 @@ typealias UserId = String
 /**
  * A platform user.
  *
- * [nickname] is the display name; [handle] is the unique `@`-mention. [avatarUrl] is a URI
- * reference to the profile photo; `null` falls back to the generated initials avatar.
+ * [nickname] is the display name; [handle] is the unique `@`-mention.
  *
- * A `null` optional field means the user left it empty — never "not loaded yet". Every user
- * the API serves, embedded authors included, carries the same full projection, so there is no
- * partial [User] in flight that a cache write could mistake for an empty one.
+ * A `null` optional field means the user left it empty.
  */
 data class User(
     val id: UserId,

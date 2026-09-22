@@ -79,13 +79,10 @@ class ProfileViewModel @AssistedInject constructor(
 
     /**
      * Resolves one on-demand tab's post IDs into cards, staying null until that tab's first load
-     * lands. Each call captures its own cache, which preserves [PostCardData] instances across
-     * emissions so Compose strong-skipping can skip the rows that didn't change.
+     * lands.
      */
-    private fun cardListFlow(list: PostList): Flow<ProfilePostList?> {
-        var cache = emptyMap<PostId, PostCardData>()
-
-        return combine(
+    private fun cardListFlow(list: PostList): Flow<ProfilePostList?> =
+        combine(
             list.ids,
             list.hasMore,
             postRepository.entities,
@@ -96,22 +93,15 @@ class ProfileViewModel @AssistedInject constructor(
             val cards = postIds.mapNotNull { id ->
                 val post = entities[id] ?: return@mapNotNull null
                 val author = users[post.authorId] ?: return@mapNotNull null
-                val cached = cache[id]
-                if (cached != null && cached.post === post && cached.author === author) {
-                    cached
-                } else {
-                    PostCardData(
-                        post = post, author = author,
-                        isOwn =
-                            post.authorId == currentUserId,
-                    )
-                }
+                PostCardData(
+                    post = post,
+                    author = author,
+                    isOwn = post.authorId == currentUserId,
+                )
             }
-            cache = cards.associateBy { it.post.id }
 
             ProfilePostList(posts = cards, endReached = !more)
         }
-    }
 
     /** The two lazily-loaded tabs, paired so the state combine stays within its typed arity. */
     private data class LazyTabs(

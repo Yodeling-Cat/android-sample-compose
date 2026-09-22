@@ -3,9 +3,10 @@ package uno.lux.mosaic.feed.ui
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import uno.lux.mosaic.home.ui.videoToPlay
 
 /**
- * The feed's playback rule, exercised without a composition: [videoToPlay] is the whole of what
+ * The feed's playback rule, exercised without a composition: [uno.lux.mosaic.home.ui.videoToPlay] is the whole of what
  * the auto-play setting changes about the feed.
  */
 class VideoToPlayTest {

@@ -81,8 +81,7 @@ internal fun VideoPostPlayer(
 }
 
 /**
- * The pre-playback poster: the server-extracted frame if there is one, a centered play button and
- * a duration badge.
+ * The pre-playback poster: the server-extracted frame if there is one.
  *
  * The gradient is a *stand-in for a missing frame*, not a backdrop — it shows only when there is
  * no thumbnail to draw, or the one we were given failed to load. A clip that has its frame sits on

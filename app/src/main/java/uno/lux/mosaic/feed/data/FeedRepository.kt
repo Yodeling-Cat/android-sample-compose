@@ -26,13 +26,9 @@ sealed interface FeedState {
 /**
  * Source of truth for the home feed's ordered post IDs.
  *
- * [feedState] carries the IDs in display order plus the pagination flag; consumers resolve IDs to
+ * [feedState] carries the IDs in display order; consumers resolve IDs to
  * [uno.lux.mosaic.post.data.domain.Post] objects via [uno.lux.mosaic.post.data.PostRepository.entities] so mutations (likes, bookmarks) propagate automatically
- * without re-fetching. [refresh] re-fetches the first page. [loadMore] appends the next page.
- * [publish] creates a post and puts it at the head of the feed.
- *
- * Where the data comes from — in-memory sample data vs. a live network call — is decided by
- * [FeedDataSource]. This class owns only the ordered ID list and pagination state.
+ * without re-fetching.
  */
 class FeedRepository(
     private val dataSource: FeedDataSource,
@@ -48,21 +44,20 @@ class FeedRepository(
         _feedState.value = FeedState.NotLoaded
     }
 
+    /** Re-fetches the first page */
     suspend fun refresh() {
         val page = dataSource.fetch(cursor = null)
         postRepository.ingest(page.posts)
         userRepository.ingest(page.users)
         nextCursor = page.nextCursor
-        // Set last: entities and users are already ingested, so when this emits the combine
-        // can resolve every post ID without a stale-data gap.
+
         _feedState.value = FeedState.Loaded(page.posts.map { it.id }, page.hasMore)
     }
 
     /**
-     * Publishes [draft] and returns the new post's ID. [PostRepository] stores the post and its
-     * embedded author; the ID is then prepended to the feed so the composer's result is visible
-     * at the top without a round trip. A feed that hasn't loaded yet is left alone — its first
-     * fetch will carry the new post anyway.
+     * Publishes [draft] and creates a post and puts it at the head of the feed.
+     *
+     * @return the new post's ID
      */
     suspend fun publish(draft: NewPost): PostId {
         val created = postRepository.create(draft)
@@ -78,13 +73,16 @@ class FeedRepository(
         return created.id
     }
 
+    /** Appends the next page. */
     suspend fun loadMore() {
         val current = _feedState.value as? FeedState.Loaded ?: return
         if (!current.hasMore) return
+
         val page = dataSource.fetch(cursor = nextCursor)
         postRepository.ingest(page.posts)
         userRepository.ingest(page.users)
         nextCursor = page.nextCursor
+
         _feedState.value = FeedState.Loaded(
             postIds = buildList {
                 addAll(current.postIds)

@@ -94,13 +94,6 @@ import uno.lux.mosaic.user.data.domain.User
 import uno.lux.mosaic.user.ui.Avatar
 import uno.lux.mosaic.video.data.domain.Video
 
-/**
- * Stateful entry point: binds the [PostDetailViewModel] (keyed by [postId]) and hands its state
- * to the stateless overload. No intent is wired here — the state carries its own
- * [eventSink][PostDetailUiState.eventSink] — so this binder has nothing to keep in step with the
- * screen below it. The ViewModel store is per back-stack entry, so each opened post gets its own
- * instance, created on push and cleared on pop.
- */
 @Composable
 fun PostDetailScreen(
     postId: PostId,

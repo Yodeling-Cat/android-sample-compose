@@ -36,7 +36,7 @@ import org.junit.Test
 class ArchitectureTest {
 
     private companion object {
-        const val ROOT = "uno.lux.sample"
+        const val ROOT = "uno.lux.mosaic"
 
         /** The machine. It wires the concerns together, so it is allowed to import them. */
         const val APP = "app"
@@ -62,7 +62,7 @@ class ArchitectureTest {
 
     private val KoFileDeclaration.pkg: String get() = packagee?.name.orEmpty()
 
-    /** The top-level package a file lives in: `uno.lux.sample.post.data` -> `post`. */
+    /** The top-level package a file lives in: `uno.lux.mosaic.post.data` -> `post`. */
     private val KoFileDeclaration.root: String get() = pkg.removePrefix("$ROOT.").substringBefore('.')
 
     /** Whether the file is in the concern's data layer: `post.data`, `post.data.network`, … */

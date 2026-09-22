@@ -101,11 +101,6 @@ interface CreatePostActions {
     fun confirmDiscard()
 }
 
-/**
- * Stateful entry point: binds the [CreatePostViewModel] and forwards state and intent to the
- * stateless overload below. System back is routed through the ViewModel like the top bar's up
- * affordance, so both ask before dropping a part-written post.
- */
 @Composable
 fun CreatePostScreen(
     modifier: Modifier = Modifier,

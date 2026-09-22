@@ -48,7 +48,8 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideJson(): Json = Json { ignoreUnknownKeys = true }
+    fun provideJson(): Json =
+        Json { ignoreUnknownKeys = true }
 
     /**
      * Rails answers conditional requests out of the box (`Rack::ETag` + `Rack::ConditionalGet`),
@@ -59,7 +60,8 @@ object NetworkModule {
     @Singleton
     fun provideHttpCache(
         @ApplicationContext context: Context,
-    ): Cache = Cache(File(context.cacheDir, "http"), HTTP_CACHE_BYTES)
+    ): Cache =
+        Cache(File(context.cacheDir, "http"), HTTP_CACHE_BYTES)
 
     /*
      * The timeouts are deliberate, not defaults: connect stays at 10 s, read and write get 30 s
@@ -83,15 +85,8 @@ object NetworkModule {
             .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .readTimeout(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
             .writeTimeout(WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .addInterceptor { chain ->
-                chain.proceed(
-                    chain
-                        .request()
-                        .newBuilder()
-                        .addHeader("X-User-Id", currentUserId)
-                        .build(),
-                )
-            }.apply {
+            .addInterceptor(UserIdHeaderInterceptor(currentUserId))
+            .apply {
                 if (BuildConfig.DEBUG) {
                     addInterceptor(BodyLoggingInterceptor)
                 }
@@ -165,6 +160,26 @@ object NetworkModule {
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class ImageHttpClient
+
+/**
+ * Stamps every request with the signed-in user. The app has no sign-in, so this header is the whole
+ * of the server's notion of a caller: it scopes viewer state (`isLiked`, `isBookmarked`) and backs
+ * every ownership check.
+ */
+private class UserIdHeaderInterceptor(
+    private val userId: UserId,
+) : Interceptor {
+
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val request = chain
+            .request()
+            .newBuilder()
+            .addHeader("X-User-Id", userId)
+            .build()
+
+        return chain.proceed(request)
+    }
+}
 
 /**
  * Full-body request/response logging, except for multipart uploads, which log headers only.

@@ -39,8 +39,6 @@ fun AppError.asText(): String = when (this) {
     AppError.Unknown -> stringResource(R.string.error_unknown)
 }
 
-// TODO: Should instead be passing a message in the ViewModel.
-
 /**
  * Names what a [FailedAction] failed to do, localized. The message states the action rather than
  * the cause: the cause is already logged, and "couldn't delete the post" is what tells the user

@@ -4,13 +4,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import uno.lux.mosaic.common.data.ReportReason
 
-/**
- * The body of a report: `{ "reason": "hate_speech", "details"?: "…" }`.
- *
- * [details] defaults to null and the app's `Json` does not encode defaults, so a report with
- * nothing typed in the optional field leaves the key off the wire entirely rather than sending
- * an empty string the server would have to treat as absent anyway.
- */
 @Serializable
 data class ReportPostRequestDto(
     val reason: ReportReasonDto,

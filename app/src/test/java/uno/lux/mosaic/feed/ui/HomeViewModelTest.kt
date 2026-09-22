@@ -20,6 +20,8 @@ import uno.lux.mosaic.feed.data.FakeFeedDataSource
 import uno.lux.mosaic.feed.data.FeedDataSource
 import uno.lux.mosaic.feed.data.FeedPage
 import uno.lux.mosaic.feed.data.FeedRepository
+import uno.lux.mosaic.home.ui.HomeUiState
+import uno.lux.mosaic.home.ui.HomeViewModel
 import uno.lux.mosaic.post.data.FakePostDataSource
 import uno.lux.mosaic.post.data.PostRepository
 import uno.lux.mosaic.post.data.domain.Post
@@ -379,7 +381,7 @@ class HomeViewModelTest : ViewModelTest() {
     }
 
     @Test
-    fun `PostCardData instance is preserved for unchanged posts on a like toggle`() = runTest {
+    fun `post and author instances are preserved for unchanged posts on a like toggle`() = runTest {
         val viewModel = viewModel(
             feedDataSource = FakeFeedDataSource(
                 listOf(FeedPage(listOf(post, post2), listOf(author, author2), null, false)),
@@ -392,8 +394,11 @@ class HomeViewModelTest : ViewModelTest() {
 
         viewModel.onToggleLike(post.id)
 
+        // PostCard takes the post and the author as separate parameters, so these two instances
+        // are what strong skipping compares. The card wrapping them is rebuilt every emission.
         val cardAfter = (viewModel.uiState.value as HomeUiState.Feed).posts[1]
-        assertSame(cardBefore, cardAfter)
+        assertSame(cardBefore.post, cardAfter.post)
+        assertSame(cardBefore.author, cardAfter.author)
     }
 
     @Test

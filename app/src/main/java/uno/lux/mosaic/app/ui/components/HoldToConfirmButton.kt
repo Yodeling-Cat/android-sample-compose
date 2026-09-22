@@ -51,20 +51,16 @@ import kotlinx.coroutines.withTimeoutOrNull
 import uno.lux.mosaic.R
 import uno.lux.mosaic.app.theme.MosaicAccentBrush
 import uno.lux.mosaic.app.theme.MosaicTheme
+import kotlin.time.Duration.Companion.milliseconds
 
-/** What the button is doing right now — both the label and the fill are read off it. */
+/** What the button is doing right now. */
 internal enum class HoldPhase { IDLE, HOLDING, HINT }
 
 /**
- * The press-and-hold gesture as a plain state machine, so the whole sequence — press, hold to
- * confirm, release early to hint, hint back to idle — is unit-testable without a frame clock or a
- * composition. The composable owns the animation; this owns *what phase the button is in* and
- * *when the action fires*.
+ * The press-and-hold gesture as a plain state machine.
  *
  * [press] deliberately outlives the finger: the hint keeps running after the release, which is why
- * a press is numbered and only the newest one may write [phase]. A user who taps, reads the hint
- * and immediately presses again would otherwise have the spent press's expiring hint yank the
- * button out of the new hold.
+ * a press is numbered and only the newest one may write [phase].
  */
 @Stable
 internal class HoldToConfirmState(
@@ -87,13 +83,13 @@ internal class HoldToConfirmState(
         phase = HoldPhase.HOLDING
 
         try {
-            val heldLongEnough = withTimeoutOrNull(holdMillis) { awaitRelease() } == null
+            val heldLongEnough = withTimeoutOrNull(holdMillis.milliseconds) { awaitRelease() } == null
 
             if (heldLongEnough) {
                 onConfirm()
             } else {
                 moveTo(press, HoldPhase.HINT)
-                delay(hintMillis)
+                delay(hintMillis.milliseconds)
             }
         } finally {
             // Also the cancellation path: a gesture torn down mid-hold must not leave a stuck fill.
@@ -242,7 +238,7 @@ fun HoldToConfirmButton(
         } else {
             // The two labels are stacked and both stay in the layout for good — only their alpha
             // moves. Swapping which one is *composed* would resize the box to whichever label is
-            // showing, so the shorter one would drift off centre as the other faded in.
+            // showing, so the shorter one would drift off centrer as the other faded in.
             HoldLabel(text = text, color = contentColor) { 1f - hintAlpha.value }
 
             HoldLabel(text = hintText, color = contentColor) { hintAlpha.value }

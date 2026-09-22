@@ -24,14 +24,17 @@ class NetworkProfileDataSource(
         )
     }
 
-    override suspend fun loadMorePosts(userId: UserId, cursor: String?): PostsPage =
-        withContext(Dispatchers.IO) { api.getUserPosts(userId, cursor = cursor).toPage() }
+    override suspend fun loadMorePosts(userId: UserId, cursor: String?): PostsPage = withContext(Dispatchers.IO) {
+        api.getUserPosts(userId, cursor = cursor).toPage()
+    }
 
-    override suspend fun bookmarks(userId: UserId, cursor: String?): PostsPage =
-        withContext(Dispatchers.IO) { api.getBookmarks(userId, cursor = cursor).toPage() }
+    override suspend fun bookmarks(userId: UserId, cursor: String?): PostsPage = withContext(Dispatchers.IO) {
+        api.getBookmarks(userId, cursor = cursor).toPage()
+    }
 
-    override suspend fun likes(userId: UserId, cursor: String?): PostsPage =
-        withContext(Dispatchers.IO) { api.getLikes(userId, cursor = cursor).toPage() }
+    override suspend fun likes(userId: UserId, cursor: String?): PostsPage = withContext(Dispatchers.IO) {
+        api.getLikes(userId, cursor = cursor).toPage()
+    }
 
     private fun PostsWithAuthorsResponse.toPage() = PostsPage(
         posts = data.map { PostMapper.map(it) },

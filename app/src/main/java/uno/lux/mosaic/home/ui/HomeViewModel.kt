@@ -1,4 +1,4 @@
-package uno.lux.mosaic.feed.ui
+package uno.lux.mosaic.home.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -36,30 +36,11 @@ import uno.lux.mosaic.user.data.domain.UserId
 import uno.lux.mosaic.video.data.domain.Video
 import javax.inject.Inject
 
-/**
- * Holds feed state and translates user intent — likes and bookmarks into repository mutations,
- * opening a post/profile/viewer into pushes on the injected [Navigator]. Combines
- * [FeedRepository] (feed state + pagination), [PostRepository] (entity map), and
- * [UserRepository] (author lookup) to produce [PostCardData] items ready for display. All
- * collaborators are constructor dependencies so the ViewModel can be unit tested against fakes
- * (the navigator against a plain attached list).
- *
- * [FeedState.NotLoaded] is the initial state of [FeedRepository.feedState]; the combine maps it
- * to [HomeUiState.Loading] until [FeedRepository.refresh] completes and emits [FeedState.Loaded].
- * Because entities and users are ingested before that emission, the Loading → Feed transition is
- * atomic: there is no intermediate state where the flag flips but the data has not yet arrived.
- *
- * **A loaded feed outranks a load error.** The state a failure lands in is decided by whether
- * there is anything to read: with nothing loaded it becomes [HomeUiState.Error] and owns the
- * screen, while over a loaded feed it rides along as [HomeUiState.Feed.refreshError] for the
- * screen to show transiently — a refresh that failed must not take away the posts the user was
- * reading. [retry] is the one path back to a full-screen error, because it resets the feed first.
- */
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val feedRepository: FeedRepository,
     private val postRepository: PostRepository,
-    private val userRepository: UserRepository,
+    userRepository: UserRepository,
     settingsRepository: SettingsRepository,
     private val navigator: Navigator,
     @param:CurrentUserId private val currentUserId: UserId,
@@ -67,10 +48,6 @@ class HomeViewModel @Inject constructor(
     HomeActions {
 
     private val _loadError = MutableStateFlow<AppError?>(null)
-
-    // Preserves PostCardData instances across emissions so Compose strong-skipping can use
-    // reference equality to skip PostCard recomposition for posts that didn't change.
-    private var cardCache = emptyMap<PostId, PostCardData>()
 
     val uiState: StateFlow<HomeUiState> = combine(
         feedRepository.feedState,
@@ -80,7 +57,6 @@ class HomeViewModel @Inject constructor(
     ) { feedState, entities, users, loadError ->
         when (feedState) {
             FeedState.NotLoaded -> {
-                // Nothing loaded, so a failed load is all there is to show.
                 if (loadError != null) HomeUiState.Error(loadError) else HomeUiState.Loading
             }
 
@@ -88,18 +64,12 @@ class HomeViewModel @Inject constructor(
                 val cards = feedState.postIds.mapNotNull { id ->
                     val post = entities[id] ?: return@mapNotNull null
                     val author = users[post.authorId] ?: return@mapNotNull null
-                    val cached = cardCache[id]
-                    if (cached != null && cached.post === post && cached.author === author) {
-                        cached
-                    } else {
-                        PostCardData(
-                            post = post,
-                            author = author,
-                            isOwn = post.authorId == currentUserId,
-                        )
-                    }
+                    PostCardData(
+                        post = post,
+                        author = author,
+                        isOwn = post.authorId == currentUserId,
+                    )
                 }
-                cardCache = cards.associateBy { it.post.id }
                 HomeUiState.Feed(
                     posts = cards,
                     endReached = !feedState.hasMore,
@@ -114,7 +84,7 @@ class HomeViewModel @Inject constructor(
 
     private val _failedAction = MutableStateFlow<FailedAction?>(null)
 
-    /** The last [FailedAction] to fail here, for the screen to announce once and then spend. */
+    /** The last [FailedAction] to fail here, for the screen to announce. */
     val failedAction: StateFlow<FailedAction?> = _failedAction.asStateFlow()
 
     private val _reportSend = MutableStateFlow(ReportSendState.IDLE)
@@ -123,10 +93,7 @@ class HomeViewModel @Inject constructor(
     val reportSend: StateFlow<ReportSendState> = _reportSend.asStateFlow()
 
     /**
-     * Whether the feed may start a video on its own as it scrolls into view. The stored preference
-     * arrives asynchronously, so this starts from [DEFAULT_AUTO_PLAY_VIDEOS] rather than a literal of
-     * its own — otherwise a launch would briefly disagree with the repository about what an
-     * unset preference means, and the feed would flip playback as the stored choice landed.
+     * Whether the feed may start a video on its own as it scrolls into view.
      */
     val autoPlayVideos: StateFlow<Boolean> = settingsRepository.autoPlayVideos
         .stateInWhileSubscribed(viewModelScope, DEFAULT_AUTO_PLAY_VIDEOS)
@@ -148,14 +115,6 @@ class HomeViewModel @Inject constructor(
         load()
     }
 
-    /**
-     * The screen has announced the transient [HomeUiState.Feed.refreshError] and is done with it.
-     * Clearing it here rather than leaving it to stand until the next load is what stops a
-     * configuration change from re-announcing a failure the user has already read: the composition
-     * is rebuilt from nothing, so an error still in the state would be shown again on every
-     * rotation. The full-screen [HomeUiState.Error] is never spent this way — it *is* the screen,
-     * and only [retry] leaves it.
-     */
     override fun onRefreshErrorShown() {
         _loadError.value = null
     }
@@ -192,20 +151,14 @@ class HomeViewModel @Inject constructor(
 
     override fun onReportClosed() = dropReport(::reportJob, ::setReportSend)
 
-    /** Passed to [launchReporting] by reference, which is why it is a function. */
     private fun setFailedAction(action: FailedAction) {
         _failedAction.value = action
     }
 
-    /** Passed to [launchReport] and [dropReport] by reference, which is why it is a function. */
     private fun setReportSend(state: ReportSendState) {
         _reportSend.value = state
     }
 
-    /**
-     * The screen has announced [failedAction] and is done with it — the same spend-once lifetime
-     * [onRefreshErrorShown] gives the refresh error.
-     */
     override fun onFailedActionShown() {
         _failedAction.value = null
     }

@@ -5,7 +5,7 @@ import androidx.compose.ui.res.stringResource
 import uno.lux.mosaic.R
 import uno.lux.mosaic.common.asText
 
-/** Maps a [CreatePostError] to its localized message, filling in any limit it names. */
+/** Maps a [CreatePostError] to its localized message. */
 @Composable
 fun CreatePostError.asText(): String = when (this) {
     is CreatePostError.Failed -> error.asText()

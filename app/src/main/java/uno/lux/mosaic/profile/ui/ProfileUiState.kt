@@ -2,7 +2,6 @@ package uno.lux.mosaic.profile.ui
 
 import uno.lux.mosaic.app.util.AppError
 
-/** The profile screen's state: loading, the loaded profile data, or an unknown user. */
 sealed interface ProfileUiState {
     data object Loading : ProfileUiState
 

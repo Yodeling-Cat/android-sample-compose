@@ -39,14 +39,9 @@ private val TileHeight = 180.dp
 private val TileContentScale = ContentScale.Crop
 
 /**
- * An album post's media: its [Album.images] laid out in a horizontally scrolling row, each photo
- * loaded with Coil. Tapping an image calls [onOpenImage] with its index (for the fullscreen
- * viewer). Each photo carries a position badge ("2 / 3") with an image icon in its top-end corner.
- * While a photo loads (or if it fails) the deterministic Mosaic gradient shows through behind it.
+ * An album post's media: its [Album.images] laid out in a horizontally scrolling row.
  *
- * The photo *after* the last visible one is warmed ahead of the scroll by [PrefetchNextImage], at
- * the tile's own pixel size and [TileContentScale] so the entry it stores is the one [AsyncImage]
- * accepts.
+ * The photo *after* the last visible one is warmed ahead of the scroll by [PrefetchNextImage].
  */
 @Composable
 internal fun AlbumPostGallery(

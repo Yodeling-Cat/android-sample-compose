@@ -18,10 +18,7 @@ import java.io.IOException
 
 /**
  * [SettingsRepository] backed by a Preferences [DataStore], so the stored choices survive
- * process death and restarts. The store is a constructor dependency: production supplies the
- * app's store (with a one-time migration from the legacy SharedPreferences file), tests a
- * store over a temp file — which keeps this class plain-JVM testable, unlike its
- * SharedPreferences predecessor.
+ * process death and restarts.
  */
 class DataStoreSettingsRepository(
     private val dataStore: DataStore<Preferences>,

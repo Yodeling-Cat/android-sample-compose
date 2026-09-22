@@ -22,14 +22,11 @@ import uno.lux.mosaic.post.data.domain.NewPostMedia
 import javax.inject.Inject
 
 /**
- * Drives the post composer. Publishing goes through [FeedRepository], which stores the new post
- * and puts it at the head of the feed; the composer then [replaces][Navigator.replaceTop] itself
- * with the new post's detail page — confirmation the post exists, and backing out of it returns
- * to the shell rather than to a composer the user is done with. A failed publish keeps the typed
- * text and surfaces the error, so nothing is lost to a dropped connection.
+ * Drives the post composer. Publishing goes through [FeedRepository].
  *
- * Leaving with a part-written post asks first, mirroring the profile editor: [goBack] raises the
- * confirmation instead of popping when the form has content.
+ * A failed publishing keeps the typed text and surfaces the error, so nothing is lost to a dropped connection.
+ *
+ * Leaving with a part-written post asks first, raises the confirmation instead of popping when the form has content.
  */
 @HiltViewModel
 class CreatePostViewModel @Inject constructor(
@@ -37,12 +34,10 @@ class CreatePostViewModel @Inject constructor(
     private val fileLoader: FileLoader,
     private val videoMetadataReader: VideoMetadataReader,
     private val navigator: Navigator,
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel(),
     CreatePostActions {
 
-    // Only the form is saved. Whether a publish is in flight, and anything that failed, belong to
-    // the process that was killed — the restored composer is idle, holding what the user typed.
     private val _uiState = MutableStateFlow(
         CreatePostUiState(form = savedStateHandle.restoreDraft(DRAFT_KEY) ?: CreatePostForm()),
     )
@@ -64,17 +59,15 @@ class CreatePostViewModel @Inject constructor(
     }
 
     /**
-     * Adds a picked selection, keeping it within [CREATE_POST_MAX_IMAGES]. Already-picked URIs are
-     * dropped rather than duplicated — the system picker re-reports every image chosen in a
-     * session, so a second trip through it would otherwise repeat the earlier ones.
+     * Adds a picked selection. Already-picked URIs are dropped rather than duplicated.
      *
      * A no-op while a video is attached: the screen hides the photo affordance in that state, so
      * reaching here would mean the two media kinds were about to coexist.
      */
     override fun onImagesPicked(uris: List<String>) = updateForm { form ->
         val current = when (val media = form.media) {
-            is CreatePostMedia.Images -> media.uris
             CreatePostMedia.None -> emptyList()
+            is CreatePostMedia.Images -> media.uris
             is CreatePostMedia.Video -> return@updateForm form
         }
 
@@ -129,11 +122,11 @@ class CreatePostViewModel @Inject constructor(
         if (form.media is CreatePostMedia.Video) form.copy(media = CreatePostMedia.None) else form
     }
 
-    /** Opens the picked photos in the album viewer, starting at the tapped one. */
+    /** Opens the picked photos in the album viewer. */
     override fun openImages(media: CreatePostMedia.Images, initialIndex: Int) =
         navigator.goTo(Screen.AlbumViewer(media.uris, initialIndex))
 
-    /** Plays the picked clip on the full-screen video page, straight from its content URI. */
+    /** Plays the picked clip on the full-screen video page. */
     override fun openVideo(media: CreatePostMedia.Video) =
         navigator.goTo(Screen.FullscreenVideo(media.uri))
 
@@ -151,12 +144,8 @@ class CreatePostViewModel @Inject constructor(
                     }
                 },
             ) {
-                // The picked files are only read into memory here, at the point of upload —
-                // an unreadable URI fails the publishing like any other error, keeping the form.
                 val draft = form.toNewPost(media = loadMedia(form.media))
 
-                // A published draft leaves nothing to edit, so the whole state resets — which
-                // clears the in-flight flag along with the form.
                 val postId = feedRepository.publish(draft)
                 _uiState.value = CreatePostUiState()
                 navigator.replaceTop(Screen.PostDetail(postId))

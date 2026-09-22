@@ -18,5 +18,6 @@ object NavigationModule {
 
     @Provides
     @ActivityRetainedScoped
-    fun provideNavigator(): Navigator = Navigator()
+    fun provideNavigator(): Navigator =
+        Navigator()
 }

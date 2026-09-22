@@ -81,15 +81,8 @@ data class CreatePostForm(
         NewPost(title = title.trim(), body = body.trim(), media = media)
 }
 
-/**
- * Whatever the composer currently has to tell the user, as a bucket rather than a message so the
- * display string stays in the `ui/format` layer (like [AppError]). One field, not one per source:
- * the screen has a single snackbar, so two nullable errors would only ever mean "whichever is set"
- * — an invariant kept by convention at every update site instead of by the type.
- */
 sealed interface CreatePostError {
 
-    /** A publish, or reading a picked file, failed. */
     data class Failed(
         val error: AppError,
     ) : CreatePostError
@@ -98,12 +91,6 @@ sealed interface CreatePostError {
     data object VideoTooLarge : CreatePostError
 }
 
-/**
- * The composer's state. Unlike the other screens there is nothing to load — the form starts
- * blank — so this is a single data class rather than a sealed hierarchy: the live [form], whether
- * a publish is in flight, whether leaving with a part-written post is awaiting confirmation, and
- * anything that went wrong.
- */
 data class CreatePostUiState(
     val form: CreatePostForm = CreatePostForm(),
     val isPublishing: Boolean = false,

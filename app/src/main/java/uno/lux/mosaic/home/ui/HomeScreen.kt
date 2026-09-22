@@ -1,4 +1,4 @@
-package uno.lux.mosaic.feed.ui
+package uno.lux.mosaic.home.ui
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.layout.Box
@@ -109,10 +109,6 @@ interface HomeActions {
     fun openAlbum(imageUrls: List<String>, initialIndex: Int)
 }
 
-/**
- * Stateful entry point: binds the [HomeViewModel] and forwards state and intent to the
- * stateless overload below.
- */
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
@@ -306,7 +302,8 @@ private fun FeedList(
     LazyColumn(state = listState, modifier = modifier.fillMaxSize()) {
         items(posts, key = { it.post.id }) { data ->
             PostCard(
-                data = data,
+                post = data.post,
+                author = data.author,
                 reportSend = reportSend,
                 onToggleLike = { actions.onToggleLike(data.post.id) },
                 onToggleBookmark = { actions.onToggleBookmark(data.post.id) },

@@ -120,7 +120,8 @@ private val LaunchRoomImages = listOf(
  * [sampleCommentCount], and top-level properties in a file initialize in declaration order, so
  * moving this back below the posts would have every one of them counting an empty map.
  */
-internal val SampleComments: Map<PostId, List<Comment>> = buildSampleComments(Instant.now())
+internal val SampleComments: Map<PostId, List<Comment>> =
+    buildSampleComments(Instant.now())
 
 /**
  * How many comments the fixtures give [postId] — what its `commentCount` is, rather than a number
@@ -128,7 +129,8 @@ internal val SampleComments: Map<PostId, List<Comment>> = buildSampleComments(In
  * fixtures used to claim 17, 51 and 612 against threads holding two or three, which made every
  * preview of a post card disagree with the detail page it opened.
  */
-private fun sampleCommentCount(postId: PostId) = SampleComments.getValue(postId).size
+private fun sampleCommentCount(postId: PostId) =
+    SampleComments.getValue(postId).size
 
 private fun buildSampleComments(now: Instant): Map<PostId, List<Comment>> = mapOf(
     // p1 "The engine weaves algebraic patterns" — post is 4m old
@@ -203,9 +205,11 @@ private fun buildSampleComments(now: Instant): Map<PostId, List<Comment>> = mapO
  * Sample posts stand in for server payloads, so they carry the shareable link the way the server
  * would send it rather than leaving the app to assemble one.
  */
-private fun samplePostUrl(id: PostId) = "https://mosaic.tree-among-shrubs.com/p/$id"
+private fun samplePostUrl(id: PostId) =
+    "https://mosaic.tree-among-shrubs.com/p/$id"
 
-internal val SamplePosts: List<Post> = buildSamplePosts(Instant.now())
+internal val SamplePosts: List<Post> =
+    buildSamplePosts(Instant.now())
 
 private fun buildSamplePosts(now: Instant): List<Post> = listOf(
     Post(

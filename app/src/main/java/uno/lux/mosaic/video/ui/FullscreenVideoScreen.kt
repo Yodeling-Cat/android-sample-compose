@@ -15,10 +15,6 @@ import uno.lux.mosaic.app.util.ImmersiveSystemBars
 import uno.lux.mosaic.app.util.findActivity
 import uno.lux.mosaic.common.ui.OverlayBackButton
 
-/**
- * Stateful entry point: binds the [FullscreenVideoViewModel] (its sole job is routing back
- * through the `Navigator`) and forwards to the stateless overload below.
- */
 @Composable
 fun FullscreenVideoScreen(
     url: String,

@@ -384,7 +384,26 @@ fun HomeScreen(
 )
 ```
 
-**An expression body that ends in a trailing lambda keeps its brace on the declaration line.** Never break the line after the `=`. Break *inside* the lambda instead.
+**An expression body that produces a value goes on the line below the `=`**, indented once, however short it is. The declaration ends at the `=`. This way the signature and the value never compete for one line, annotations and a wrapped parameter list read down to the value instead of past it, and a body that grows later needs no re-wrap of the declaration above it. It applies to a constructor call, a builder, a constant, a chain — anything whose result *is* the return value.
+
+```kotlin
+// Yes
+@Provides
+@Singleton
+fun provideJson(): Json =
+    Json { ignoreUnknownKeys = true }
+
+@Provides
+fun providePostDataSource(api: PostApi): PostDataSource =
+    NetworkPostDataSource(api)
+
+// No
+@Provides
+@Singleton
+fun provideJson(): Json = Json { ignoreUnknownKeys = true }
+```
+
+**A block of work is the exception: its brace stays on the declaration line.** Never break the line after the `=` there. Break *inside* the lambda instead.
 
 ```kotlin
 // Yes
@@ -397,7 +416,7 @@ override fun onToggleLike(postId: PostId) =
     launchCatching { postRepository.toggleLike(postId) }
 ```
 
-A **block of work**, for example anything launched, a coroutine body, or a test body, always takes its own lines. This way a ViewModel's actions all read as one shape. A **small value expression** stays inline until it no longer fits on one line:
+A **block of work**, for example anything launched, a coroutine body, or a test body, always takes its own lines. This way a ViewModel's actions all read as one shape. A **small value expression** passed to such a block stays inline until it no longer fits on one line:
 
 ```kotlin
 override fun onNicknameChange(value: String) = updateForm { it.copy(nickname = value) }
@@ -406,6 +425,10 @@ override fun onAgeChange(value: String) = updateForm { form ->
     form.copy(age = value.filter { it.isDigit() }.take(3))
 }
 ```
+
+**A trailing lambda is not what decides between the two rules — what the lambda *is* decides.** `Json { … }` builds a value, so it goes below the `=`. `launchCatching { … }` and `updateForm { … }` open a block of work, so they keep their brace up on the declaration line. When it is genuinely unclear, ask whether the lambda's last expression is the thing being returned.
+
+**Both rules are about function bodies.** A property initializer is not one, and stays inline: `val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()`.
 
 **Use named arguments when the value does not self-document its role**: bare literals, arguments of the same type, or anything opaque without context. Two cases always call for named arguments:
 

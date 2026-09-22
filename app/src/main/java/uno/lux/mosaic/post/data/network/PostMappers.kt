@@ -5,8 +5,6 @@ import uno.lux.mosaic.album.data.domain.Album
 import uno.lux.mosaic.post.data.domain.Post
 import uno.lux.mosaic.video.data.domain.Video
 
-// DTO → domain mapping runs through Mappie (a Kotlin compiler plugin)
-
 object AlbumMapper : ObjectMappie<AlbumDto, Album>() {
     override fun map(from: AlbumDto) = mapping()
 }

@@ -16,18 +16,13 @@ import uno.lux.mosaic.user.data.UserRepository
  * Normalized entity store for posts.
  *
  * All screens share one entity map so a like toggled in the feed is immediately visible on a
- * profile and vice versa — without duplicating mutation logic. [ingest] merges posts fetched by
+ * profile and vice versa. [ingest] merges posts fetched by
  * any screen into the shared store; [toggleLike] and [toggleBookmark] mutate individual entries
  * so every observer sees the update in the same emission — optimistically, which having exactly
  * one copy of each post to correct is what makes safe.
  *
  * Ordered, screen-specific lists of post IDs (feed order, per-user order, etc.) live in
  * [uno.lux.mosaic.feed.data.FeedRepository] or [uno.lux.mosaic.profile.data.ProfileRepository]; this store owns only the entity data.
- *
- * The two endpoints that answer with a *single* post sideload its author, so [load] and [create]
- * seed [userRepository] with it — the same thing [uno.lux.mosaic.profile.data.ProfileRepository] does for the authors that
- * ride along with a page of saved or liked posts. Sideloaded users belong in the user store
- * wherever they arrive from, rather than each caller remembering to put them there.
  */
 class PostRepository(
     private val dataSource: PostDataSource,
@@ -42,7 +37,7 @@ class PostRepository(
      * IDs this session has deleted. Exists because absence from [entities] is ambiguous — a post
      * can be absent because nothing fetched it *or* because it is gone — and the one observer the
      * ambiguity bites (a detail page open on the post someone deletes from another screen) can't
-     * resolve it alone. Grows only as fast as the user deletes, so it is never trimmed.
+     * resolve it alone.
      */
     val deletedIds: StateFlow<Set<PostId>> = _deletedIds.asStateFlow()
 
@@ -53,11 +48,6 @@ class PostRepository(
     /**
      * Fetches a single post into the store, returning it — or null when the server says there is
      * no such post, so a caller can render "gone" rather than a retryable failure.
-     *
-     * A screen reached the ordinary way never needs this: it opens from a feed or profile whose
-     * fetch already filled the store. It exists for the screen that is the *first* thing to ask
-     * for a post — a post detail page restored after process death, whose stores start empty,
-     * which is also why the sideloaded author is seeded here rather than fetched separately.
      */
     suspend fun load(postId: PostId): Post? {
         // The store already knows this one is gone, and must not resurrect it into [entities]
@@ -69,12 +59,10 @@ class PostRepository(
 
     /**
      * Publishes [draft] and stores the resulting entity, so any screen already resolving that ID
-     * renders it without a re-fetch. Placing the post in an ordered list is [uno.lux.mosaic.feed.data.FeedRepository]'s
-     * job, not this store's.
+     * renders it without a re-fetch.
      */
     suspend fun create(draft: NewPost): Post = store(dataSource.create(draft))
 
-    /** Puts a single post's two halves where each belongs, and hands back the post. */
     private fun store(fetched: PostWithUsers): Post {
         _entities.update { it + (fetched.post.id to fetched.post) }
         userRepository.ingest(fetched.users)
@@ -96,20 +84,7 @@ class PostRepository(
         _entities.update { it - postId }
     }
 
-    /**
-     * Flips the viewer's like on [postId], moving the entity *before* the request goes out and
-     * reconciling with the server's answer when it lands.
-     *
-     * Optimistic because the heart is the most-tapped control in the app: waiting out a round
-     * trip makes it read as broken on a slow connection, and a single store with a single writer
-     * is what makes applying-then-reconciling safe — there is one copy of the post to correct.
-     * A failure puts the like fields back and rethrows, so the tap is undone rather than left
-     * showing a like the server never took.
-     *
-     * Every write goes through [updateEntity], which re-reads the entity and touches only the
-     * like fields. Reading the post once and writing that snapshot back afterwards was the bug
-     * this replaces: a refresh landing mid-flight had its fresher post overwritten by a stale one.
-     */
+    /** Flips the viewer's like on [postId], optimistically. */
     suspend fun toggleLike(postId: PostId) {
         val before = _entities.value[postId] ?: return
         val liked = !before.isLiked
@@ -138,7 +113,7 @@ class PostRepository(
         }
     }
 
-    /** Flips the viewer's bookmark on [postId], optimistically — see [toggleLike]. */
+    /** Flips the viewer's bookmark on [postId], optimistically. */
     suspend fun toggleBookmark(postId: PostId) {
         val before = _entities.value[postId] ?: return
         val bookmarked = !before.isBookmarked
@@ -178,29 +153,10 @@ class PostRepository(
         entities + (postId to edit(current))
     }
 
-    /**
-     * Records that a comment landed on [postId], bumping its count by one.
-     *
-     * The comment itself is not this store's — [uno.lux.mosaic.comment.data.CommentRepository] is
-     * stateless and the thread belongs to the detail page that is reading it. The *count* is a
-     * field on the post, though, so it can only move here: the number under the post is drawn
-     * from the same entity on the detail page, the feed card and the profile, and without this it
-     * keeps showing what the post had before the user commented on it until something re-fetches.
-     *
-     * Named for what it is told rather than for what it does, because that is the difference from
-     * a toggle: no request is made here. The caller has already posted the comment, and a bump
-     * applied before the server answered would be a count for a comment that may never land.
-     */
     fun commentAdded(postId: PostId) = updateEntity(postId) {
         it.copy(commentCount = it.commentCount + 1)
     }
 
-    /**
-     * Reports a post. Nothing in the store moves: a report is a message *about* a post, so the
-     * post the reporter is looking at is unchanged, and the server keeps nothing to read back.
-     * Unlike the toggles it needs no entity either — an ID is all a report is about, which is
-     * what lets a post be reported from a screen that never resolved it.
-     */
     suspend fun report(
         postId: PostId,
         reason: ReportReason,

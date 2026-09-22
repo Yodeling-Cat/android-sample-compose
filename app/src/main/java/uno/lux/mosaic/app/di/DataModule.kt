@@ -49,20 +49,24 @@ import javax.inject.Singleton
 object DataModule {
 
     @Provides
-    fun providePostDataSource(api: PostApi): PostDataSource = NetworkPostDataSource(api)
+    fun providePostDataSource(api: PostApi): PostDataSource =
+        NetworkPostDataSource(api)
 
     @Provides
     @Singleton
     fun providePostRepository(
         dataSource: PostDataSource,
         userRepository: UserRepository,
-    ): PostRepository = PostRepository(dataSource, userRepository)
+    ): PostRepository =
+        PostRepository(dataSource, userRepository)
 
     @Provides
-    fun provideFeedDataSource(api: FeedApi): FeedDataSource = NetworkFeedDataSource(api)
+    fun provideFeedDataSource(api: FeedApi): FeedDataSource =
+        NetworkFeedDataSource(api)
 
     @Provides
-    fun provideUserDataSource(api: UserApi): UserDataSource = NetworkUserDataSource(api)
+    fun provideUserDataSource(api: UserApi): UserDataSource =
+        NetworkUserDataSource(api)
 
     @Provides
     @Singleton
@@ -75,10 +79,12 @@ object DataModule {
         dataSource: FeedDataSource,
         postRepository: PostRepository,
         userRepository: UserRepository,
-    ): FeedRepository = FeedRepository(dataSource, postRepository, userRepository)
+    ): FeedRepository =
+        FeedRepository(dataSource, postRepository, userRepository)
 
     @Provides
-    fun provideProfileDataSource(api: ProfileApi): ProfileDataSource = NetworkProfileDataSource(api)
+    fun provideProfileDataSource(api: ProfileApi): ProfileDataSource =
+        NetworkProfileDataSource(api)
 
     @Provides
     @Singleton
@@ -91,7 +97,8 @@ object DataModule {
         ProfileRepository(dataSource, postRepository, userRepository, currentUserId)
 
     @Provides
-    fun provideCommentDataSource(api: CommentApi): CommentDataSource = NetworkCommentDataSource(api)
+    fun provideCommentDataSource(api: CommentApi): CommentDataSource =
+        NetworkCommentDataSource(api)
 
     @Provides
     @Singleton
@@ -129,7 +136,8 @@ object DataModule {
 
     @Provides
     @CurrentUserId
-    fun provideCurrentUserId(): String = LOGGED_IN_USER_ID
+    fun provideCurrentUserId(): String =
+        LOGGED_IN_USER_ID
 
     @Provides
     @Singleton

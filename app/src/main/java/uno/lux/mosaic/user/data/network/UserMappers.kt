@@ -2,8 +2,10 @@ package uno.lux.mosaic.user.data.network
 
 import uno.lux.mosaic.user.data.domain.User
 
+// TODO: Why do we hand write this?
+
 /**
- * Hand-written rather than a Mappie object because [UserDto] and [User] are field-identical:
+ * Handwritten rather than a Mappie object because [UserDto] and [User] are field-identical:
  * there is nothing for a mapper to resolve, and the explicit copy documents the projection.
  */
 internal fun UserDto.toDomain() = User(

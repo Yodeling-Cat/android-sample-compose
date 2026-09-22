@@ -11,10 +11,7 @@ import uno.lux.mosaic.R
 import uno.lux.mosaic.app.theme.MosaicTheme
 
 /**
- * Confirms deleting a post. Deletion is irreversible and the affordance sits one tap inside an
- * overflow sheet, so the destructive button is the one tinted with the error color while dismiss
- * stays neutral — the reverse of the emphasis [uno.lux.mosaic.design.components.DiscardChangesDialog]
- * gives its (recoverable) discard.
+ * Confirms deleting a post. Deletion is irreversible.
  */
 @Composable
 internal fun DeletePostDialog(

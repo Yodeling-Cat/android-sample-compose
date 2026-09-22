@@ -35,12 +35,6 @@ data class AlbumDto(
     val images: List<String>,
 )
 
-/**
- * Everything but the first four fields is nullable on the wire: the server measures the clip with
- * ffprobe and extracts the poster frame with ffmpeg, and any of that can fail on a file it cannot
- * read — in which case the video is still published, just without a resolution or a thumbnail.
- * Defaulting them also keeps the client readable against a server that predates the fields.
- */
 @Serializable
 data class VideoDto(
     val id: String,

@@ -17,21 +17,20 @@ import uno.lux.mosaic.app.fixtures.SamplePosts
 import uno.lux.mosaic.app.fixtures.SampleUsers
 import uno.lux.mosaic.app.theme.MosaicTheme
 import uno.lux.mosaic.common.data.ReportReason
+import uno.lux.mosaic.post.data.domain.Post
+import uno.lux.mosaic.user.data.domain.User
 import uno.lux.mosaic.video.data.domain.Video
 
 /** In the feed the body is a perex — clipped to this many lines, with a "Show more" affordance. */
 private const val FEED_BODY_MAX_LINES = 5
 
 /**
- * A single feed post (Mosaic design): an edge-to-edge surface item separated by a bottom
- * divider — author header with overflow menu, the title (Bricolage) and body (Manrope), and
- * the like / comment / bookmark actions. Stateless; every interaction is hoisted to the caller.
- *
- * The blocks it composes are shared with the post detail screen — see [PostAuthorHeader] & co.
+ * A single feed post.
  */
 @Composable
 internal fun PostCard(
-    data: PostCardData,
+    post: Post,
+    author: User,
     reportSend: ReportSendState,
     onToggleLike: () -> Unit,
     onToggleBookmark: () -> Unit,
@@ -44,9 +43,6 @@ internal fun PostCard(
     modifier: Modifier = Modifier,
     onDelete: (() -> Unit)? = null,
 ) {
-    val post = data.post
-    val author = data.author
-
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -99,7 +95,8 @@ private fun PostCardPreview() {
 
     MosaicTheme {
         PostCard(
-            data = PostCardData(post, users.getValue(post.authorId)),
+            post = post,
+            author = users.getValue(post.authorId),
             reportSend = ReportSendState.IDLE,
             onToggleLike = {},
             onToggleBookmark = {},

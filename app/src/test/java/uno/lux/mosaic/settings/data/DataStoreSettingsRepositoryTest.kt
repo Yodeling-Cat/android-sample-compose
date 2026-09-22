@@ -1,7 +1,6 @@
 package uno.lux.mosaic.settings.data
 
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -9,30 +8,28 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.plus
-import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
-import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.TemporaryFolder
 import uno.lux.mosaic.settings.data.domain.AppLanguage
 import uno.lux.mosaic.settings.data.domain.Settings
 import uno.lux.mosaic.settings.data.domain.ThemeMode
-import java.io.File
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DataStoreSettingsRepositoryTest {
 
-    @get:Rule
-    val tempFolder = TemporaryFolder()
-
-    /** A real Preferences DataStore over a per-test file, torn down with the test scope. */
-    private fun TestScope.dataStore(): DataStore<Preferences> =
-        PreferenceDataStoreFactory.create(
-            scope = backgroundScope + UnconfinedTestDispatcher(testScheduler),
-        ) { File(tempFolder.root, "settings.preferences_pb") }
+    /**
+     * A [Preferences] store for one test, held in memory rather than in a temporary file.
+     *
+     * DataStore's file storage commits a write by renaming a temp file over the destination,
+     * which Windows refuses — so on Windows the *second* write to one store throws, and every
+     * test below that writes twice failed while CI on Linux stayed green. What these tests are
+     * about is the repository's mapping between preference keys and domain types, and
+     * [InMemoryPreferencesDataStore] keeps that mapping real while dropping the file.
+     */
+    private fun dataStore(): DataStore<Preferences> =
+        InMemoryPreferencesDataStore()
 
     @Test
     fun `themeMode defaults to SYSTEM when nothing is persisted`() = runTest {

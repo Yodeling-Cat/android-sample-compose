@@ -69,14 +69,6 @@ import uno.lux.mosaic.common.ui.FullScreenError
 import uno.lux.mosaic.common.ui.FullScreenProgress
 import uno.lux.mosaic.user.data.domain.UserId
 
-/**
- * The editor's ViewModel-backed intents as one [Stable] seam the stateless
- * [EditProfileScreen] depends on — including navigating back, which the ViewModel forwards to
- * the injected `Navigator` (and triggers itself once a save lands). [EditProfileViewModel]
- * implements it, so the binder passes the ViewModel directly and a preview passes a no-op
- * [createActionsProxy]. Only the photo picker launch stays a separate lambda — an
- * Activity-result API is the platform's concern.
- */
 @Stable
 interface EditProfileActions {
     fun onNicknameChange(value: String)
@@ -100,10 +92,6 @@ interface EditProfileActions {
     fun confirmDiscard()
 }
 
-/**
- * Stateful entry point: binds the [EditProfileViewModel] and owns the photo-picker launcher
- * (an Activity-result API, so it can't live in the ViewModel).
- */
 @Composable
 fun EditProfileScreen(
     modifier: Modifier = Modifier,
@@ -164,7 +152,7 @@ internal fun EditProfileScreen(
     Scaffold(
         // Painted here rather than handed to the container, so both span the window — see
         // CreatePostScreen. The wash starts at the very top, under the accent bar, so what shows
-        // below the bar is the bar's own colour carrying on into the page rather than a band
+        // below the bar is the bar's own color carrying on into the page rather than a band
         // starting on its own; the container is transparent to let it through.
         modifier = modifier
             .fillMaxSize()

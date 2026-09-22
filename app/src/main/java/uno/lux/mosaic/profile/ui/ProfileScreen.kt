@@ -98,7 +98,6 @@ import uno.lux.mosaic.common.ui.LoadMoreEffect
 import uno.lux.mosaic.common.ui.LoadingMoreFooter
 import uno.lux.mosaic.post.data.domain.PostId
 import uno.lux.mosaic.post.ui.PostCard
-import uno.lux.mosaic.post.ui.PostCardData
 import uno.lux.mosaic.post.ui.ReportSendState
 import uno.lux.mosaic.profile.data.domain.Profile
 import uno.lux.mosaic.user.data.domain.User
@@ -107,13 +106,6 @@ import uno.lux.mosaic.user.ui.Avatar
 import uno.lux.mosaic.video.data.domain.Video
 import kotlin.math.roundToInt
 
-/**
- * The profile's ViewModel-backed intents — liking / bookmarking the viewed user's posts, plus
- * navigation (opening a post, viewer or the editor, going back), which the ViewModel forwards
- * to the injected `Navigator` — as one [Stable] seam the stateless [ProfileScreen] depends on.
- * [ProfileViewModel] implements it, so the binder passes the ViewModel directly and a preview
- * passes a no-op [createActionsProxy].
- */
 @Stable
 interface ProfileActions {
     fun onToggleLike(postId: PostId)
@@ -159,18 +151,12 @@ interface ProfileActions {
     fun openAvatar(avatarUrl: String)
 }
 
-/**
- * Stateful entry point: binds a [ProfileViewModel] for [userId] and forwards state and intent
- * to the stateless overload below. [showBackButton] is false when the profile is shown as a
- * root tab (no up-affordance); true when it was pushed over the feed.
- */
 @Composable
 fun ProfileScreen(
     userId: UserId,
     modifier: Modifier = Modifier,
     showBackButton: Boolean = false,
-    // The ViewModel store is per back-stack entry, so each opened profile page gets its own
-    // ProfileViewModel, created for that entry's userId and cleared when the page pops.
+    // The ViewModel store is per back-stack entry, so each opened profile gets its own ViewModel.
     viewModel: ProfileViewModel = hiltViewModel<ProfileViewModel, ProfileViewModel.Factory>(
         creationCallback = { factory -> factory.create(userId) },
     ),
@@ -193,12 +179,6 @@ fun ProfileScreen(
     )
 }
 
-/**
- * Stateless profile screen — renders [uiState] and reports interactions through [actions].
- * Holding no ViewModel makes it directly previewable and testable. [onBack] carries the one
- * piece of navigation the interface can't: whether this instance shows an up-affordance at all
- * (null on the root tab).
- */
 @Composable
 internal fun ProfileScreen(
     uiState: ProfileUiState,
@@ -213,8 +193,6 @@ internal fun ProfileScreen(
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // A delete or follow whose request failed after the tap left nothing on screen to fail
-    // visibly.
     FailedActionEffect(failedAction, snackbarHostState, actions::onFailedActionShown)
 
     Box(
@@ -241,7 +219,7 @@ internal fun ProfileScreen(
                 if (onBack != null) PlainBackButton(onBack, Modifier.align(Alignment.TopStart))
             }
 
-            // The loaded state owns its own scroll-reactive TopAppBar over the cover.
+            // Draws its own TopAppBar over the cover, so it needs no PlainBackButton.
             is ProfileUiState.Loaded -> {
                 ProfileContent(
                     data = uiState.data,
@@ -255,8 +233,7 @@ internal fun ProfileScreen(
             }
         }
 
-        // This screen has no Scaffold to host it in, so the snackbar overlays the Box instead —
-        // above the system bar the edge-to-edge content draws behind.
+        // No Scaffold to host it, so the snackbar overlays the Box instead.
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier
@@ -267,16 +244,16 @@ internal fun ProfileScreen(
 }
 
 /**
- * Saves the header's collapse offset. Writing `rememberSaveable { mutableFloatStateOf(…) }` would
- * resolve to the `MutableState<Float>` overload and hand back a boxed state, giving up the
- * [FloatState] type the layout pass and the app bar read on every frame — so the float is saved by
- * hand and the specialized state rebuilt from it.
+ * Saves the header's collapse offset by hand: `rememberSaveable { mutableFloatStateOf(…) }`
+ * resolves to the `MutableState<Float>` overload, giving up the [FloatState] that the layout
+ * pass and the app bar read on every frame.
  */
 private val CollapseSaver = Saver<MutableFloatState, Float>(
     save = { it.floatValue },
     restore = { mutableFloatStateOf(it) },
 )
 
+// TODO: Could use refactoring, breaking up into smaller functions
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProfileContent(
@@ -288,51 +265,44 @@ private fun ProfileContent(
     actions: ProfileActions,
     onBack: (() -> Unit)?,
 ) {
-    // Saved is the signed-in user's own private list, so it is not offered on anyone else's
-    // profile. isCurrentUser is fixed for the life of this screen, so the visible set is too.
+    // Saved is the signed-in user's own private list, so it is hidden on anyone else's profile.
     val tabs = remember(isCurrentUser) {
         ProfileTab.entries.filter { isCurrentUser || !it.ownerOnly }
     }
     var selectedTab by rememberSaveable { mutableStateOf(ProfileTab.POSTS) }
     val listState = rememberLazyListState()
 
-    // A collapsing header. The cover + identity block is hoisted out of the posts list into a
-    // Column above it, and slides up behind the app bar as you scroll; the tab row rides up with
-    // it until it pins flush beneath the bar, after which the posts list scrolls under the tabs.
-    // The two motions are one continuous gesture because a shared `collapse` offset — advanced by
-    // the NestedScrollConnection below, which consumes upward scroll to collapse the header before
-    // the list moves — replaces the old faked spacer, so there is no dead scroll at the hand-off.
+    // A collapsing header: the cover + identity block slides up behind the app bar as you scroll,
+    // and the tab row rides up with it until it pins flush beneath the bar. The two motions are
+    // one gesture because both read the same `collapse` offset, advanced by the connection below.
     val density = LocalDensity.current
     val barBottomPx = with(density) {
         WindowInsets.statusBars.getTop(this) + ProfileBarHeight.roundToPx()
     }
     var headerHeightPx by remember { mutableIntStateOf(0) }
     // Saveable, unlike the measured height above: the collapse *is* the top of this page's scroll
-    // position, and `rememberLazyListState` only remembers the part below it. Left as a plain
-    // `remember`, a profile scrolled less than one header's worth came back from a post detail —
-    // or a rotation — with the cover expanded again, reading as a scroll position thrown away.
+    // position, and `rememberLazyListState` only remembers the part below it.
     val collapse = rememberSaveable(saver = CollapseSaver) { mutableFloatStateOf(0f) }
     // The header collapses until its foot reaches the bar; past that the tabs are pinned and the
-    // list takes over. Keyed off the measured header height, never off `collapse`, so this scope
-    // does not recompose as you scroll — only the header relayouts and the bar (which reads it).
+    // list takes over. Keyed off the measured height, never off `collapse`, so a scroll relayouts
+    // the header and recomposes the bar, but not this scope.
     val maxCollapse = (headerHeightPx - barBottomPx).coerceAtLeast(0).toFloat()
 
     val collapseConnection = remember(maxCollapse) {
         object : NestedScrollConnection {
-            // Fold `dy` of scroll into the collapse offset, returning what it consumed (same sign):
-            // scrolling up (negative) collapses the header, scrolling down (positive) re-expands it.
+            // Fold `dy` into the collapse offset, returning what it consumed (same sign).
             fun consume(dy: Float): Offset {
                 val before = collapse.floatValue
                 collapse.floatValue = (before - dy).coerceIn(0f, maxCollapse)
                 return Offset(x = 0f, y = before - collapse.floatValue)
             }
 
-            // Scrolling up collapses the header first, before the posts list scrolls.
+            // Scrolling up collapses the header before the posts list scrolls.
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset =
                 if (available.y >= 0f) Offset.Zero else consume(available.y)
 
-            // Scrolling down re-expands the header, but only from the leftover once the list has
-            // reached its top — and, since pull-to-refresh wraps this, before the refresh sees it.
+            // Scrolling down re-expands the header from the leftover once the list is at its top
+            // — and, since pull-to-refresh wraps this, before the refresh sees it.
             override fun onPostScroll(
                 consumed: Offset,
                 available: Offset,
@@ -365,9 +335,8 @@ private fun ProfileContent(
         )
     }
 
-    // Pull-to-refresh wraps the collapse Box so its connection sits *outside* the collapse one:
-    // scrolling down re-expands the header (collapse's onPostScroll) before the refresh gesture
-    // gets the leftover, so a downward drag never triggers a refresh while the header is collapsed.
+    // Pull-to-refresh wraps the collapse Box so its connection sits *outside* the collapse one: a
+    // downward drag re-expands the header before the refresh gesture gets the leftover.
     PullToRefreshBox(
         isRefreshing = isRefreshing,
         onRefresh = onRefresh,
@@ -385,10 +354,9 @@ private fun ProfileContent(
                     onEditProfile = actions::openEditProfile,
                     onToggleFollow = actions::onToggleFollow,
                     onOpenAvatar = actions::openAvatar,
-                    // Reserve `collapse` less height and draw the full header shifted up by that
-                    // much: it slides up behind the bar while the tabs below move up to meet it,
-                    // with no gap left behind. `collapse` is read in the layout pass, so a scroll
-                    // reflows the header without recomposing this screen.
+                    // Reserve `collapse` less height and draw the header shifted up by that much,
+                    // so it slides behind the bar with no gap left below. Read in the layout pass,
+                    // so a scroll reflows the header without recomposing this screen.
                     modifier = Modifier.layout { measurable, constraints ->
                         val placeable = measurable.measure(constraints)
                         if (placeable.height != headerHeightPx) headerHeightPx = placeable.height
@@ -450,8 +418,6 @@ private fun ProfileContent(
     }
 }
 
-// region Header
-
 private val CoverHeight = 160.dp
 private val AvatarRingSize = 96.dp
 private val AvatarSize = 88.dp
@@ -472,9 +438,8 @@ private fun ProfileHeader(
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface),
     ) {
-        // Cover + overlapping avatar + actions, in a box tall enough to contain the hanging
-        // avatar so nothing below paints over it (the avatar is the last child, so it wins
-        // the cover's z-order cleanly).
+        // Tall enough to contain the hanging avatar, which is the last child so it wins the
+        // z-order and nothing below paints over it.
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -486,8 +451,8 @@ private fun ProfileHeader(
                     .height(CoverHeight)
                     .background(MosaicGradients.mediaBrush(user.id)),
             )
-            // Primary action, bottom-right across from the avatar (settings live in the app
-            // bar): Edit profile on your own profile, Follow/Unfollow on anyone else's.
+            // Primary action, bottom-right across from the avatar: Edit profile on your own
+            // profile, Follow/Unfollow on anyone else's.
             val actionModifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 16.dp)
@@ -569,11 +534,7 @@ private fun AvatarRing(
     }
 }
 
-/**
- * Follow / Unfollow toggle for another user's profile. Filled while not yet following (the
- * inviting primary action), tonal once following (a calmer "you're following" affordance) —
- * both solid so the label stays legible over the cover gradient.
- */
+/** Filled while not yet following, tonal once following — both solid to read over the cover. */
 @Composable
 private fun FollowButton(
     isFollowing: Boolean,
@@ -662,17 +623,10 @@ private fun Stat(value: Int, label: String) {
     }
 }
 
-// endregion
-
-// region Tabs
-
 /**
- * The profile's tab entries, in order. The row is generated by iterating [entries], so adding a
- * tab is an enum addition plus its branch in [ProfileContent]. [ownerOnly] marks a tab that only
- * belongs on the signed-in user's own profile — Saved holds what *they* bookmarked, which is
- * private, so it is filtered out of the row on anyone else's profile (and the server refuses the
- * list to a caller who isn't its owner regardless). Likes are deliberately not owner-only: what
- * someone endorsed is public, and the server serves anyone's to anyone.
+ * The profile's tab entries, in order. Adding a tab is an enum addition plus its branch in
+ * [ProfileContent]. [ownerOnly] marks a tab that belongs only on the signed-in user's own
+ * profile: Saved is private, and the server refuses it to anyone else. Likes are public.
  */
 private enum class ProfileTab(
     @get:StringRes val labelRes: Int,
@@ -689,12 +643,11 @@ private fun ProfileTabs(
     selected: ProfileTab,
     onSelect: (ProfileTab) -> Unit,
 ) {
-    // Opaque surface so it sits seamlessly under the filled bar it pins beneath, and hides the
-    // posts scrolling under it once pinned. It ends up flush below the bar because the header
-    // above it collapses to exactly the bar's height (see maxCollapse in ProfileContent).
+    // Opaque so it hides the posts scrolling under it once pinned, and sits seamlessly under the
+    // bar it ends up flush beneath (see maxCollapse in ProfileContent).
     PrimaryTabRow(
-        // The index into the *visible* tabs, which an ownerOnly entry makes narrower than
-        // the enum — so this is not the selected tab's ordinal.
+        // The index into the *visible* tabs, which ownerOnly makes narrower than the enum — so
+        // this is not the selected tab's ordinal.
         selectedTabIndex = tabs.indexOf(selected),
         containerColor = MaterialTheme.colorScheme.surface,
     ) {
@@ -715,10 +668,6 @@ private fun ProfileTabs(
     }
 }
 
-// endregion
-
-// region Tab content
-
 private fun LazyListScope.postItems(
     screenData: ProfileScreenData,
     reportSend: ReportSendState,
@@ -734,9 +683,8 @@ private fun LazyListScope.postItems(
     }
     items(posts, key = { it.id }) { post ->
         PostCard(
-            // Every post here is by the profile's user, so "own post" is simply whose profile
-            // this is — no per-post comparison needed.
-            data = PostCardData(post, author, isOwn = isCurrentUser),
+            post = post,
+            author = author,
             reportSend = reportSend,
             onToggleLike = { actions.onToggleLike(post.id) },
             onToggleBookmark = { actions.onToggleBookmark(post.id) },
@@ -747,6 +695,7 @@ private fun LazyListScope.postItems(
             onOpenPost = { actions.openPost(post.id) },
             onReport = { reason, details -> actions.onReportPost(post.id, reason, details) },
             onReportClosed = actions::onReportClosed,
+            // Every post here is by the profile's user, so "own post" is whose profile this is.
             onDelete = if (isCurrentUser) ({ actions.onDeletePost(post.id) }) else null,
         )
     }
@@ -755,10 +704,7 @@ private fun LazyListScope.postItems(
     }
 }
 
-/**
- * Fires an on-demand tab's first load when it becomes visible, and pages it thereafter. The two
- * such tabs differ only in which list and callbacks they carry.
- */
+/** Fires an on-demand tab's first load when it becomes visible, and pages it thereafter. */
 @Composable
 private fun OnDemandTabEffects(
     listState: LazyListState,
@@ -798,12 +744,12 @@ private fun LazyListScope.onDemandTabItems(
 
     items(list.posts, key = { "$keyPrefix-${it.post.id}" }) { data ->
         PostCard(
-            data = data,
+            post = data.post,
+            author = data.author,
             reportSend = reportSend,
             onToggleLike = { actions.onToggleLike(data.post.id) },
             onToggleBookmark = { actions.onToggleBookmark(data.post.id) },
-            // A saved or liked post can be by anyone, so its header opens that author's
-            // profile — the one place this screen pushes another profile over itself.
+            // A saved or liked post can be by anyone, so its header opens that author's profile.
             onOpenProfile = { actions.openProfile(data.author.id) },
             onOpenVideo = actions::openVideo,
             onOpenAlbum = actions::openAlbum,
@@ -837,10 +783,6 @@ private fun EmptyTab(
     }
 }
 
-// endregion
-
-// region Shared
-
 /** A plain back button for the loading / not-found states, which have no cover to scrim over. */
 @Composable
 private fun PlainBackButton(onBack: () -> Unit, modifier: Modifier = Modifier) {
@@ -862,16 +804,14 @@ private fun PlainBackButton(onBack: () -> Unit, modifier: Modifier = Modifier) {
 private const val BAR_FILL_FRACTION = 0.5f
 
 /**
- * A transparent app bar over the cover that fills to the surface color as the header collapses. Its
- * buttons carry a gray circular scrim with a white icon over the cover, and fade that to a bare
- * on-surface icon once the bar fills — both driven by the same [progress], so bar and buttons move
- * in lockstep, reaching opaque [BAR_FILL_FRACTION] of the way through the collapse rather than at the
- * very end, so the chrome settles while the cover is still on its way out.
+ * A transparent app bar over the cover that fills to the surface color as the header collapses.
+ * Its buttons' scrims fade on the same [progress], so bar and buttons move in lockstep, reaching
+ * opaque [BAR_FILL_FRACTION] of the way through the collapse rather than at the very end, so the
+ * chrome settles while the cover is still on its way out.
  *
- * Once the tab row pins flush beneath it the bar drops its shadow: the bar and the tabs are
- * separate stacked surfaces (the bar paints over the tabs), so a shadow here would only fall
- * across the seam onto the tabs. Going flat at that point reads cleaner than that seam. That is
- * keyed off the *raw* collapse, not [progress], since it tracks where the tabs actually are.
+ * Once the tab row pins flush beneath it the bar drops its shadow, which would otherwise fall
+ * only across the seam onto the tabs. That is keyed off the *raw* collapse, not [progress],
+ * since it tracks where the tabs actually are.
  *
  * [collapse] is read here rather than at the screen scope so a scroll recomposes only the bar.
  */
@@ -889,8 +829,7 @@ private fun ProfileTopBar(
         0f
     }
     val progress = (collapsed / BAR_FILL_FRACTION).coerceIn(0f, 1f)
-    // `collapsed` is clamped to [0, 1] and reaches exactly 1f at full collapse, so this is the true
-    // pinned state. Animated with the same default spec as the tab row's shadow, easing in step.
+    // `collapsed` reaches exactly 1f at full collapse, so this is the true pinned state.
     val pinned by animateFloatAsState(if (collapsed >= 1f) 1f else 0f, label = "appBarPinned")
 
     TopAppBar(
@@ -940,10 +879,6 @@ private fun CenteredMessage(message: String) {
     }
 }
 
-// endregion
-
-// region Previews
-
 private fun sampleProfileData(): ProfileScreenData {
     val user = SampleUsers.first()
     val posts = SamplePosts.filter { it.authorId == user.id }
@@ -986,5 +921,3 @@ private fun ProfileScreenOtherUserPreview() {
         )
     }
 }
-
-// endregion

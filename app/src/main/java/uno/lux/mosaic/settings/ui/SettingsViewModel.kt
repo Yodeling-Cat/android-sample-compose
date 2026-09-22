@@ -13,12 +13,6 @@ import uno.lux.mosaic.settings.data.domain.AppLanguage
 import uno.lux.mosaic.settings.data.domain.ThemeMode
 import javax.inject.Inject
 
-/**
- * Exposes the stored settings as one [uiState] and applies the user's selection through the
- * [SettingsRepository]; the up button pops the page through the injected [Navigator]. Both are
- * constructor dependencies so the ViewModel can be unit tested against a fake repository and a
- * navigator attached to a plain list.
- */
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
