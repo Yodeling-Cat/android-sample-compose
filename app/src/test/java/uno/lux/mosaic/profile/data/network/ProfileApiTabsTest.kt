@@ -9,7 +9,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import uno.lux.mosaic.common.data.network.createApi
+import uno.lux.mosaic.testing.createApi
 
 /**
  * Pins the **wire format** of the profile's three lists — `GET /users/:id/posts`,

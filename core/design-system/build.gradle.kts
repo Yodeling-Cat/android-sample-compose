@@ -14,9 +14,7 @@ android {
 dependencies {
     api(libs.androidx.compose.material3)
     api(libs.androidx.compose.ui)
-    api(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
-    implementation(libs.androidx.core.ktx)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
 }

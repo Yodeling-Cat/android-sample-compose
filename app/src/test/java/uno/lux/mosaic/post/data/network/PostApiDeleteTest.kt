@@ -7,7 +7,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import uno.lux.mosaic.common.data.network.createApi
+import uno.lux.mosaic.testing.createApi
 
 /**
  * Pins the `DELETE /posts/:id` **wire contract** by driving the real Retrofit stack over loopback.

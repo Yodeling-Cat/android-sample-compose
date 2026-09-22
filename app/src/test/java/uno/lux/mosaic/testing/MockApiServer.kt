@@ -1,4 +1,4 @@
-package uno.lux.mosaic.common.data.network
+package uno.lux.mosaic.testing
 
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.mockwebserver.MockWebServer

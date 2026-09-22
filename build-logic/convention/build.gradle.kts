@@ -5,13 +5,13 @@ plugins {
 group = "uno.lux.mosaic.buildlogic"
 
 /*
- * The plugin jars are compileOnly because the root build already puts them on the build classpath
- * (`plugins { alias(...) apply false }`), so the convention plugins only need them to compile
- * against the typed DSL — never to resolve one at run time.
+ * AGP is compileOnly because the root build already puts it on the build classpath
+ * (`plugins { alias(...) apply false }`); the convention plugins need it to compile against
+ * `LibraryExtension` and `ApplicationExtension`, never to resolve a plugin at run time. The Kotlin
+ * and ktlint plugins are applied by id alone, so they need no entry here at all.
  */
 dependencies {
     compileOnly(libs.android.gradle.plugin)
-    compileOnly(libs.kotlin.gradle.plugin)
 }
 
 gradlePlugin {
@@ -23,6 +23,10 @@ gradlePlugin {
         register("androidLibraryCompose") {
             id = "mosaic.android.library.compose"
             implementationClass = "AndroidLibraryComposeConventionPlugin"
+        }
+        register("androidApplication") {
+            id = "mosaic.android.application"
+            implementationClass = "AndroidApplicationConventionPlugin"
         }
     }
 }

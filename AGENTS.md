@@ -20,7 +20,7 @@ Shared test infrastructure lives in `app/src/test/java/uno/lux/mosaic/testing/`.
 
 Fakes are hand-written. Each fake lives beside the thing it stands in for, for example `post/data/FakePostDataSource.kt`. The project uses no mocking framework.
 
-**A helper two modules' tests need is a test fixture, not a copy.** `:core:common` publishes `WireTestHelpers` (`httpException`, `notFoundException`, `emptyPage`) and `FakeFileLoader` through `src/testFixtures`, and `:app` takes them with `testImplementation(testFixtures(project(":core:common")))`. A fixture is its own compilation, so nothing in it may be `internal`. `MockApiServer` is deliberately *not* a fixture: it builds its Retrofit from `app/di`'s `NetworkModule`, which is the one direction `common` may not know.
+**A helper two modules' tests need is a test fixture, not a copy.** `:core:common` publishes `WireTestHelpers` (`httpException`, `notFoundException`, `emptyPage`) and `FakeFileLoader` through `src/testFixtures`, and `:app` takes them with `testImplementation(testFixtures(project(":core:common")))`. A fixture is its own compilation, so nothing in it may be `internal`. `MockApiServer` is deliberately *not* a fixture: it builds its Retrofit from `app/di`'s `NetworkModule`, which is the one direction `common` may not know, so it sits in `:app`'s own `testing/` package with the rest of the shared test infrastructure.
 
 ## Commands
 
@@ -44,7 +44,7 @@ Run the three JVM-only checks instead. State plainly which parts of a change the
 ## Toolchain / build setup
 
 - **Kotlin 2.4.10**, **AGP 9.3.1**, **Gradle 9.6.1**, Compose BOM **2026.06.01**. Java 11 is the source and target version. The Gradle daemon runs on JDK 21.
-- `compileSdk` and `targetSdk` are both **37** (the `release(37)` DSL). `minSdk` is **26**. The app states them in its own build file; the library modules inherit them from the `mosaic.android.library` convention plugin, because compiling a library against a different SDK than the app that ships it is a bug waiting for a release. The project bumps these two settings separately, on purpose. A new SDK version lands on `compileSdk` first. It moves to `targetSdk` only after a review of its behavior changes. That review is cheap here for five reasons: the app declares only the `INTERNET` permission, it picks media through `PickVisualMedia`, it runs no foreground service, it is already edge-to-edge, and it ships no native code. Check these five items again when the next SDK version lands.
+- `compileSdk` and `targetSdk` are both **37** (the `release(37)` DSL). `minSdk` is **26**. `compileSdk` and `minSdk` are stated **once**, in `build-logic`'s `configureAndroid`, which the application and the libraries both go through — compiling a library against a different SDK than the app that ships it is a bug waiting for a release. `targetSdk` is the exception and stays in `app/build.gradle.kts`: only an application has one, and bumping it is the reviewed decision described above. The project bumps these two settings separately, on purpose. A new SDK version lands on `compileSdk` first. It moves to `targetSdk` only after a review of its behavior changes. That review is cheap here for five reasons: the app declares only the `INTERNET` permission, it picks media through `PickVisualMedia`, it runs no foreground service, it is already edge-to-edge, and it ships no native code. Check these five items again when the next SDK version lands.
 - The project uses AGP 9's **built-in Kotlin**, so it has no `org.jetbrains.kotlin.android` plugin. Annotation processing uses **KSP**, because kapt is not compatible. Hilt runs on KSP too.
 - AGP bundles Kotlin 2.2.10. The root `build.gradle.kts` raises the compiler version to 2.4.10 through the **buildscript classpath**. This is the documented way to override it. The Compose compiler, kotlinx-serialization, and **Mappie** are locked to the Kotlin version. **A Kotlin version bump is blocked until Mappie publishes a matching build.** KSP versions on its own schedule (`2.3.10`).
 - Add dependencies to the **version catalog** (`gradle/libs.versions.toml`) and reference them through `libs.*`. Never hardcode a version number in a build script. `build-logic` reads the same catalog through its own `settings.gradle.kts`, so the rule holds inside the convention plugins too.
@@ -151,7 +151,7 @@ The feature-to-feature edges are deliberate. `composer -> feed`: publishing a po
 **To file a new file, ask in order:**
 
 1. **Does it mention a domain noun?** No → 2. Yes → 3.
-2. Pixels → branded control → `designsystem/components`; color/font → `designsystem/theme`; needed by 2+ concerns → `common/ui`; one concern → that concern. Draws nothing → `common/util`, even when `@Composable`. Wires the app together → `app`. Neither → `common/data`.
+2. Pixels → branded control → `designsystem/components`; color/font → `designsystem/theme`; needed by 2+ concerns → `common/ui`; one concern → that concern. Draws nothing → `common/util`, even when `@Composable` — **unless the design system itself needs it**, in which case it goes there, because `:core:design-system` sits below `:core:common` and cannot import it. `ClickDebounce` is the one case today. Wires the app together → `app`. Neither → `common/data`.
 3. Claimed by exactly one feature → that feature. By several → the noun's aggregate.
 
 The moment a "helper" imports `Post`, it is post code. File it in `post/`.
@@ -192,7 +192,7 @@ Adding a rule means adding a test. Verify a new rule by planting a violation and
 
 **Revisit this decision when** one of three things happens: boundaries are violated in practice and code review does not catch it, build times become a real complaint as measured with `--profile`, or a second contributor joins the project.
 
-**Build configuration lives in `build-logic`**, an included build whose convention plugins — `mosaic.android.library` and `mosaic.android.library.compose` — state the SDK levels, the Java version and the Compose setup once. A library module's build file is then only its namespace and its dependencies. Versions still come from the catalog: `Catalog.kt` reaches it through `VersionCatalogsExtension`, because the generated `libs.*` accessors exist only inside a build script.
+**Build configuration lives in `build-logic`**, an included build with three convention plugins — `mosaic.android.application`, `mosaic.android.library` and `mosaic.android.library.compose`. The SDK levels, the Java version, ktlint and the Compose setup are stated once each, in `AndroidConventions.kt`'s `configureAndroid` and `configureCompose`, which take AGP's `CommonExtension` so the application and the libraries share them. **`:app` goes through the same plugin**, on purpose: settings centralized for the libraries but restated by the app would be exactly the drift centralizing them was meant to stop. A module's build file is then its namespace, what only it needs, and its dependencies. Versions still come from the catalog: `Catalog.kt` reaches it through `VersionCatalogsExtension`, because the generated `libs.*` accessors exist only inside a build script.
 
 ## Architecture
 

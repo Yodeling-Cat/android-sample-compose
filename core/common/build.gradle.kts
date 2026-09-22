@@ -38,5 +38,4 @@ dependencies {
     testFixturesImplementation(libs.okhttp)
     testFixturesImplementation(libs.retrofit)
     testImplementation(libs.junit)
-    testImplementation(libs.kotlinx.coroutines.test)
 }

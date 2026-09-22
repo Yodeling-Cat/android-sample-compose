@@ -8,7 +8,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import uno.lux.mosaic.common.data.ReportReason
-import uno.lux.mosaic.common.data.network.createApi
+import uno.lux.mosaic.testing.createApi
 
 /**
  * Pins the `POST /posts/:id/report` **wire contract** by driving the real Retrofit stack over

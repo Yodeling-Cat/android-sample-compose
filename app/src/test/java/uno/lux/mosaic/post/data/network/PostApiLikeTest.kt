@@ -8,7 +8,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import uno.lux.mosaic.common.data.LikeState
-import uno.lux.mosaic.common.data.network.createApi
+import uno.lux.mosaic.testing.createApi
 
 /**
  * Pins the **wire contract** of the like and bookmark endpoints by driving the real Retrofit

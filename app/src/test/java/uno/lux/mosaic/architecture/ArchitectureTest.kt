@@ -56,47 +56,50 @@ class ArchitectureTest {
 
         /** The shapes a concern's packages may take, as suffixes on `<root>.<concern>`. */
         val LAYERS = listOf(".data", ".data.domain", ".data.network", ".ui")
+
+        val KoFileDeclaration.pkg: String get() = packagee?.name.orEmpty()
+
+        /** The top-level package a file lives in: `uno.lux.mosaic.post.data` -> `post`. */
+        val KoFileDeclaration.root: String get() = pkg.removePrefix("$ROOT.").substringBefore('.')
+
+        /** Whether the file is in the concern's data layer: `post.data`, `post.data.network`, … */
+        val KoFileDeclaration.isDataLayer: Boolean
+            get() = pkg.removePrefix("$ROOT.").substringAfter('.', missingDelimiterValue = "").startsWith("data")
+
+        /**
+         * Every production file the rules are about, parsed **once** for the whole class.
+         *
+         * Konsist scans the whole tree, `build-logic` included, and re-parses it on every call —
+         * so a `PRODUCTION` function would have cost ten scans of three modules per run. The
+         * filter keeps the convention plugins out without naming them: they declare no package at
+         * all, which is what made each one read as a concern named "". A file that *has* a package
+         * stays in scope even if it is a foreign one, so a misfiled package fails a rule rather
+         * than quietly leaving it.
+         */
+        val PRODUCTION: List<KoFileDeclaration> =
+            Konsist.scopeFromProduction().files.filter { it.packagee != null }
+
+        /** Every concern the tree actually has — discovered, never listed. */
+        val CONCERNS: Set<String> = PRODUCTION.map { it.root }.toSet() - NON_CONCERNS
     }
-
-    /**
-     * Every production file in the app's own modules.
-     *
-     * Konsist scans the whole tree, which now includes `build-logic`. Those convention plugins are
-     * how the build is assembled rather than part of the app, they carry no package at all, and no
-     * rule here is about them — left in, each one reads as a concern named "".
-     */
-    private fun production() =
-        Konsist.scopeFromProduction().files.filterNot { "build-logic" in it.projectPath }
-
-    private val KoFileDeclaration.pkg: String get() = packagee?.name.orEmpty()
-
-    /** The top-level package a file lives in: `uno.lux.mosaic.post.data` -> `post`. */
-    private val KoFileDeclaration.root: String get() = pkg.removePrefix("$ROOT.").substringBefore('.')
-
-    /** Whether the file is in the concern's data layer: `post.data`, `post.data.network`, … */
-    private val KoFileDeclaration.isDataLayer: Boolean
-        get() = pkg.removePrefix("$ROOT.").substringAfter('.', missingDelimiterValue = "").startsWith("data")
 
     /** Whether the import names something of ours rather than a library. */
     private fun ours(importName: String): Boolean = importName.startsWith("$ROOT.")
 
-    /** Every concern the tree actually has — discovered, never listed. */
-    private fun concerns(): Set<String> = production().map { it.root }.toSet() - NON_CONCERNS
-
     @Test
     fun `every concern package follows the convention`() {
-        val allowed = concerns()
+        val allowed = CONCERNS
             .flatMap { concern -> LAYERS.map { "$ROOT.$concern$it" } }
             .toSet()
 
-        production()
+        PRODUCTION
             .filter { it.root !in NON_CONCERNS }
             .assertTrue(additionalMessage = CONVENTION_MESSAGE) { it.pkg in allowed }
     }
 
     @Test
     fun `the wire stays in data-network`() {
-        production().assertTrue(additionalMessage = WIRE_MESSAGE) { file ->
+        PRODUCTION.assertTrue(additionalMessage = WIRE_MESSAGE) { file ->
             file.pkg.endsWith(".data.network") ||
                 file.pkg == "$ROOT.$APP.di" ||
                 file.imports.none { it.name.startsWith("retrofit2.") || it.name.startsWith("okhttp3.") }
@@ -105,7 +108,7 @@ class ArchitectureTest {
 
     @Test
     fun `the domain layer is pure`() {
-        production()
+        PRODUCTION
             .filter { it.pkg.endsWith(".data.domain") }
             .assertTrue(additionalMessage = DOMAIN_MESSAGE) { file ->
                 file.imports.none { import ->
@@ -121,7 +124,7 @@ class ArchitectureTest {
 
     @Test
     fun `data never depends on ui`() {
-        production()
+        PRODUCTION
             .filter { it.isDataLayer }
             .assertTrue(additionalMessage = LAYERING_MESSAGE) { file ->
                 file.imports.none { ours(it.name) && it.name.contains(".ui.") }
@@ -130,33 +133,32 @@ class ArchitectureTest {
 
     @Test
     fun `common knows no concern`() {
-        val concerns = concerns()
-
-        production()
-            .filter { it.root == COMMON }
-            .assertTrue(additionalMessage = COMMON_MESSAGE) { file ->
-                file.imports.none { import ->
-                    concerns.any { import.name.startsWith("$ROOT.$it.") }
-                }
-            }
+        assertKnowsNoConcern(COMMON, COMMON_MESSAGE)
     }
 
     @Test
     fun `the design system knows no concern`() {
-        val concerns = concerns()
+        assertKnowsNoConcern(DESIGN_SYSTEM, DESIGN_SYSTEM_MESSAGE)
+    }
 
-        production()
-            .filter { it.pkg.startsWith("$ROOT.$DESIGN_SYSTEM") }
-            .assertTrue(additionalMessage = DESIGN_SYSTEM_MESSAGE) { file ->
+    /**
+     * The shared half of the two rules above: a top-level package that every concern may depend on
+     * has to depend on none of them. They differ only in which package and which explanation, so
+     * the next shared module is a third one-line test rather than a third copy of this body.
+     */
+    private fun assertKnowsNoConcern(root: String, message: String) {
+        PRODUCTION
+            .filter { it.root == root }
+            .assertTrue(additionalMessage = message) { file ->
                 file.imports.none { import ->
-                    concerns.any { import.name.startsWith("$ROOT.$it.") }
+                    CONCERNS.any { import.name.startsWith("$ROOT.$it.") }
                 }
             }
     }
 
     @Test
     fun `a repository behind no interface stays plain-JVM`() {
-        production().assertTrue(additionalMessage = REPOSITORY_MESSAGE) { file ->
+        PRODUCTION.assertTrue(additionalMessage = REPOSITORY_MESSAGE) { file ->
             file.classes().none { it.name.endsWith("Repository") && it.parents().isEmpty() } ||
                 file.imports.none {
                     it.name.startsWith("android.") || it.name.startsWith("androidx.")

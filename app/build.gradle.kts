@@ -2,13 +2,11 @@ import java.io.File
 import java.util.Properties
 
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.compose)
+    id("mosaic.android.application")
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
     alias(libs.plugins.mappie)
-    alias(libs.plugins.ktlint)
 }
 
 /**
@@ -35,13 +33,9 @@ val localServerPort = devSetting("MOSAIC_LOCAL_PORT", "mosaic.localPort", "3000"
 
 android {
     namespace = "uno.lux.mosaic"
-    compileSdk {
-        version = release(37)
-    }
 
     defaultConfig {
         applicationId = "uno.lux.mosaic"
-        minSdk = 26
         targetSdk = 37
         versionCode = 1
         versionName = "1.0"
@@ -79,12 +73,7 @@ android {
             )
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
     buildFeatures {
-        compose = true
         buildConfig = true
     }
 }
@@ -92,7 +81,6 @@ android {
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:design-system"))
-    implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     // For AppCompatDelegate.setApplicationLocales — the per-app language backport below Android 13.
     implementation(libs.androidx.appcompat)
@@ -100,7 +88,6 @@ dependencies {
     implementation(libs.androidx.compose.material3.adaptive.navigation.suite)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
     // Declared rather than inherited transitively, so the whole coroutines group resolves at the
@@ -145,7 +132,6 @@ dependencies {
     // Instrumented ViewModel tests drive viewModelScope the same way the JVM ones do.
     androidTestImplementation(libs.kotlinx.coroutines.test)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-    debugImplementation(libs.androidx.compose.ui.tooling)
 }
 
 /**
