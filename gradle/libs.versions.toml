@@ -73,9 +73,12 @@ timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "tim
 mappie-api = { group = "tech.mappie", name = "mappie-api", version.ref = "mappie" }
 # Placed on AGP's buildscript classpath to lift the built-in Kotlin compiler past the bundled 2.2.10.
 kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+# On build-logic's compile classpath only, so a convention plugin can configure AGP's typed DSL.
+android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

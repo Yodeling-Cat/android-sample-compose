@@ -25,10 +25,10 @@ import coil3.compose.AsyncImage
 import coil3.size.Size
 import uno.lux.mosaic.R
 import uno.lux.mosaic.album.data.domain.Album
-import uno.lux.mosaic.app.theme.MosaicGradients
 import uno.lux.mosaic.app.util.PrefetchNextImage
-import uno.lux.mosaic.app.util.debouncedClickable
 import uno.lux.mosaic.common.ui.MediaBadge
+import uno.lux.mosaic.designsystem.components.debouncedClickable
+import uno.lux.mosaic.designsystem.theme.MosaicGradients
 
 /**
  * How a gallery tile draws its photo, shared by the rendered image and its prefetch: the prefetch

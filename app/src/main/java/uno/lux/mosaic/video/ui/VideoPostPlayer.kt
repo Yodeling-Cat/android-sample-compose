@@ -24,11 +24,11 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import uno.lux.mosaic.R
-import uno.lux.mosaic.app.theme.MosaicGradients
-import uno.lux.mosaic.app.util.debouncedClickable
 import uno.lux.mosaic.common.formatVideoDuration
 import uno.lux.mosaic.common.ui.MediaBadge
 import uno.lux.mosaic.common.ui.PlayBadge
+import uno.lux.mosaic.designsystem.components.debouncedClickable
+import uno.lux.mosaic.designsystem.theme.MosaicGradients
 import uno.lux.mosaic.video.data.domain.Video
 
 /**

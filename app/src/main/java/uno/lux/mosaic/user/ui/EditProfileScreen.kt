@@ -56,10 +56,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uno.lux.mosaic.R
 import uno.lux.mosaic.app.fixtures.SampleUsers
-import uno.lux.mosaic.app.theme.MosaicTheme
-import uno.lux.mosaic.app.theme.accentBarColors
-import uno.lux.mosaic.app.theme.rememberAccentWash
-import uno.lux.mosaic.app.ui.components.AppBarAction
 import uno.lux.mosaic.app.util.LightStatusBarIcons
 import uno.lux.mosaic.app.util.createActionsProxy
 import uno.lux.mosaic.common.asText
@@ -67,6 +63,10 @@ import uno.lux.mosaic.common.ui.DiscardChangesDialog
 import uno.lux.mosaic.common.ui.FormCard
 import uno.lux.mosaic.common.ui.FullScreenError
 import uno.lux.mosaic.common.ui.FullScreenProgress
+import uno.lux.mosaic.designsystem.components.AppBarAction
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
+import uno.lux.mosaic.designsystem.theme.accentBarColors
+import uno.lux.mosaic.designsystem.theme.rememberAccentWash
 import uno.lux.mosaic.user.data.domain.UserId
 
 @Stable

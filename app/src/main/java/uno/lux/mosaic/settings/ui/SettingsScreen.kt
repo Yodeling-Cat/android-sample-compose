@@ -33,11 +33,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uno.lux.mosaic.R
-import uno.lux.mosaic.app.theme.LocalMosaicColors
-import uno.lux.mosaic.app.theme.MosaicTheme
-import uno.lux.mosaic.app.theme.accentBarColors
-import uno.lux.mosaic.app.ui.components.AppBarAction
 import uno.lux.mosaic.app.util.LightStatusBarIcons
+import uno.lux.mosaic.designsystem.components.AppBarAction
+import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
+import uno.lux.mosaic.designsystem.theme.accentBarColors
 import uno.lux.mosaic.settings.data.domain.AppLanguage
 import uno.lux.mosaic.settings.data.domain.ThemeMode
 

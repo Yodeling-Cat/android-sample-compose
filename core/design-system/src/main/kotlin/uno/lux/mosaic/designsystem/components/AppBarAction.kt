@@ -1,4 +1,4 @@
-package uno.lux.mosaic.app.ui.components
+package uno.lux.mosaic.designsystem.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.material3.Icon
@@ -6,7 +6,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import uno.lux.mosaic.app.util.rememberDebounced
 
 /**
  * One icon affordance in a top app bar — the navigation icon, or one of the trailing actions.

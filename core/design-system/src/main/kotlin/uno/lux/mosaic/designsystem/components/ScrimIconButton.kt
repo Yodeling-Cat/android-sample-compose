@@ -1,4 +1,4 @@
-package uno.lux.mosaic.app.ui.components
+package uno.lux.mosaic.designsystem.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import uno.lux.mosaic.app.util.rememberDebounced
 
 /** Behind the glyph while the bar is transparent: dark enough to carry a white icon over any cover. */
 private val ButtonScrim = Color.Black.copy(alpha = 0.32f)
@@ -27,7 +26,7 @@ private val ButtonScrim = Color.Black.copy(alpha = 0.32f)
  * icon as [progress] goes 0 → 1, so the button tracks whatever drives the bar's own fill.
  */
 @Composable
-internal fun ScrimIconButton(
+fun ScrimIconButton(
     @DrawableRes iconRes: Int,
     contentDescription: String,
     progress: Float,

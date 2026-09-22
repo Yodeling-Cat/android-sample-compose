@@ -1,4 +1,4 @@
-package uno.lux.mosaic.app.ui.components
+package uno.lux.mosaic.designsystem.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -19,9 +19,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import uno.lux.mosaic.R
-import uno.lux.mosaic.app.theme.Bricolage
-import uno.lux.mosaic.app.theme.MosaicTheme
+import uno.lux.mosaic.designsystem.R
+import uno.lux.mosaic.designsystem.theme.Bricolage
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
 @Composable
 fun MosaicWordmark(modifier: Modifier = Modifier) {

@@ -15,8 +15,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import uno.lux.mosaic.app.fixtures.SamplePosts
 import uno.lux.mosaic.app.fixtures.SampleUsers
-import uno.lux.mosaic.app.theme.MosaicTheme
 import uno.lux.mosaic.common.data.ReportReason
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.post.data.domain.Post
 import uno.lux.mosaic.user.data.domain.User
 import uno.lux.mosaic.video.data.domain.Video

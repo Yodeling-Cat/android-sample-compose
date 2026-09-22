@@ -11,8 +11,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import uno.lux.mosaic.R
-import uno.lux.mosaic.app.theme.MosaicTheme
 import uno.lux.mosaic.common.data.ReportReason
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
 /**
  * What the dialog hands its host when Send is tapped.

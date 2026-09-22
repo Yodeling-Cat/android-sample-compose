@@ -1,4 +1,4 @@
-package uno.lux.mosaic.app.ui.components
+package uno.lux.mosaic.designsystem.components
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
@@ -48,9 +48,9 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import uno.lux.mosaic.R
-import uno.lux.mosaic.app.theme.MosaicAccentBrush
-import uno.lux.mosaic.app.theme.MosaicTheme
+import uno.lux.mosaic.designsystem.R
+import uno.lux.mosaic.designsystem.theme.MosaicAccentBrush
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import kotlin.time.Duration.Companion.milliseconds
 
 /** What the button is doing right now. */

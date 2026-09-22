@@ -1,4 +1,4 @@
-package uno.lux.mosaic.app.ui.components
+package uno.lux.mosaic.designsystem.components
 
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
@@ -12,7 +12,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import uno.lux.mosaic.R
-import uno.lux.mosaic.app.theme.MosaicTheme
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
 /**
  * Pins what [contentDescription] being optional actually means to a screen reader.

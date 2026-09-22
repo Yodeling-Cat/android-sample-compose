@@ -1,0 +1,5 @@
+<resources>
+
+    <!-- Branded controls -->
+    <string name="hold_to_confirm_hint">Stiskněte a podržte</string>
+</resources>

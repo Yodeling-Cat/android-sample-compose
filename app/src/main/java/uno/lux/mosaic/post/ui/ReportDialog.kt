@@ -39,8 +39,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import uno.lux.mosaic.R
-import uno.lux.mosaic.app.theme.MosaicTheme
 import uno.lux.mosaic.common.data.ReportReason
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
 /**
  * Mirrors the server's `PostsService::REPORT_DETAILS_MAX_LENGTH`. The report is acknowledged the

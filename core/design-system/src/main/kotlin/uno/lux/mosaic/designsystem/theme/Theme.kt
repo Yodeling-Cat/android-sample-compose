@@ -1,4 +1,4 @@
-package uno.lux.mosaic.app.theme
+package uno.lux.mosaic.designsystem.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme

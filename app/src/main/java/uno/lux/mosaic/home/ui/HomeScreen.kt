@@ -44,10 +44,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uno.lux.mosaic.R
 import uno.lux.mosaic.app.fixtures.SamplePosts
 import uno.lux.mosaic.app.fixtures.SampleUsers
-import uno.lux.mosaic.app.theme.LocalMosaicColors
-import uno.lux.mosaic.app.theme.MosaicTheme
-import uno.lux.mosaic.app.ui.components.AppBarAction
-import uno.lux.mosaic.app.ui.components.MosaicWordmark
 import uno.lux.mosaic.app.util.createActionsProxy
 import uno.lux.mosaic.common.asText
 import uno.lux.mosaic.common.data.ReportReason
@@ -57,6 +53,10 @@ import uno.lux.mosaic.common.ui.FullScreenError
 import uno.lux.mosaic.common.ui.FullScreenProgress
 import uno.lux.mosaic.common.ui.LoadMoreEffect
 import uno.lux.mosaic.common.ui.LoadingMoreFooter
+import uno.lux.mosaic.designsystem.components.AppBarAction
+import uno.lux.mosaic.designsystem.components.MosaicWordmark
+import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.post.data.domain.PostId
 import uno.lux.mosaic.post.ui.PostCard
 import uno.lux.mosaic.post.ui.PostCardData

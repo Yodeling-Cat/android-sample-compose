@@ -1,4 +1,4 @@
-package uno.lux.mosaic.app.ui.components
+package uno.lux.mosaic.designsystem.components
 
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertCountEquals
@@ -14,7 +14,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import uno.lux.mosaic.app.theme.MosaicTheme
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
 /**
  * Pins the button's accessibility escape hatch. Holding is a motor-skill barrier, so a service

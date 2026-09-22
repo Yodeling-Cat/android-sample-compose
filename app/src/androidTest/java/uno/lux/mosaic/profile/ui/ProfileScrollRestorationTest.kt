@@ -16,8 +16,8 @@ import org.junit.runner.RunWith
 import uno.lux.mosaic.R
 import uno.lux.mosaic.app.fixtures.SamplePosts
 import uno.lux.mosaic.app.fixtures.SampleUsers
-import uno.lux.mosaic.app.theme.MosaicTheme
 import uno.lux.mosaic.app.util.createActionsProxy
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.profile.data.domain.Profile
 
 /**

@@ -54,18 +54,18 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import uno.lux.mosaic.R
-import uno.lux.mosaic.app.theme.LocalMosaicColors
-import uno.lux.mosaic.app.theme.MosaicTheme
-import uno.lux.mosaic.app.theme.rememberAccentWash
-import uno.lux.mosaic.app.ui.components.AppBarAction
-import uno.lux.mosaic.app.ui.components.HoldToConfirmButton
 import uno.lux.mosaic.app.util.createActionsProxy
-import uno.lux.mosaic.app.util.debouncedClickable
 import uno.lux.mosaic.common.formatVideoDuration
 import uno.lux.mosaic.common.ui.DiscardChangesDialog
 import uno.lux.mosaic.common.ui.FormCard
 import uno.lux.mosaic.common.ui.MediaBadge
 import uno.lux.mosaic.common.ui.MediaRemoveButton
+import uno.lux.mosaic.designsystem.components.AppBarAction
+import uno.lux.mosaic.designsystem.components.HoldToConfirmButton
+import uno.lux.mosaic.designsystem.components.debouncedClickable
+import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
+import uno.lux.mosaic.designsystem.theme.rememberAccentWash
 
 /**
  * The composer's ViewModel-backed intents, as one [Stable] seam the stateless

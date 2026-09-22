@@ -90,6 +90,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:design-system"))
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     // For AppCompatDelegate.setApplicationLocales — the per-app language backport below Android 13.

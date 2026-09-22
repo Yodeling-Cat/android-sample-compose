@@ -40,10 +40,10 @@ import androidx.core.app.ShareCompat
 import androidx.core.content.getSystemService
 import kotlinx.coroutines.launch
 import uno.lux.mosaic.R
-import uno.lux.mosaic.app.theme.LocalMosaicColors
-import uno.lux.mosaic.app.util.debouncedClickable
-import uno.lux.mosaic.app.util.rememberDebounced
 import uno.lux.mosaic.common.data.ReportReason
+import uno.lux.mosaic.designsystem.components.debouncedClickable
+import uno.lux.mosaic.designsystem.components.rememberDebounced
+import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
 import uno.lux.mosaic.post.data.domain.Post
 import uno.lux.mosaic.user.data.domain.User
 import uno.lux.mosaic.user.ui.Avatar

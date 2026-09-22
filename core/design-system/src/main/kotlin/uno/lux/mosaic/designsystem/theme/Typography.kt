@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalTextApi::class)
 
-package uno.lux.mosaic.app.theme
+package uno.lux.mosaic.designsystem.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.ExperimentalTextApi
@@ -11,7 +11,7 @@ import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
-import uno.lux.mosaic.R
+import uno.lux.mosaic.designsystem.R
 
 // Variable fonts: one TTF per family, the weight axis selected per FontWeight.
 private fun manrope(weight: Int) = Font(

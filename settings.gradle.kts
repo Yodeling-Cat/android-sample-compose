@@ -1,4 +1,7 @@
 pluginManagement {
+    // The convention plugins the library modules apply; an included build rather than
+    // buildSrc, so editing one does not invalidate every task in the main build.
+    includeBuild("build-logic")
     repositories {
         google {
             content {
@@ -24,3 +27,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Sample"
 include(":app")
+include(":core:design-system")

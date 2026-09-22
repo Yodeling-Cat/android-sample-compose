@@ -15,9 +15,9 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import uno.lux.mosaic.app.navigation.Navigator
-import uno.lux.mosaic.app.theme.MosaicDarkNavBarScrim
-import uno.lux.mosaic.app.theme.MosaicLightNavBarScrim
-import uno.lux.mosaic.app.theme.MosaicTheme
+import uno.lux.mosaic.designsystem.theme.MosaicDarkNavBarScrim
+import uno.lux.mosaic.designsystem.theme.MosaicLightNavBarScrim
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import javax.inject.Inject
 
 /**

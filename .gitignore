@@ -13,7 +13,8 @@
 /.idea/ktlint-plugin.xml
 /.idea/androidTestResultsUserPreferences.xml
 .DS_Store
-/build
+# Every module's build directory, not just the root one.
+build/
 /captures
 .externalNativeBuild
 .cxx

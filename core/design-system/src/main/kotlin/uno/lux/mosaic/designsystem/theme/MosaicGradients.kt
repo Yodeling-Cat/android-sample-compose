@@ -1,4 +1,4 @@
-package uno.lux.mosaic.app.theme
+package uno.lux.mosaic.designsystem.theme
 
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color

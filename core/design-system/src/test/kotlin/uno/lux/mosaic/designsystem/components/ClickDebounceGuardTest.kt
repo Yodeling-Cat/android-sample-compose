@@ -1,4 +1,4 @@
-package uno.lux.mosaic.app.util
+package uno.lux.mosaic.designsystem.components
 
 import org.junit.Assert.assertEquals
 import org.junit.Test

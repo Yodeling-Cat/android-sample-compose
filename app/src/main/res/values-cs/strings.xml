@@ -148,7 +148,6 @@
 
     <!-- Hold-to-confirm button: replaces the label from the moment the button is pressed, and
          lingers briefly after a press too short to confirm -->
-    <string name="hold_to_confirm_hint">Stiskněte a podržte</string>
 
     <!-- Discard confirmation dialog -->
     <string name="discard_confirmation_title">Zahodit změny?</string>

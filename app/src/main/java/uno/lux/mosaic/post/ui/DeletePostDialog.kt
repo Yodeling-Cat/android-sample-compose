@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import uno.lux.mosaic.R
-import uno.lux.mosaic.app.theme.MosaicTheme
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
 /** Confirms deleting a post. Deletion is irreversible. */
 @Composable

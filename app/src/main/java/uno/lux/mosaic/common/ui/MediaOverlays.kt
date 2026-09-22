@@ -25,7 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import uno.lux.mosaic.R
-import uno.lux.mosaic.app.util.rememberDebounced
+import uno.lux.mosaic.designsystem.components.rememberDebounced
 
 /*
  * Chrome overlaid on media — the badges, play buttons and back affordance that sit on top of

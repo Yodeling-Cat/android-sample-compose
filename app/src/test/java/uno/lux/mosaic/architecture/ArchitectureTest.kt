@@ -44,21 +44,32 @@ class ArchitectureTest {
         /** What the concerns share. Depends on none of them — see [`common knows no concern`]. */
         const val COMMON = "common"
 
-        /** The two top-level packages that are not a concern, and so have no layer convention. */
-        val NON_CONCERNS = setOf(APP, COMMON)
+        /** What the app is drawn with: the palette, the type scale, the branded controls. */
+        const val DESIGN_SYSTEM = "designsystem"
+
+        /** The top-level packages that are not a concern, and so have no layer convention. */
+        val NON_CONCERNS = setOf(APP, COMMON, DESIGN_SYSTEM)
 
         /**
-         * The parts of the machine the app is drawn *with* rather than wired *by* — the palette,
-         * the branded controls, the utilities. The rest of `app` (`di`, `navigation`, `fixtures`
-         * and `MosaicApp` itself) exists to wire the concerns together and must import them.
+         * What the app is drawn *with* rather than wired *by* — the design system module and the
+         * utilities. The rest of `app` (`di`, `navigation`, `fixtures` and `MosaicApp` itself)
+         * exists to wire the concerns together and must import them.
          */
-        val APP_CORE = listOf("$APP.theme", "$APP.util", "$APP.ui.components")
+        val APP_CORE = listOf(DESIGN_SYSTEM, "$APP.util")
 
         /** The shapes a concern's packages may take, as suffixes on `<root>.<concern>`. */
         val LAYERS = listOf(".data", ".data.domain", ".data.network", ".ui")
     }
 
-    private fun production() = Konsist.scopeFromProduction().files
+    /**
+     * Every production file in the app's own modules.
+     *
+     * Konsist scans the whole tree, which now includes `build-logic`. Those convention plugins are
+     * how the build is assembled rather than part of the app, they carry no package at all, and no
+     * rule here is about them — left in, each one reads as a concern named "".
+     */
+    private fun production() =
+        Konsist.scopeFromProduction().files.filterNot { "build-logic" in it.projectPath }
 
     private val KoFileDeclaration.pkg: String get() = packagee?.name.orEmpty()
 
@@ -187,9 +198,9 @@ private const val COMMON_MESSAGE =
         "Note a KDoc [Link] needs an import too: write cross-concern doc references fully qualified."
 
 private const val APP_CORE_MESSAGE =
-    "The palette, the design system or a utility imported a concern. Unlike the rest of `app` — " +
+    "The design system or a utility imported a concern. Unlike the rest of `app` — " +
         "`di` binds every repository and `MosaicApp` renders every screen, so those must know the " +
-        "concerns — these three are what everything is drawn with, and they stay reusable only " +
+        "concerns — these are what everything is drawn with, and they stay reusable only " +
         "while they know nothing. A branded control that grew a `Post` parameter is post UI: file " +
         "it in `post/ui`, or take the plain type it really needs."
 

@@ -12,7 +12,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import uno.lux.mosaic.R
-import uno.lux.mosaic.app.theme.MosaicTheme
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
 /**
  * The third kind of state this app carries across a restart, after the back stack and the
