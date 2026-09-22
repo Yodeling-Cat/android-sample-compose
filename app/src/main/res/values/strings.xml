@@ -9,8 +9,6 @@
     <!-- Feed -->
     <string name="feed_empty">No posts yet. Check back soon.</string>
     <string name="feed_caught_up">You’re all caught up</string>
-    <!-- Error -->
-    <!-- Failed fire-and-forget actions -->
 
     <!-- Create post -->
     <string name="create_post_title">New post</string>
@@ -84,10 +82,6 @@
         <item quantity="other">%1$d likes</item>
     </plurals>
 
-    <!-- Compact relative time -->
-
-    <!-- Compact engagement counts (Mosaic uses lowercase) -->
-
     <!-- Profile -->
     <string name="profile_edit">Edit profile</string>
     <string name="profile_follow">Follow</string>
@@ -127,11 +121,6 @@
     <!-- Languages are named in their own language, so these read the same in every locale. -->
     <string name="language_english" translatable="false">English</string>
     <string name="language_czech" translatable="false">Čeština</string>
-
-    <!-- Hold-to-confirm button: replaces the label from the moment the button is pressed, and
-         lingers briefly after a press too short to confirm -->
-
-    <!-- Discard confirmation dialog -->
 
     <!-- Video player controls (exo_player_control_view.xml). media3 has strings of its own for
          these, but they are private to the library, so we keep our own. It overwrites the play

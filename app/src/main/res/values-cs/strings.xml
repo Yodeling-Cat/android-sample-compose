@@ -9,8 +9,6 @@
     <!-- Feed -->
     <string name="feed_empty">Zatím žádné příspěvky. Podívejte se později.</string>
     <string name="feed_caught_up">Vše máte přečteno</string>
-    <!-- Error -->
-    <!-- Failed fire-and-forget actions -->
 
     <!-- Create post -->
     <string name="create_post_title">Nový příspěvek</string>
@@ -88,11 +86,6 @@
         <item quantity="other">%1$d lajků</item>
     </plurals>
 
-    <!-- Compact relative time -->
-    <!-- t = týden -->
-
-    <!-- Compact engagement counts (Mosaic uses lowercase) -->
-
     <!-- Profile -->
     <string name="profile_edit">Upravit profil</string>
     <string name="profile_follow">Sledovat</string>
@@ -129,11 +122,6 @@
     <string name="settings_autoplay_videos">Automaticky přehrávat videa</string>
     <string name="settings_autoplay_videos_description">Spouštět videa, když je ve feedu míjíte.</string>
     <string name="settings_language">Jazyk</string>
-
-    <!-- Hold-to-confirm button: replaces the label from the moment the button is pressed, and
-         lingers briefly after a press too short to confirm -->
-
-    <!-- Discard confirmation dialog -->
 
     <!-- Video player controls -->
     <string name="player_rewind">Přetočit zpět</string>
