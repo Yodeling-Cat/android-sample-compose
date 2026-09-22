@@ -10,7 +10,12 @@ android {
      * The wire helpers and the FileLoader fake are published as test fixtures rather than
      * kept in :app, so the fake stays beside the thing it stands in for and both modules
      * test against one copy.
+     *
+     * AGP still marks this DSL `@Incubating`, which is all the suppressed warning is about —
+     * nothing here is known to be broken. It configures a test-only source set, so the cost of
+     * the API changing under us is an edit to this build file and nothing that ships.
      */
+    @Suppress("UnstableApiUsage")
     testFixtures {
         enable = true
     }
