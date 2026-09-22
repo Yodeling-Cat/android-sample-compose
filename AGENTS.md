@@ -4,7 +4,7 @@ Guidance for AI agents working in this repository.
 
 ## Project purpose
 
-This is a sample Android app (`uno.lux.sample`, shown as "Sample"). It is a resume and portfolio piece. It shows modern Android architecture.
+This is a sample Android app (`uno.lux.mosaic`, shown as "Mosaic"). It is a resume and portfolio piece. It shows modern Android architecture.
 
 Code quality, idiomatic Compose, and clear architecture are the goal. Working features alone are not enough. Always prefer the current recommended Android method over a quick shortcut.
 
@@ -16,9 +16,11 @@ Tests are the **primary consumer** of this codebase. Users come second.
 - **Design for the test.** Logic lives in plain-JVM units, with constructor injection and no Android dependencies. Pure functions take their inputs (for example `now`) as parameters instead of reading ambient state. This is *why* the architecture has this shape: it makes the code testable.
 - **Same rule for UI.** Stateless composables take data and callbacks as parameters. ViewModels expose a `StateFlow` that a test can assert against.
 
-Shared test infrastructure lives in `app/src/test/java/uno/lux/sample/testing/`. It includes `MainDispatcherRule` (swaps `Dispatchers.Main`), `ViewModelTest` (a base class for ViewModel tests), `BackStacks` (`backStackOf`/`screens`, for driving the `Navigator`), and `TestUtils`.
+Shared test infrastructure lives in `app/src/test/java/uno/lux/mosaic/testing/`. It includes `MainDispatcherRule` (swaps `Dispatchers.Main`), `ViewModelTest` (a base class for ViewModel tests), `BackStacks` (`backStackOf`/`screens`, for driving the `Navigator`), and `TestUtils`.
 
 Fakes are hand-written. Each fake lives beside the thing it stands in for, for example `post/data/FakePostDataSource.kt`. The project uses no mocking framework.
+
+**A helper two modules' tests need is a test fixture, not a copy.** `:core:common` publishes `WireTestHelpers` (`httpException`, `notFoundException`, `emptyPage`) and `FakeFileLoader` through `src/testFixtures`, and `:app` takes them with `testImplementation(testFixtures(project(":core:common")))`. A fixture is its own compilation, so nothing in it may be `internal`. `MockApiServer` is deliberately *not* a fixture: it builds its Retrofit from `app/di`'s `NetworkModule`, which is the one direction `common` may not know.
 
 ## Commands
 
@@ -26,12 +28,12 @@ The shell is Windows PowerShell. Invoke the wrapper as `.\gradlew.bat`.
 
 **Every variant task name carries a `server` flavor** (see *Which server a build talks to*). `remote` is the default flavor, and the one every command below names.
 
-- Unit tests: `.\gradlew.bat testRemoteDebugUnitTest`. For one class, add `--tests "uno.lux.sample.post.data.PostRepositoryTest"`. Add `.<method>` to run one test.
-- Lint: `.\gradlew.bat lintRemoteDebug`. The report is at `app/build/reports/lint-results-remoteDebug.html`. For formatting, use `.\gradlew.bat ktlintCheck`.
+- Unit tests: `.\gradlew.bat testRemoteDebugUnitTest testDebugUnitTest`. Both task names are needed and neither is redundant — `:app`'s tests are flavored and the two library modules' are not, so from the root each name runs in whichever projects have it. For one class, add `--tests "uno.lux.mosaic.post.data.PostRepositoryTest"`. Add `.<method>` to run one test.
+- Lint: `.\gradlew.bat lintRemoteDebug lintDebug`, for the app and the libraries. The app's report is at `app/build/reports/lint-results-remoteDebug.html`. For formatting, use `.\gradlew.bat ktlintCheck`, which already covers every module.
 - Build or install: `.\gradlew.bat assembleRemoteDebug` or `.\gradlew.bat installRemoteDebug`.
 - Instrumented tests (need a device): `.\gradlew.bat connectedRemoteDebugAndroidTest`. For one class, add `-Pandroid.testInstrumentationRunnerArguments.class=…`.
 
-**CI** (`.github/workflows/ci.yml`) runs `ktlintCheck`, `lintRemoteDebug`, and `testRemoteDebugUnitTest` on every push to main and every pull request. It uploads the reports as artifacts. These three JVM-only checks are the checks that gate a change.
+**CI** (`.github/workflows/ci.yml`) runs `ktlintCheck`, `lintRemoteDebug lintDebug`, and `testRemoteDebugUnitTest testDebugUnitTest` on every push to main and every pull request. It uploads the reports as artifacts. These three JVM-only checks are the checks that gate a change.
 
 **There is no emulator job.** No automatic process runs the instrumented suite. A change to process-death or back-stack behavior needs the user to run it.
 
@@ -42,10 +44,10 @@ Run the three JVM-only checks instead. State plainly which parts of a change the
 ## Toolchain / build setup
 
 - **Kotlin 2.4.10**, **AGP 9.3.1**, **Gradle 9.6.1**, Compose BOM **2026.06.01**. Java 11 is the source and target version. The Gradle daemon runs on JDK 21.
-- `compileSdk` and `targetSdk` are both **37** (the `release(37)` DSL). `minSdk` is **26**. The project bumps these two settings separately, on purpose. A new SDK version lands on `compileSdk` first. It moves to `targetSdk` only after a review of its behavior changes. That review is cheap here for five reasons: the app declares only the `INTERNET` permission, it picks media through `PickVisualMedia`, it runs no foreground service, it is already edge-to-edge, and it ships no native code. Check these five items again when the next SDK version lands.
+- `compileSdk` and `targetSdk` are both **37** (the `release(37)` DSL). `minSdk` is **26**. The app states them in its own build file; the library modules inherit them from the `mosaic.android.library` convention plugin, because compiling a library against a different SDK than the app that ships it is a bug waiting for a release. The project bumps these two settings separately, on purpose. A new SDK version lands on `compileSdk` first. It moves to `targetSdk` only after a review of its behavior changes. That review is cheap here for five reasons: the app declares only the `INTERNET` permission, it picks media through `PickVisualMedia`, it runs no foreground service, it is already edge-to-edge, and it ships no native code. Check these five items again when the next SDK version lands.
 - The project uses AGP 9's **built-in Kotlin**, so it has no `org.jetbrains.kotlin.android` plugin. Annotation processing uses **KSP**, because kapt is not compatible. Hilt runs on KSP too.
 - AGP bundles Kotlin 2.2.10. The root `build.gradle.kts` raises the compiler version to 2.4.10 through the **buildscript classpath**. This is the documented way to override it. The Compose compiler, kotlinx-serialization, and **Mappie** are locked to the Kotlin version. **A Kotlin version bump is blocked until Mappie publishes a matching build.** KSP versions on its own schedule (`2.3.10`).
-- Add dependencies to the **version catalog** (`gradle/libs.versions.toml`) and reference them through `libs.*`. Never hardcode a version number in a build script.
+- Add dependencies to the **version catalog** (`gradle/libs.versions.toml`) and reference them through `libs.*`. Never hardcode a version number in a build script. `build-logic` reads the same catalog through its own `settings.gradle.kts`, so the rule holds inside the convention plugins too.
 
 ## Backend
 
@@ -96,18 +98,25 @@ The reason's *wire* spelling lives in `post/data/network/ReportPostRequestDto.kt
 The top level of the package tree is **slices, not layers**. Layers are the shape *inside* a slice. There is no root `data/` or `ui/` package, and, on purpose, no `activities/`, `viewmodels/`, or `dialogs/` package. **A file's location depends on what it is about, never on what class it extends.**
 
 ```
-post/ user/ comment/ album/ video/           aggregates: the entity, its wire types, its store, its UI
-feed/ profile/ composer/ settings/ shell/    features and read models — they own no entity
+:app
+  post/ user/ comment/ album/ video/         aggregates: the entity, its wire types, its store, its UI
+  feed/ profile/ composer/ settings/ shell/  features and read models — they own no entity
+  app/                 the machine — MainActivity, MosaicApplication, MosaicApp
+  app/di/              Hilt modules
+  app/navigation/      Navigator, Screen keys, BackStackEntry, page transitions
+  app/fixtures/        stand-in content for previews and DI seeding
 
-common/              what two or more concerns share — ui/ noun-free composables, data/ wire types and files
-app/                 the machine — MainActivity, MosaicApplication, MosaicApp
-app/di/              Hilt modules
-app/navigation/      Navigator, Screen keys, BackStackEntry, page transitions
-app/theme/           the Mosaic palette, type and gradients
-app/ui/components/   the Mosaic design system — branded controls, no domain noun
-app/util/            pure functions with zero project imports, plus composables that draw nothing
-app/fixtures/        stand-in content for previews and DI seeding
+:core:common
+  common/ui/           noun-free composables two or more concerns need
+  common/data/         wire types that describe no single aggregate, plus file loading
+  common/util/         pure functions with zero project imports, plus composables that draw nothing
+
+:core:design-system
+  designsystem/theme/       the Mosaic palette, type and gradients
+  designsystem/components/  branded controls, no domain noun
 ```
+
+**Three Gradle modules, and the arrows only point one way**: `:app` depends on `:core:common`, which depends on `:core:design-system`. See *Three modules, on purpose* below for why these two came out and nothing else did.
 
 Inside a concern there are four layers and no fifth:
 
@@ -118,7 +127,9 @@ Inside a concern there are four layers and no fifth:
 <concern>/ui/              composables and ViewModels
 ```
 
-**`app/` versus `common/`**: both hold noun-free composables. The difference is whose vocabulary the composable belongs to. `app/ui/components/` is the branded design system, for example `HoldToConfirmButton`. `common/ui/` is noun-free UI that **two or more** concerns actually need, for example `FullScreenError` and `DiscardChangesDialog`. Being noun-free is not enough to earn a place in `common/`. A generic composable with one consumer belongs to that consumer's slice. Move it to `common/` only on the day a second consumer needs it.
+**`designsystem/` versus `common/ui/`**: both hold noun-free composables. The difference is whose vocabulary the composable belongs to. `designsystem/components/` is the branded design system, for example `HoldToConfirmButton` — it knows nothing of this app beyond its brand, and could ship to a second one unchanged. `common/ui/` is noun-free UI that **two or more** concerns actually need, for example `FullScreenError` and `DiscardChangesDialog`. Being noun-free is not enough to earn a place in `common/`. A generic composable with one consumer belongs to that consumer's slice. Move it to `common/` only on the day a second consumer needs it.
+
+**A resource lives in the module that draws it**, and when two modules draw it, in the lower one. R classes are non-transitive, so `:app` names a resource it shares with `common` through `uno.lux.mosaic.common.R as CommonR` — `ic_arrow_back` and `navigate_back` are the current examples. A manifest or XML reference needs no alias, because those resolve by name when the resources merge.
 
 **Aggregates versus read models** keep the dependency graph directed. `post`, `user`, `comment`, `album`, and `video` each own an entity. `feed` and `profile` own no entity. They hold ordered *IDs* and paging state, and resolve the IDs through the entity stores. This is why `ProfileRepository` *composes* `PostRepository`.
 
@@ -131,7 +142,7 @@ feed      -> post settings user video      profile  -> post user video
 composer  -> feed post                     shell    -> feed profile user
 ```
 
-Every slice may depend on `app`. `app` wires everything together, except for `app/theme`, `app/util`, and `app/ui/components`, which import no slice.
+Every slice may depend on `app`. `app` wires everything together. `common/` and `designsystem/` import no slice — which is now a compile error rather than a convention, since they are modules that cannot see `:app`.
 
 The feature-to-feature edges are deliberate. `composer -> feed`: publishing a post prepends the new ID to the feed. `feed -> settings`: auto-play reads a setting. `shell -> feed profile`: its tabs *are* those screens.
 
@@ -140,12 +151,12 @@ The feature-to-feature edges are deliberate. `composer -> feed`: publishing a po
 **To file a new file, ask in order:**
 
 1. **Does it mention a domain noun?** No → 2. Yes → 3.
-2. Pixels → branded control → `app/ui/components`; color/font → `app/theme`; needed by 2+ concerns → `common/ui`; one concern → that concern. Draws nothing → `app/util`, even when `@Composable`. Wires the app together → `app`. Neither → `common/data`.
+2. Pixels → branded control → `designsystem/components`; color/font → `designsystem/theme`; needed by 2+ concerns → `common/ui`; one concern → that concern. Draws nothing → `common/util`, even when `@Composable`. Wires the app together → `app`. Neither → `common/data`.
 3. Claimed by exactly one feature → that feature. By several → the noun's aggregate.
 
 The moment a "helper" imports `Post`, it is post code. File it in `post/`.
 
-**Two things look like violations but are not.** First, a cross-slice KDoc reference is written fully qualified, for example `[uno.lux.sample.profile.data.ProfileRepository]`, because a `[Link]` needs an import. Second, a wire type shared by two features belongs to the aggregate it describes, for example `SideloadedUsers` belongs in `user/data/network/`. When it describes no single aggregate, it belongs in `common/data/network/`, for example `LikeToggleDto`.
+**Two things look like violations but are not.** First, a cross-slice KDoc reference is written fully qualified, for example `[uno.lux.mosaic.profile.data.ProfileRepository]`, because a `[Link]` needs an import. Second, a wire type shared by two features belongs to the aggregate it describes, for example `SideloadedUsers` belongs in `user/data/network/`. When it describes no single aggregate, it belongs in `common/data/network/`, for example `LikeToggleDto`.
 
 **The `DataSource` interface stays beside its consumer, not its implementation.** This lets a repository compose a network source and a local source without either one owning the contract. It is also why `data/network/` nests inside the slice.
 
@@ -155,29 +166,33 @@ Do not bring back an app-wide API interface. The previous one fit in no slice. I
 
 ### ArchitectureTest
 
-`app/src/test/java/uno/lux/sample/architecture/ArchitectureTest.kt` (Konsist) checks these rules against the real source tree. It fails the build on a violation. **Every rule comes from the file path, never from a list of names.** The test finds concerns as the top-level packages other than `app` and `common`, so adding a slice needs no edit to the test.
+`app/src/test/java/uno/lux/mosaic/architecture/ArchitectureTest.kt` (Konsist) checks these rules against the real source tree. It fails the build on a violation. **Every rule comes from the file path, never from a list of names.** The test finds concerns as the top-level packages other than `app`, `common` and `designsystem`, so adding a slice needs no edit to the test.
+
+Konsist scans every module, so the rules reach `:core:common` and `:core:design-system` too. `build-logic` is filtered out: its convention plugins carry no package at all, and left in, each one reads as a concern named `""`.
 
 1. **Every concern package follows the convention** of the four layers. The other rules select files by these layer suffixes. This rule guards against a rule silently matching nothing.
 2. **The wire stays in `data/network`.** Retrofit and OkHttp appear nowhere else, except `app/di`, for the one `Retrofit` instance.
 3. **The domain layer is pure.** `data/domain` imports no platform code, no wire type, and no screen. Mappers convert only from DTO to model.
 4. **`data` never depends on `ui`.**
 5. **`common` knows no concern.**
-6. **`app/theme`, `app/util`, and `app/ui/components` know no concern.** The rest of `app` is exempt from this rule, because wiring the app is its job.
+6. **The design system knows no concern.** Gradle already stops `:core:design-system` from importing `:app`; what this rule adds is the direction Gradle cannot see — a concern dragged *into* the design system, for example a branded control that grew a `Post` parameter. `common/util` is covered by rule 5 instead, now that it lives in `common`.
 7. **A repository with no interface stays plain-JVM.** A `*Repository` class with no supertype carries no Android import. `DataStoreSettingsRepository` and `AppCompatLocaleRepository` may touch the platform, because their consumers can be handed a test double instead.
 
 The test does **not** check the direction of the cross-concern graph, on purpose. Encoding which cycles are tolerated would cost more than the code review that catches them.
 
 Adding a rule means adding a test. Verify a new rule by planting a violation and watching the test fail. If a violation is *intended*, widen the rule and explain why in its failure message, instead of deleting the rule.
 
-## One module, on purpose
+## Three modules, on purpose
 
-**The app is a single `:app` module. It stays one module until a stated trigger fires.** Do not start a module split by accident. The slices map onto module boundaries almost mechanically, so a split stays possible later.
+**The build is `:app`, `:core:common` and `:core:design-system`, and every concern stays inside `:app`.** Do not move a concern into its own module by accident. The slices map onto module boundaries almost mechanically, so more of a split stays possible later.
 
-At about 150 files, a split would bring three benefits. `internal` would start to mean "private to the slice". This is the real prize, but the least urgent one. The compiler would enforce the cross-slice graph. This is the strongest argument for a split. Build avoidance would likely turn out *negative*, because KSP and Hilt codegen and configuration dominate build time here, not the recompiling of unrelated Kotlin.
+**Why these two came out.** Both are leaves: they own no entity and import no concern, so extracting them needed no architectural change at all — no navigation rework, no cycle to break, and not one call site rewritten beyond its import. What it bought is that `internal` and the dependency arrows became the compiler's problem instead of a reviewer's. The extraction also measured how much the single module had been giving away: **every** `internal` in `common` turned out to be app-facing and had to be made public, because in one module `internal` had never meant anything narrower than "the whole app".
 
-A split would also cost the exhaustive `when` over the sealed `Screen`. Feature modules cannot see each other's screens, which would push navigation toward runtime route registration.
+**Why the concerns stay put.** Splitting `post`, `feed` and the rest would cost the exhaustive `when` over the sealed `Screen` — feature modules cannot see each other's screens, which pushes navigation toward runtime route registration — and would force `post <-> comment` to be resolved rather than tolerated. Build avoidance is not a reason to do it either: KSP and Hilt codegen and configuration dominate build time here, not the recompiling of unrelated Kotlin, and every new module adds its own round of both.
 
 **Revisit this decision when** one of three things happens: boundaries are violated in practice and code review does not catch it, build times become a real complaint as measured with `--profile`, or a second contributor joins the project.
+
+**Build configuration lives in `build-logic`**, an included build whose convention plugins — `mosaic.android.library` and `mosaic.android.library.compose` — state the SDK levels, the Java version and the Compose setup once. A library module's build file is then only its namespace and its dependencies. Versions still come from the catalog: `Catalog.kt` reaches it through `VersionCatalogsExtension`, because the generated `libs.*` accessors exist only inside a build script.
 
 ## Architecture
 
@@ -294,11 +309,11 @@ Tests never touch Hilt. They construct ViewModels directly with fakes, which is 
 
 ### Theming
 
-`app/theme/` implements the **Mosaic** design system: a fixed brand palette, with an indigo accent, warm-neutral surfaces, and a coral like-state color, with full light and dark tokens in `Color.kt`.
+`:core:design-system` implements the **Mosaic** design system: a fixed brand palette, with an indigo accent, warm-neutral surfaces, and a coral like-state color, with full light and dark tokens in `designsystem/theme/Color.kt`.
 
 **The app uses no dynamic color**, so the brand stays consistent. `surfaceTint` is transparent, so cards keep their exact color while still casting a shadow.
 
-`Type.kt` wires two bundled variable fonts, in `res/font/` with an OFL license in `licenses/`: Bricolage Grotesque for the wordmark and post titles, and Manrope for UI text and body text. Tokens with no Material role, for example `textTertiary` and `like`, ride on `MosaicColors` through `LocalMosaicColors`.
+`Typography.kt` wires two bundled variable fonts, in the module's own `res/font/` with an OFL license in the repository's `licenses/`: Bricolage Grotesque for the wordmark and post titles, and Manrope for UI text and body text. Tokens with no Material role, for example `textTertiary` and `like`, ride on `MosaicColors` through `LocalMosaicColors`.
 
 **Wrap any new top-level Compose content, and every `@Preview`, in `MosaicTheme`.** A `DisposableEffect`, keyed on the resolved theme, re-applies edge-to-edge bar styling.
 
@@ -326,7 +341,7 @@ Both endpoints that answer with a *single* post embed the author. So `PostReposi
 
 **What the user typed is the one thing that must be *saved*, not re-derived.** `CreatePostViewModel` and `EditProfileViewModel` persist their form through `SavedStateHandle`, scoped per back-stack entry.
 
-`app/util/SavedDraft.kt` is the seam. `saveDraft` registers *where to read the draft from*, as a `() -> T`, not a `Flow<T>`, so the platform pulls the value at most once per save, and typing costs nothing. Serializing the whole form is what keeps `CreatePostMedia`'s variant, and with it the photos-or-video exclusivity, intact.
+`common/util/SavedDraft.kt` is the seam. `saveDraft` registers *where to read the draft from*, as a `() -> T`, not a `Flow<T>`, so the platform pulls the value at most once per save, and typing costs nothing. Serializing the whole form is what keeps `CreatePostMedia`'s variant, and with it the photos-or-video exclusivity, intact.
 
 Only the *form* is saved. An in-flight publish and errors from a dead process are not saved, so a restored composer is idle. The editor re-reads its pristine snapshot from the server, so restored edits still read as unsaved.
 
@@ -456,11 +471,13 @@ This does not ban ordinary comments. `//` on a line that explains *why* is still
 
 ## Localization
 
-All user-facing text lives in `res/values/strings.xml` and is read with `stringResource(...)`. **Never hardcode a display string in Kotlin.** Exception: a string with no words at all, for example `"$page / $total"`, is fine as plain interpolation.
+All user-facing text lives in a `res/values/strings.xml` and is read with `stringResource(...)`. **Never hardcode a display string in Kotlin.** Exception: a string with no words at all, for example `"$page / $total"`, is fine as plain interpolation.
+
+Each module carries the strings its own code draws, so there are three `strings.xml` files and three `values-cs` counterparts. A string moves down to `:core:common` or `:core:design-system` the moment that module draws it, and `:app` keeps reading it — resources merge upward. Kotlin in `:app` that names a string owned by a library goes through `CommonR`, as *Package structure* describes.
 
 Navigation labels are `@StringRes` IDs on `ShellDestinations`. Post content in `SampleData` is stand-in data, not app chrome, so it stays literal.
 
-Computed text keeps its *logic* pure. `relativeTime()` and `compactCount()`, in `app/util`, return structured buckets with no display strings. `common/Formatting.kt`'s `asText()` resolves a bucket to a localized resource.
+Computed text keeps its *logic* pure. `relativeTime()` and `compactCount()`, in `common/util`, return structured buckets with no display strings. `common/Formatting.kt`'s `asText()` resolves a bucket to a localized resource.
 
 Anything counted needs `<plurals>` and `pluralStringResource(...)`, not `%d`, because Czech buckets counts into `one`, `few`, `many`, and `other`.
 

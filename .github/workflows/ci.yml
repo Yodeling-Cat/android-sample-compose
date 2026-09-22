@@ -38,10 +38,12 @@ jobs:
         run: ./gradlew ktlintCheck
 
       - name: Android Lint
-        run: ./gradlew lintRemoteDebug
+        run: ./gradlew lintRemoteDebug lintDebug
 
+      # :app's tests are flavored, the library modules' are not, so neither task name alone
+      # reaches all three. Invoked from the root, each runs in every project that has it.
       - name: Unit tests
-        run: ./gradlew testRemoteDebugUnitTest
+        run: ./gradlew testRemoteDebugUnitTest testDebugUnitTest
 
       - name: Upload reports
         if: ${{ !cancelled() }}
@@ -52,4 +54,6 @@ jobs:
             app/build/reports/lint-results-remoteDebug.html
             app/build/reports/tests/
             app/build/reports/ktlint/
+            core/*/build/reports/tests/
+            core/*/build/reports/ktlint/
           if-no-files-found: ignore
