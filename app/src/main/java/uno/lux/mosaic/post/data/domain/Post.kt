@@ -27,8 +27,3 @@ data class PostWithUsers(
     val post: Post,
     val users: List<User>,
 )
-
-data class PostWithAuthor(
-    val post: Post,
-    val author: User,
-)

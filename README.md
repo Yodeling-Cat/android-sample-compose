@@ -1,13 +1,13 @@
 # Mosaic
 
-A portfolio Android app demonstrating modern architecture: single-activity Compose UI, Navigation 3, Hilt DI, MVVM with `StateFlow`, and a Retrofit network layer talking to a Rails backend.
+A portfolio Android app demonstrating modern architecture: single-activity Compose UI, Navigation 3, Hilt DI, MVVM with `StateFlow`, and a Retrofit network layer talking to a Rails backend. Three Gradle modules, configured by convention plugins in an included build.
 
 ## Package layout
 
 The top level is **slices, not layers** — layers are the shape *inside* a slice. There is no root `data/` or `ui/` package, and deliberately no `activities/`, `fragments/`, `viewmodels/` or `dialogs/`: **a file's home is decided by what it is *about*, never by what it extends.**
 
 ```
-uno/lux/sample/
+:app  ·  uno/lux/mosaic/
 ├── post/         ─┐
 ├── user/          │
 ├── comment/       ├─ aggregates: the entity, its wire types, its store, its UI
@@ -20,15 +20,38 @@ uno/lux/sample/
 ├── settings/      │
 ├── shell/        ─┘
 │
-├── common/       what two or more concerns share — ui/ composables · data/ wire types and files
 └── app/          the machine — MainActivity, MosaicApplication, MosaicApp
     ├── di/           the Hilt modules
     ├── navigation/   the Navigator, the serializable Screen keys, BackStackEntry
-    ├── theme/        the Mosaic palette, type and gradients
-    ├── ui/components/ the Mosaic design system — branded controls, no domain noun
-    ├── util/         pure functions with zero project imports
     └── fixtures/     stand-in content for previews and DI seeding
+
+:core:common  ·  uno/lux/mosaic/common/
+├── ui/           noun-free composables two or more concerns need
+├── data/         wire types that describe no single aggregate, plus file loading
+└── util/         pure functions with zero project imports
+
+:core:design-system  ·  uno/lux/mosaic/designsystem/
+├── theme/        the Mosaic palette, type and gradients
+└── components/   branded controls, no domain noun
+
+build-logic/      convention plugins: the SDK levels, Java version and Compose setup, once
 ```
+
+The two `core` modules are leaves — they own no entity and import no concern, which is what made them extractable without touching a single call site beyond its import. The arrows only point one way, and Gradle is what enforces it:
+
+```mermaid
+graph LR
+    app[":app"] --> common[":core:common"]
+    app --> ds[":core:design-system"]
+    common --> ds
+
+    classDef mod fill:#264653,stroke:#1d3557,color:#fff
+    classDef core fill:#2d6a4f,stroke:#1b4332,color:#fff
+    class app mod
+    class common,ds core
+```
+
+Every concern stays inside `:app`. Splitting them further would cost the exhaustive `when` over the sealed `Screen` — feature modules cannot see each other's screens — and force the `post ↔ comment` cycle below to be resolved rather than tolerated. `internal` is the reason the two that did come out are worth it: in one module it had never meant anything narrower than "the whole app".
 
 Each slice carries its own layers: `post/data/domain/` holds the entity, `post/data/` the repository and its `DataSource` **interface**, `post/data/network/` the Retrofit service, DTOs, mapper and the `Network…DataSource`, and `post/ui/` the screens. The interface lives beside its *consumer*, not beside its implementation — which is what lets a repository compose a network and a local source without either one owning the contract.
 
@@ -126,8 +149,10 @@ The app talks to a Rails backend at `https://mosaic.tree-among-shrubs.com/api/`,
 
 Tests are the primary consumer of this codebase — the architecture is shaped by what a test needs to drive. The JVM suite covers repositories, ViewModels and formatters with hand-written fakes and no mocking framework; instrumented tests cover the two things a JVM test cannot reach, saved-state restoration and process death.
 
-Seven of the assertions are **architecture rules**. `ArchitectureTest` (Konsist) reads every import in the project and fails the build if one crosses a line the layout forbids — the design system reaching into a slice, HTTP escaping the network layer, the domain layer picking up a platform type, or a repository behind no interface taking an Android dependency. Every rule is derived from the package path rather than a list of names, so adding a slice needs no edit to the test. Kotlin has no package-private and `internal` is module-scoped, so in a single-module project a package layout is a convention until something checks it. This is that something.
+Seven of the assertions are **architecture rules**. `ArchitectureTest` (Konsist) reads every import in the project and fails the build if one crosses a line the layout forbids — the design system reaching into a slice, HTTP escaping the network layer, the domain layer picking up a platform type, or a repository behind no interface taking an Android dependency. Every rule is derived from the package path rather than a list of names, so adding a slice needs no edit to the test, and Konsist reads all three modules. Kotlin has no package-private, and `internal` only reaches a module boundary — so *within* `:app`, where every concern still lives, a package layout is a convention until something checks it. This is that something.
 
 ```bash
-./gradlew testDebugUnitTest
+./gradlew ktlintCheck lintRemoteDebug lintDebug testRemoteDebugUnitTest testDebugUnitTest
 ```
+
+`:app`'s variants are flavored and the library modules' are not, so both test task names are needed; from the root each runs in whichever projects have it. CI additionally compiles the instrumented suite (`compileRemoteDebugAndroidTestKotlin`) without running it, since nothing else type-checks `androidTest` and no device is involved.

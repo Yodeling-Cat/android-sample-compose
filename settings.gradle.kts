@@ -25,7 +25,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Sample"
+rootProject.name = "Mosaic"
 include(":app")
 include(":core:design-system")
 include(":core:common")

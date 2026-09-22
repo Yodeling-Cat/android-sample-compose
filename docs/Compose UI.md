@@ -107,7 +107,7 @@ Every keystroke changes `textState.text`. Only the *first* and the *last* keystr
 
 The rule: **use it when the input changes far more often than the output.** Scroll offset to "is the bar elevated". Text to "is the send button enabled". List state to "show the scroll-to-top button".
 
-**Do not use it when the signal is already coalesced.** [HomeScreen.kt:154](../app/src/main/java/uno/lux/mosaic/feed/ui/HomeScreen.kt#L154) reads `listState.canScrollBackward` directly, with a comment saying why: it is already a boolean that only changes when the list crosses the top. Wrapping it would add an object and a subscription to buy nothing.
+**Do not use it when the signal is already coalesced.** [HomeScreen.kt:154](../app/src/main/java/uno/lux/mosaic/home/ui/HomeScreen.kt#L154) reads `listState.canScrollBackward` directly, with a comment saying why: it is already a boolean that only changes when the list crosses the top. Wrapping it would add an object and a subscription to buy nothing.
 
 `derivedStateOf` must sit inside a `remember`. Without one you allocate a fresh derived state per recomposition and lose the caching entirely.
 
@@ -130,15 +130,15 @@ LaunchedEffect(listState, playback, autoPlayVideos) {
 }
 ```
 
-From [HomeScreen.kt:283](../app/src/main/java/uno/lux/mosaic/feed/ui/HomeScreen.kt#L283). Toggling a like replaces the `posts` list instance, but it changes neither which posts carry a video nor where they sit. Keying the collector on `posts` would tear it down and rebuild it on every heart tap. `rememberUpdatedState` lets the running collector read the newest list while the effect's keys stay stable.
+From [HomeScreen.kt:283](../app/src/main/java/uno/lux/mosaic/home/ui/HomeScreen.kt#L283). Toggling a like replaces the `posts` list instance, but it changes neither which posts carry a video nor where they sit. Keying the collector on `posts` would tear it down and rebuild it on every heart tap. `rememberUpdatedState` lets the running collector read the newest list while the effect's keys stay stable.
 
 Note the contrast inside the same effect: `autoPlayVideos` **is** a key, deliberately, because restarting the collector is exactly what makes flipping the setting on play the video already on screen.
 
-The same tool keeps a gesture from being rebuilt when a callback's identity changes — [HoldToConfirmButton.kt:159](../app/src/main/java/uno/lux/mosaic/app/ui/components/HoldToConfirmButton.kt#L159) and [ClickDebounce.kt:35](../app/src/main/java/uno/lux/mosaic/app/util/ClickDebounce.kt#L35).
+The same tool keeps a gesture from being rebuilt when a callback's identity changes — [HoldToConfirmButton.kt:159](../core/design-system/src/main/kotlin/uno/lux/mosaic/designsystem/components/HoldToConfirmButton.kt#L159) and [ClickDebounce.kt:35](../core/design-system/src/main/kotlin/uno/lux/mosaic/designsystem/components/ClickDebounce.kt#L35).
 
 ### `snapshotFlow` — snapshot state to `Flow`
 
-`snapshotFlow { }` converts state reads into a cold `Flow` that emits on change, with `distinctUntilChanged` applied. It is the bridge out of Compose's snapshot world into the coroutine world, so you can `debounce`, `filter` or `collect` scroll position like any other stream. See [Pagination.kt:37](../app/src/main/java/uno/lux/mosaic/common/ui/Pagination.kt#L37) and [ImagePrefetch.kt:54](../app/src/main/java/uno/lux/mosaic/app/util/ImagePrefetch.kt#L54).
+`snapshotFlow { }` converts state reads into a cold `Flow` that emits on change, with `distinctUntilChanged` applied. It is the bridge out of Compose's snapshot world into the coroutine world, so you can `debounce`, `filter` or `collect` scroll position like any other stream. See [Pagination.kt:37](../core/common/src/main/kotlin/uno/lux/mosaic/common/ui/Pagination.kt#L37) and [ImagePrefetch.kt:54](../core/common/src/main/kotlin/uno/lux/mosaic/common/util/ImagePrefetch.kt#L54).
 
 ### `produceState` — suspend or `Flow` to state
 
@@ -152,7 +152,7 @@ val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
 **Always this, never `collectAsState`.** `collectAsState` keeps collecting while the app is in the background, so a backgrounded screen keeps working and keeps its upstream flows hot. `collectAsStateWithLifecycle` stops at `STOPPED` and resumes at `STARTED`.
 
-Every stateful binder in this codebase looks like [HomeScreen.kt:121](../app/src/main/java/uno/lux/mosaic/feed/ui/HomeScreen.kt#L121).
+Every stateful binder in this codebase looks like [HomeScreen.kt:121](../app/src/main/java/uno/lux/mosaic/home/ui/HomeScreen.kt#L121).
 
 ### State holder classes — when logic outgrows a composable
 
@@ -173,7 +173,7 @@ internal class HoldToConfirmState(
 }
 ```
 
-Two things to notice in [HoldToConfirmButton.kt:70](../app/src/main/java/uno/lux/mosaic/app/ui/components/HoldToConfirmButton.kt#L70). First, `by mutableStateOf(...)` with **no `remember`** — the class is not a composable, and the instance itself is remembered at the call site. Second, `private set`: the state is observable to everyone and writable only by the state machine. This is the shape of every `rememberFooState()` in the Compose libraries.
+Two things to notice in [HoldToConfirmButton.kt:70](../core/design-system/src/main/kotlin/uno/lux/mosaic/designsystem/components/HoldToConfirmButton.kt#L70). First, `by mutableStateOf(...)` with **no `remember`** — the class is not a composable, and the instance itself is remembered at the call site. Second, `private set`: the state is observable to everyone and writable only by the state machine. This is the shape of every `rememberFooState()` in the Compose libraries.
 
 The payoff is testability. The press, hold, hint and idle sequence is unit-testable with no frame clock and no composition.
 
@@ -183,7 +183,7 @@ Anything that outlives a configuration change, needs a coroutine scope, or talks
 
 ### `SavedStateHandle` — what the user typed
 
-The last tier. The back stack is restored after process death; every ViewModel is rebuilt from scratch. A page that fetches can re-fetch — but nobody can re-derive a half-written post. See [SavedDraft.kt](../app/src/main/java/uno/lux/mosaic/app/util/SavedDraft.kt) and its use in [CreatePostViewModel.kt:47](../app/src/main/java/uno/lux/mosaic/composer/ui/CreatePostViewModel.kt#L47):
+The last tier. The back stack is restored after process death; every ViewModel is rebuilt from scratch. A page that fetches can re-fetch — but nobody can re-derive a half-written post. See [SavedDraft.kt](../core/common/src/main/kotlin/uno/lux/mosaic/common/util/SavedDraft.kt) and its use in [CreatePostViewModel.kt:47](../app/src/main/java/uno/lux/mosaic/composer/ui/CreatePostViewModel.kt#L47):
 
 ```kotlin
 private val _uiState = MutableStateFlow(
@@ -267,7 +267,7 @@ CompositionLocalProvider(LocalMosaicColors provides mosaicColors(darkTheme)) { c
 val like = LocalMosaicColors.current.like
 ```
 
-That is [MosaicColors.kt:18](../app/src/main/java/uno/lux/mosaic/app/theme/MosaicColors.kt#L18), provided by `MosaicTheme` at [Theme.kt:92](../app/src/main/java/uno/lux/mosaic/app/theme/Theme.kt#L92) and read at sixteen call sites that never mention it in a parameter list.
+That is [MosaicColors.kt:18](../core/design-system/src/main/kotlin/uno/lux/mosaic/designsystem/theme/MosaicColors.kt#L18), provided by `MosaicTheme` at [Theme.kt:92](../core/design-system/src/main/kotlin/uno/lux/mosaic/designsystem/theme/Theme.kt#L92) and read at sixteen call sites that never mention it in a parameter list.
 
 ### `compositionLocalOf` vs `staticCompositionLocalOf`
 
@@ -352,7 +352,7 @@ data class Palette(val swatches: List<Color>)
 internal class HoldToConfirmState(...)
 ```
 
-`@Immutable` is the stronger claim: nothing observable changes, ever. `@Stable` allows mutation, on the condition that every mutation goes through snapshot state so readers are invalidated. A class holding `by mutableStateOf(...)` satisfies that, which is exactly the case for [HoldToConfirmButton.kt:70](../app/src/main/java/uno/lux/mosaic/app/ui/components/HoldToConfirmButton.kt#L70).
+`@Immutable` is the stronger claim: nothing observable changes, ever. `@Stable` allows mutation, on the condition that every mutation goes through snapshot state so readers are invalidated. A class holding `by mutableStateOf(...)` satisfies that, which is exactly the case for [HoldToConfirmButton.kt:70](../core/design-system/src/main/kotlin/uno/lux/mosaic/designsystem/components/HoldToConfirmButton.kt#L70).
 
 Both are also usable on a function or a property, where they mean "the same input always yields the same result".
 
@@ -379,7 +379,7 @@ Three places where declaring stability still earns its keep:
 
 Three places, and no others. Domain models such as `Post` are left unannotated on purpose — `AGENTS.md` states the rule outright: do not chase `@Stable`/`@Immutable`. Feed rows skip fine as they are, because `PostRepository` preserves instance identity for every unchanged post, which is the subject of the next section and worth far more than any annotation.
 
-**1. The actions interfaces.** Every stateless screen takes its callbacks bundled into one interface, and each is `@Stable` — [HomeScreen.kt:75](../app/src/main/java/uno/lux/mosaic/feed/ui/HomeScreen.kt#L75), and the same in `ProfileScreen`, `CreatePostScreen` and `EditProfileScreen`:
+**1. The actions interfaces.** Every stateless screen takes its callbacks bundled into one interface, and each is `@Stable` — [HomeScreen.kt:75](../app/src/main/java/uno/lux/mosaic/home/ui/HomeScreen.kt#L75), and the same in `ProfileScreen`, `CreatePostScreen` and `EditProfileScreen`:
 
 ```kotlin
 @Stable
@@ -394,11 +394,11 @@ The ViewModel implements it, so the binder passes the ViewModel straight through
 
 **2. Snapshot-state holders.** `@Stable class VideoPlaybackController` ([VideoPlayback.kt:50](../app/src/main/java/uno/lux/mosaic/video/ui/VideoPlayback.kt#L50)) and `@Stable internal class HoldToConfirmState`. Both mutate, and both mutate exclusively through `by mutableStateOf(...)`, which is precisely the contract `@Stable` names.
 
-**3. A theme token bag.** `@Immutable data class MosaicColors` ([MosaicColors.kt:12](../app/src/main/java/uno/lux/mosaic/app/theme/MosaicColors.kt#L12)) — two `val Color`s, constructed once per theme and never touched again.
+**3. A theme token bag.** `@Immutable data class MosaicColors` ([MosaicColors.kt:12](../core/design-system/src/main/kotlin/uno/lux/mosaic/designsystem/theme/MosaicColors.kt#L12)) — two `val Color`s, constructed once per theme and never touched again.
 
 ### The annotation is taken at its word — a real bug from this repo
 
-`@Stable` says "compare me with `equals`", and the compiler emits exactly that call. [ActionsInvocationHandler.kt](../app/src/main/java/uno/lux/mosaic/app/util/ActionsInvocationHandler.kt) exists because of it. Previews pass a `java.lang.reflect.Proxy` in place of an actions interface, and the naive handler returned `Unit` from every method — including the `equals` that recomposition calls on a stable parameter:
+`@Stable` says "compare me with `equals`", and the compiler emits exactly that call. [ActionsInvocationHandler.kt](../core/common/src/main/kotlin/uno/lux/mosaic/common/util/ActionsInvocationHandler.kt) exists because of it. Previews pass a `java.lang.reflect.Proxy` in place of an actions interface, and the naive handler returned `Unit` from every method — including the `equals` that recomposition calls on a stable parameter:
 
 ```
 result has type boolean, got kotlin.Unit
@@ -454,7 +454,7 @@ private fun PageIndicator(pagerState: PagerState, total: Int, modifier: Modifier
 
 Swiping now recomposes a pill.
 
-**Defer the read into a lambda.** Passing `alpha: Float` forces the caller to recompose whenever alpha changes. Passing `alpha: () -> Float` and invoking it inside `graphicsLayer` moves the read into the layer phase ([HoldToConfirmButton.kt:255](../app/src/main/java/uno/lux/mosaic/app/ui/components/HoldToConfirmButton.kt#L255)):
+**Defer the read into a lambda.** Passing `alpha: Float` forces the caller to recompose whenever alpha changes. Passing `alpha: () -> Float` and invoking it inside `graphicsLayer` moves the read into the layer phase ([HoldToConfirmButton.kt:255](../core/design-system/src/main/kotlin/uno/lux/mosaic/designsystem/components/HoldToConfirmButton.kt#L255)):
 
 ```kotlin
 @Composable
@@ -481,7 +481,7 @@ A composable must be free of side effects, because it can run at any time, on an
 | `SideEffect` | After every successful recomposition | Publishing Compose state to a non-Compose object |
 | `rememberCoroutineScope()` | Returns a scope tied to the call site | Launching from a **callback**, not from composition |
 
-**The keys are the API.** `LaunchedEffect(Unit)` never restarts, which is right for a one-shot and wrong for anything that should follow a value. `LaunchedEffect(refreshErrorMessage)` in [HomeScreen.kt:165](../app/src/main/java/uno/lux/mosaic/feed/ui/HomeScreen.kt#L165) shows a new snackbar per new message, and the message is cleared once shown so a rotation cannot replay it.
+**The keys are the API.** `LaunchedEffect(Unit)` never restarts, which is right for a one-shot and wrong for anything that should follow a value. `LaunchedEffect(refreshErrorMessage)` in [HomeScreen.kt:165](../app/src/main/java/uno/lux/mosaic/home/ui/HomeScreen.kt#L165) shows a new snackbar per new message, and the message is cleared once shown so a rotation cannot replay it.
 
 The matching trap is over-keying: keying on a value you only *read* inside the effect restarts it needlessly. That is the `rememberUpdatedState` case from section 3.
 

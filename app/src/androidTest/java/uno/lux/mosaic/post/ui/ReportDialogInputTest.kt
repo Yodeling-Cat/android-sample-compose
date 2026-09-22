@@ -35,6 +35,7 @@ class ReportDialogInputTest {
         composeRule.setContent {
             MosaicTheme {
                 ReportPostDialog(
+                    sendState = ReportSendState.IDLE,
                     onDismiss = {},
                     onSubmit = { reason, details -> reported = reason to details },
                 )

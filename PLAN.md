@@ -15,7 +15,7 @@ scrolls away from the end and back. Offline at page 2 is an unresolvable spinner
 error state and a "couldn't load more — tap to retry" footer.
 
 ### Mutations fail silently
-Every mutation goes through `launchCatching`, which logs and discards (`app/util/StateFlows.kt`).
+Every mutation goes through `launchCatching`, which logs and discards (`common/util/StateFlows.kt`).
 Defensible for a like toggle; wrong for **delete** (`post/ui/PostDetailViewModel.kt`) — the
 confirmation dialog closes, nothing pops, nothing appears, and the user's tap simply does nothing.
 Follow toggles and reports behave the same. There is no app-wide channel for "that didn't go
@@ -54,7 +54,7 @@ Are the visuals of the predictive back gesture customizable? Is that what this i
   (`args[0] as EditProfileForm?`, `user/ui/EditProfileViewModel.kt`) while `ProfileViewModel` solved
   the same arity problem with a typed pairing class (`LazyTabs`). The typed approach is the one worth
   showing off.
-- **`Modifier.composed` in `debouncedClickable`** (`app/util/ClickDebounce.kt`) — the Compose team
+- **`Modifier.composed` in `debouncedClickable`** (`designsystem/components/ClickDebounce.kt`) — the Compose team
   discourages `composed` because it defeats modifier skipping and reuse; `Modifier.Node` is the
   current answer.
 - **`derivedIds` re-filters and re-sorts the whole entity store on every emission**

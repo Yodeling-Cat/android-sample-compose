@@ -45,6 +45,12 @@ jobs:
       - name: Unit tests
         run: ./gradlew testRemoteDebugUnitTest testDebugUnitTest
 
+      # Compiles the instrumented suite without running it — no device, no emulator, no cost.
+      # Nothing else type-checks androidTest, so it had drifted out of sync with the code it
+      # drives and stayed broken silently.
+      - name: Instrumented tests compile
+        run: ./gradlew compileRemoteDebugAndroidTestKotlin
+
       - name: Upload reports
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4

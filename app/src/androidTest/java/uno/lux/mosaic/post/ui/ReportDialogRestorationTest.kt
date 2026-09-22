@@ -38,7 +38,11 @@ class ReportDialogRestorationTest {
         val restorationTester = StateRestorationTester(composeRule)
         restorationTester.setContent {
             MosaicTheme {
-                ReportPostDialog(onDismiss = {}, onSubmit = { _, _ -> })
+                ReportPostDialog(
+                    sendState = ReportSendState.IDLE,
+                    onDismiss = {},
+                    onSubmit = { _, _ -> },
+                )
             }
         }
         val spam = string(R.string.report_reason_spam)

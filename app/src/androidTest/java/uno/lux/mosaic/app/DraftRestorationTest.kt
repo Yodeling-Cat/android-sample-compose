@@ -35,7 +35,7 @@ import uno.lux.mosaic.post.data.PostDataSource
 import uno.lux.mosaic.post.data.PostRepository
 import uno.lux.mosaic.post.data.domain.NewPost
 import uno.lux.mosaic.post.data.domain.PostId
-import uno.lux.mosaic.post.data.domain.PostWithAuthor
+import uno.lux.mosaic.post.data.domain.PostWithUsers
 import uno.lux.mosaic.user.data.UserDataSource
 import uno.lux.mosaic.user.data.UserRepository
 import uno.lux.mosaic.user.data.domain.ProfileUpdate
@@ -246,9 +246,9 @@ class DraftRestorationTest {
     }
 
     private object UnusedPostDataSource : PostDataSource {
-        override suspend fun fetch(postId: PostId): PostWithAuthor? = unused()
+        override suspend fun fetch(postId: PostId): PostWithUsers? = unused()
 
-        override suspend fun create(draft: NewPost): PostWithAuthor = unused()
+        override suspend fun create(draft: NewPost): PostWithUsers = unused()
 
         override suspend fun delete(postId: PostId) = unused()
 
