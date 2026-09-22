@@ -14,9 +14,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import uno.lux.mosaic.app.navigation.Navigator
 import uno.lux.mosaic.app.navigation.Screen
-import uno.lux.mosaic.app.util.AppError
 import uno.lux.mosaic.common.data.files.FakeFileLoader
 import uno.lux.mosaic.common.data.files.FileUpload
+import uno.lux.mosaic.common.util.AppError
 import uno.lux.mosaic.testing.ViewModelTest
 import uno.lux.mosaic.testing.backStackOf
 import uno.lux.mosaic.testing.screens

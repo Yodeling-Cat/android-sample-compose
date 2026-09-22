@@ -10,10 +10,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import uno.lux.mosaic.app.navigation.Navigator
 import uno.lux.mosaic.app.navigation.Screen
-import uno.lux.mosaic.app.util.AppError
 import uno.lux.mosaic.common.data.files.FakeFileLoader
 import uno.lux.mosaic.common.data.files.FakeVideoMetadataReader
 import uno.lux.mosaic.common.data.network.httpException
+import uno.lux.mosaic.common.util.AppError
 import uno.lux.mosaic.feed.data.FakeFeedDataSource
 import uno.lux.mosaic.feed.data.FeedRepository
 import uno.lux.mosaic.post.data.FakePostDataSource

@@ -1,6 +1,6 @@
 package uno.lux.mosaic.profile.ui
 
-import uno.lux.mosaic.app.util.AppError
+import uno.lux.mosaic.common.util.AppError
 
 sealed interface ProfileUiState {
     data object Loading : ProfileUiState

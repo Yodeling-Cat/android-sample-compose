@@ -13,9 +13,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import uno.lux.mosaic.app.navigation.Navigator
 import uno.lux.mosaic.app.navigation.Screen
-import uno.lux.mosaic.app.util.AppError
 import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.common.ui.FailedAction
+import uno.lux.mosaic.common.util.AppError
 import uno.lux.mosaic.feed.data.FakeFeedDataSource
 import uno.lux.mosaic.feed.data.FeedDataSource
 import uno.lux.mosaic.feed.data.FeedPage

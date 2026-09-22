@@ -40,9 +40,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import uno.lux.mosaic.R
-import uno.lux.mosaic.app.util.compactCount
-import uno.lux.mosaic.app.util.relativeTime
 import uno.lux.mosaic.common.asText
+import uno.lux.mosaic.common.util.compactCount
+import uno.lux.mosaic.common.util.relativeTime
 import uno.lux.mosaic.designsystem.components.debouncedClickable
 import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
 import uno.lux.mosaic.post.data.domain.Post

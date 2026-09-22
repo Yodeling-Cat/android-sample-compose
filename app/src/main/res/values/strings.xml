@@ -5,21 +5,12 @@
     <string name="nav_create">Create</string>
     <string name="nav_profile">Profile</string>
     <string name="nav_settings">Settings</string>
-    <string name="navigate_back">Back</string>
 
     <!-- Feed -->
     <string name="feed_empty">No posts yet. Check back soon.</string>
     <string name="feed_caught_up">You’re all caught up</string>
     <!-- Error -->
-    <string name="error_no_connection">No internet connection</string>
-    <string name="error_timeout">Connection timed out</string>
-    <string name="error_http">Server error (%1$d)</string>
-    <string name="error_unknown">Something went wrong</string>
-    <string name="error_retry">Retry</string>
     <!-- Failed fire-and-forget actions -->
-    <string name="action_failed_delete_post">Couldn\'t delete the post</string>
-    <string name="action_failed_follow">Couldn\'t follow or unfollow</string>
-    <string name="action_failed_send_comment">Couldn\'t send the comment</string>
 
     <!-- Create post -->
     <string name="create_post_title">New post</string>
@@ -94,15 +85,8 @@
     </plurals>
 
     <!-- Compact relative time -->
-    <string name="time_now">now</string>
-    <string name="time_minutes">%1$dm</string>
-    <string name="time_hours">%1$dh</string>
-    <string name="time_days">%1$dd</string>
-    <string name="time_weeks">%1$dw</string>
 
     <!-- Compact engagement counts (Mosaic uses lowercase) -->
-    <string name="count_thousands">%1$sk</string>
-    <string name="count_millions">%1$sm</string>
 
     <!-- Profile -->
     <string name="profile_edit">Edit profile</string>
@@ -148,10 +132,6 @@
          lingers briefly after a press too short to confirm -->
 
     <!-- Discard confirmation dialog -->
-    <string name="discard_confirmation_title">Discard changes?</string>
-    <string name="discard_confirmation_message">You have unsaved changes. Are you sure you want to discard them?</string>
-    <string name="discard_confirmation_confirm">Discard</string>
-    <string name="discard_confirmation_dismiss">Keep editing</string>
 
     <!-- Video player controls (exo_player_control_view.xml). media3 has strings of its own for
          these, but they are private to the library, so we keep our own. It overwrites the play

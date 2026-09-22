@@ -20,7 +20,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import uno.lux.mosaic.app.util.findActivity
+import uno.lux.mosaic.common.util.findActivity
 import javax.inject.Inject
 
 /**

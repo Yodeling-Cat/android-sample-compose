@@ -5,21 +5,12 @@
     <string name="nav_create">Přidat</string>
     <string name="nav_profile">Profil</string>
     <string name="nav_settings">Nastavení</string>
-    <string name="navigate_back">Zpět</string>
 
     <!-- Feed -->
     <string name="feed_empty">Zatím žádné příspěvky. Podívejte se později.</string>
     <string name="feed_caught_up">Vše máte přečteno</string>
     <!-- Error -->
-    <string name="error_no_connection">Žádné připojení k internetu</string>
-    <string name="error_timeout">Vypršel časový limit připojení</string>
-    <string name="error_http">Chyba serveru (%1$d)</string>
-    <string name="error_unknown">Něco se pokazilo</string>
-    <string name="error_retry">Zkusit znovu</string>
     <!-- Failed fire-and-forget actions -->
-    <string name="action_failed_delete_post">Příspěvek se nepodařilo smazat</string>
-    <string name="action_failed_follow">Sledování se nepodařilo změnit</string>
-    <string name="action_failed_send_comment">Komentář se nepodařilo odeslat</string>
 
     <!-- Create post -->
     <string name="create_post_title">Nový příspěvek</string>
@@ -98,16 +89,9 @@
     </plurals>
 
     <!-- Compact relative time -->
-    <string name="time_now">teď</string>
-    <string name="time_minutes">%1$dm</string>
-    <string name="time_hours">%1$dh</string>
-    <string name="time_days">%1$dd</string>
     <!-- t = týden -->
-    <string name="time_weeks">%1$dt</string>
 
     <!-- Compact engagement counts (Mosaic uses lowercase) -->
-    <string name="count_thousands">%1$s tis.</string>
-    <string name="count_millions">%1$s mil.</string>
 
     <!-- Profile -->
     <string name="profile_edit">Upravit profil</string>
@@ -150,10 +134,6 @@
          lingers briefly after a press too short to confirm -->
 
     <!-- Discard confirmation dialog -->
-    <string name="discard_confirmation_title">Zahodit změny?</string>
-    <string name="discard_confirmation_message">Máte neuložené změny. Opravdu je chcete zahodit?</string>
-    <string name="discard_confirmation_confirm">Zahodit</string>
-    <string name="discard_confirmation_dismiss">Pokračovat v úpravách</string>
 
     <!-- Video player controls -->
     <string name="player_rewind">Přetočit zpět</string>

@@ -1,0 +1,22 @@
+<resources>
+    <string name="action_failed_delete_post">Couldn\'t delete the post</string>
+    <string name="action_failed_follow">Couldn\'t follow or unfollow</string>
+    <string name="action_failed_send_comment">Couldn\'t send the comment</string>
+    <string name="count_millions">%1$sm</string>
+    <string name="count_thousands">%1$sk</string>
+    <string name="discard_confirmation_confirm">Discard</string>
+    <string name="discard_confirmation_dismiss">Keep editing</string>
+    <string name="discard_confirmation_message">You have unsaved changes. Are you sure you want to discard them?</string>
+    <string name="discard_confirmation_title">Discard changes?</string>
+    <string name="error_http">Server error (%1$d)</string>
+    <string name="error_no_connection">No internet connection</string>
+    <string name="error_retry">Retry</string>
+    <string name="error_timeout">Connection timed out</string>
+    <string name="error_unknown">Something went wrong</string>
+    <string name="navigate_back">Back</string>
+    <string name="time_days">%1$dd</string>
+    <string name="time_hours">%1$dh</string>
+    <string name="time_minutes">%1$dm</string>
+    <string name="time_now">now</string>
+    <string name="time_weeks">%1$dw</string>
+</resources>

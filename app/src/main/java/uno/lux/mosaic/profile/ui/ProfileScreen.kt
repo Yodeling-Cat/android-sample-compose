@@ -79,8 +79,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uno.lux.mosaic.R
 import uno.lux.mosaic.app.fixtures.SamplePosts
 import uno.lux.mosaic.app.fixtures.SampleUsers
-import uno.lux.mosaic.app.util.compactCount
-import uno.lux.mosaic.app.util.createActionsProxy
 import uno.lux.mosaic.common.asText
 import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.common.ui.FailedAction
@@ -89,6 +87,8 @@ import uno.lux.mosaic.common.ui.FullScreenError
 import uno.lux.mosaic.common.ui.FullScreenProgress
 import uno.lux.mosaic.common.ui.LoadMoreEffect
 import uno.lux.mosaic.common.ui.LoadingMoreFooter
+import uno.lux.mosaic.common.util.compactCount
+import uno.lux.mosaic.common.util.createActionsProxy
 import uno.lux.mosaic.designsystem.components.ScrimIconButton
 import uno.lux.mosaic.designsystem.components.debouncedClickable
 import uno.lux.mosaic.designsystem.components.rememberDebounced
@@ -105,6 +105,7 @@ import uno.lux.mosaic.user.data.domain.UserId
 import uno.lux.mosaic.user.ui.Avatar
 import uno.lux.mosaic.video.data.domain.Video
 import kotlin.math.roundToInt
+import uno.lux.mosaic.common.R as CommonR
 
 @Stable
 interface ProfileActions {
@@ -793,8 +794,8 @@ private fun PlainBackButton(onBack: () -> Unit, modifier: Modifier = Modifier) {
             .padding(start = 4.dp, top = 4.dp),
     ) {
         Icon(
-            painter = painterResource(R.drawable.ic_arrow_back),
-            contentDescription = stringResource(R.string.navigate_back),
+            painter = painterResource(CommonR.drawable.ic_arrow_back),
+            contentDescription = stringResource(CommonR.string.navigate_back),
             tint = MaterialTheme.colorScheme.onSurface,
         )
     }
@@ -848,8 +849,8 @@ private fun ProfileTopBar(
         navigationIcon = {
             if (onBack != null) {
                 ScrimIconButton(
-                    iconRes = R.drawable.ic_arrow_back,
-                    contentDescription = stringResource(R.string.navigate_back),
+                    iconRes = CommonR.drawable.ic_arrow_back,
+                    contentDescription = stringResource(CommonR.string.navigate_back),
                     progress = progress,
                     onClick = onBack,
                 )

@@ -36,8 +36,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
-import uno.lux.mosaic.app.util.ImmersiveSystemBars
 import uno.lux.mosaic.common.ui.OverlayBackButton
+import uno.lux.mosaic.common.util.ImmersiveSystemBars
 import kotlin.math.min
 
 @Composable

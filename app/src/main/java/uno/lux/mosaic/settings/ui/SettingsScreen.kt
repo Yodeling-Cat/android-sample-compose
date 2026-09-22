@@ -33,13 +33,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uno.lux.mosaic.R
-import uno.lux.mosaic.app.util.LightStatusBarIcons
+import uno.lux.mosaic.common.util.LightStatusBarIcons
 import uno.lux.mosaic.designsystem.components.AppBarAction
 import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.designsystem.theme.accentBarColors
 import uno.lux.mosaic.settings.data.domain.AppLanguage
 import uno.lux.mosaic.settings.data.domain.ThemeMode
+import uno.lux.mosaic.common.R as CommonR
 
 @Composable
 fun SettingsScreen(
@@ -74,9 +75,9 @@ internal fun SettingsScreen(
                 colors = accentBarColors(),
                 navigationIcon = {
                     AppBarAction(
-                        icon = R.drawable.ic_arrow_back,
+                        icon = CommonR.drawable.ic_arrow_back,
                         onClick = { eventSink(SettingsUiEvent.GoBack) },
-                        contentDescription = stringResource(R.string.navigate_back),
+                        contentDescription = stringResource(CommonR.string.navigate_back),
                     )
                 },
             )

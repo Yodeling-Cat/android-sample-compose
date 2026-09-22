@@ -71,9 +71,6 @@ import uno.lux.mosaic.R
 import uno.lux.mosaic.app.fixtures.SampleComments
 import uno.lux.mosaic.app.fixtures.SamplePosts
 import uno.lux.mosaic.app.fixtures.SampleUsers
-import uno.lux.mosaic.app.util.AppError
-import uno.lux.mosaic.app.util.LightStatusBarIcons
-import uno.lux.mosaic.app.util.relativeTime
 import uno.lux.mosaic.comment.data.domain.Comment
 import uno.lux.mosaic.common.asText
 import uno.lux.mosaic.common.ui.FailedActionEffect
@@ -81,6 +78,9 @@ import uno.lux.mosaic.common.ui.FullScreenError
 import uno.lux.mosaic.common.ui.FullScreenProgress
 import uno.lux.mosaic.common.ui.LoadMoreEffect
 import uno.lux.mosaic.common.ui.LoadingMoreFooter
+import uno.lux.mosaic.common.util.AppError
+import uno.lux.mosaic.common.util.LightStatusBarIcons
+import uno.lux.mosaic.common.util.relativeTime
 import uno.lux.mosaic.designsystem.components.AppBarAction
 import uno.lux.mosaic.designsystem.components.debouncedClickable
 import uno.lux.mosaic.designsystem.components.rememberDebounced
@@ -93,6 +93,7 @@ import uno.lux.mosaic.post.ui.PostDetailUiState.Content
 import uno.lux.mosaic.user.data.domain.User
 import uno.lux.mosaic.user.ui.Avatar
 import uno.lux.mosaic.video.data.domain.Video
+import uno.lux.mosaic.common.R as CommonR
 
 @Composable
 fun PostDetailScreen(
@@ -156,9 +157,9 @@ internal fun PostDetailScreen(
                 },
                 navigationIcon = {
                     AppBarAction(
-                        icon = R.drawable.ic_arrow_back,
+                        icon = CommonR.drawable.ic_arrow_back,
                         onClick = { eventSink(PostDetailUiEvent.GoBack) },
-                        contentDescription = stringResource(R.string.navigate_back),
+                        contentDescription = stringResource(CommonR.string.navigate_back),
                     )
                 },
                 actions = {
@@ -371,7 +372,7 @@ private fun CommentsError(error: AppError, onRetry: () -> Unit) {
                 textAlign = TextAlign.Center,
             )
             Button(onClick = onRetry) {
-                Text(stringResource(R.string.error_retry))
+                Text(stringResource(CommonR.string.error_retry))
             }
         }
     }

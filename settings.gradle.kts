@@ -28,3 +28,4 @@ dependencyResolutionManagement {
 rootProject.name = "Sample"
 include(":app")
 include(":core:design-system")
+include(":core:common")

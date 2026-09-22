@@ -2,8 +2,8 @@ package uno.lux.mosaic.post.ui
 
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.Job
-import uno.lux.mosaic.app.util.catchErrors
-import uno.lux.mosaic.app.util.launchIfIdle
+import uno.lux.mosaic.common.util.catchErrors
+import uno.lux.mosaic.common.util.launchIfIdle
 import kotlin.reflect.KMutableProperty0
 
 /**

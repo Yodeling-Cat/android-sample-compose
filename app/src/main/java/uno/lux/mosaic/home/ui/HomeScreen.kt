@@ -44,7 +44,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uno.lux.mosaic.R
 import uno.lux.mosaic.app.fixtures.SamplePosts
 import uno.lux.mosaic.app.fixtures.SampleUsers
-import uno.lux.mosaic.app.util.createActionsProxy
 import uno.lux.mosaic.common.asText
 import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.common.ui.FailedAction
@@ -53,6 +52,7 @@ import uno.lux.mosaic.common.ui.FullScreenError
 import uno.lux.mosaic.common.ui.FullScreenProgress
 import uno.lux.mosaic.common.ui.LoadMoreEffect
 import uno.lux.mosaic.common.ui.LoadingMoreFooter
+import uno.lux.mosaic.common.util.createActionsProxy
 import uno.lux.mosaic.designsystem.components.AppBarAction
 import uno.lux.mosaic.designsystem.components.MosaicWordmark
 import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
@@ -64,6 +64,7 @@ import uno.lux.mosaic.post.ui.ReportSendState
 import uno.lux.mosaic.user.data.domain.UserId
 import uno.lux.mosaic.video.data.domain.Video
 import uno.lux.mosaic.video.ui.LocalVideoPlayback
+import uno.lux.mosaic.common.R as CommonR
 
 /**
  * The feed's ViewModel-backed intents, as one [Stable] seam the stateless [HomeScreen] depends
@@ -156,7 +157,7 @@ internal fun HomeScreen(
     // label is given: right for a decision the user must make, wrong for a feed that is still
     // perfectly readable behind it.
     val refreshErrorMessage = (uiState as? HomeUiState.Feed)?.refreshError?.asText()
-    val retryLabel = stringResource(R.string.error_retry)
+    val retryLabel = stringResource(CommonR.string.error_retry)
 
     LaunchedEffect(refreshErrorMessage) {
         if (refreshErrorMessage == null) return@LaunchedEffect

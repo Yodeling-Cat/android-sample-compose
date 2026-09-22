@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import uno.lux.mosaic.app.navigation.Navigator
-import uno.lux.mosaic.app.util.stateInWhileSubscribed
+import uno.lux.mosaic.common.util.stateInWhileSubscribed
 import uno.lux.mosaic.settings.data.SettingsRepository
 import uno.lux.mosaic.settings.data.domain.AppLanguage
 import uno.lux.mosaic.settings.data.domain.ThemeMode

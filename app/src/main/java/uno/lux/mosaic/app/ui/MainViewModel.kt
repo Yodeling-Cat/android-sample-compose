@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 import uno.lux.mosaic.app.di.CurrentUserId
-import uno.lux.mosaic.app.util.stateInWhileSubscribed
+import uno.lux.mosaic.common.util.stateInWhileSubscribed
 import uno.lux.mosaic.settings.data.AppLocaleRepository
 import uno.lux.mosaic.settings.data.SettingsRepository
 import uno.lux.mosaic.settings.data.domain.ThemeMode

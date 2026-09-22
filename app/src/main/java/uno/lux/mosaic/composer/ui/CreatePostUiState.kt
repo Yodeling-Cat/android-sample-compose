@@ -1,8 +1,8 @@
 package uno.lux.mosaic.composer.ui
 
 import kotlinx.serialization.Serializable
-import uno.lux.mosaic.app.util.AppError
 import uno.lux.mosaic.common.data.files.FileUpload
+import uno.lux.mosaic.common.util.AppError
 import uno.lux.mosaic.post.data.domain.NewPost
 import uno.lux.mosaic.post.data.domain.NewPostMedia
 

@@ -1,9 +1,9 @@
 package uno.lux.mosaic.post.ui
 
-import uno.lux.mosaic.app.util.AppError
 import uno.lux.mosaic.comment.data.domain.Comment
 import uno.lux.mosaic.comment.data.domain.CommentId
 import uno.lux.mosaic.common.ui.FailedAction
+import uno.lux.mosaic.common.util.AppError
 import uno.lux.mosaic.post.data.domain.Post
 import uno.lux.mosaic.user.data.domain.User
 

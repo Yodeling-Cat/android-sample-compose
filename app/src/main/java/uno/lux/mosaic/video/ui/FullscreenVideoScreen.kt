@@ -11,9 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import uno.lux.mosaic.app.util.ImmersiveSystemBars
-import uno.lux.mosaic.app.util.findActivity
 import uno.lux.mosaic.common.ui.OverlayBackButton
+import uno.lux.mosaic.common.util.ImmersiveSystemBars
+import uno.lux.mosaic.common.util.findActivity
 
 @Composable
 fun FullscreenVideoScreen(

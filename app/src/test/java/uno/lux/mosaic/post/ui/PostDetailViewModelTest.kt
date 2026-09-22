@@ -17,13 +17,13 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import uno.lux.mosaic.app.navigation.Navigator
 import uno.lux.mosaic.app.navigation.Screen
-import uno.lux.mosaic.app.util.AppError
 import uno.lux.mosaic.comment.data.CommentDataSource
 import uno.lux.mosaic.comment.data.CommentRepository
 import uno.lux.mosaic.comment.data.FakeCommentDataSource
 import uno.lux.mosaic.comment.data.domain.Comment
 import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.common.ui.FailedAction
+import uno.lux.mosaic.common.util.AppError
 import uno.lux.mosaic.post.data.FakePostDataSource
 import uno.lux.mosaic.post.data.PostRepository
 import uno.lux.mosaic.post.data.domain.Post

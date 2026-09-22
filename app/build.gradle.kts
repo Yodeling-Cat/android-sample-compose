@@ -90,6 +90,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:common"))
     implementation(project(":core:design-system"))
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
@@ -129,6 +130,7 @@ dependencies {
     implementation(libs.timber)
     implementation(libs.mappie.api)
     ksp(libs.hilt.android.compiler)
+    testImplementation(testFixtures(project(":core:common")))
     testImplementation(libs.junit)
     // Asserts the package rules in AGENTS.md against the real import graph (ArchitectureTest).
     testImplementation(libs.konsist)

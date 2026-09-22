@@ -54,18 +54,19 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import uno.lux.mosaic.R
-import uno.lux.mosaic.app.util.createActionsProxy
 import uno.lux.mosaic.common.formatVideoDuration
 import uno.lux.mosaic.common.ui.DiscardChangesDialog
 import uno.lux.mosaic.common.ui.FormCard
 import uno.lux.mosaic.common.ui.MediaBadge
 import uno.lux.mosaic.common.ui.MediaRemoveButton
+import uno.lux.mosaic.common.util.createActionsProxy
 import uno.lux.mosaic.designsystem.components.AppBarAction
 import uno.lux.mosaic.designsystem.components.HoldToConfirmButton
 import uno.lux.mosaic.designsystem.components.debouncedClickable
 import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.designsystem.theme.rememberAccentWash
+import uno.lux.mosaic.common.R as CommonR
 
 /**
  * The composer's ViewModel-backed intents, as one [Stable] seam the stateless
@@ -197,9 +198,9 @@ internal fun CreatePostScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                 navigationIcon = {
                     AppBarAction(
-                        icon = R.drawable.ic_arrow_back,
+                        icon = CommonR.drawable.ic_arrow_back,
                         onClick = actions::goBack,
-                        contentDescription = stringResource(R.string.navigate_back),
+                        contentDescription = stringResource(CommonR.string.navigate_back),
                     )
                 },
             )
@@ -327,7 +328,7 @@ private fun PostMediaPicker(
             ) {
                 MediaBadge(
                     text = formatVideoDuration(media.durationSeconds),
-                    iconRes = R.drawable.ic_play_arrow,
+                    iconRes = CommonR.drawable.ic_play_arrow,
                     modifier = Modifier
                         .align(Alignment.BottomStart)
                         .padding(4.dp),
@@ -353,7 +354,7 @@ private fun EmptyMediaTiles(
         )
 
         MediaTile(
-            iconRes = R.drawable.ic_play_arrow,
+            iconRes = CommonR.drawable.ic_play_arrow,
             labelRes = R.string.create_post_add_video,
             enabled = enabled,
             onClick = onPickVideo,

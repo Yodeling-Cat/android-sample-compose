@@ -3,8 +3,8 @@ package uno.lux.mosaic.user.ui
 import androidx.annotation.StringRes
 import kotlinx.serialization.Serializable
 import uno.lux.mosaic.R
-import uno.lux.mosaic.app.util.AppError
 import uno.lux.mosaic.common.data.files.FileUpload
+import uno.lux.mosaic.common.util.AppError
 import uno.lux.mosaic.user.data.domain.ProfileUpdate
 import uno.lux.mosaic.user.data.domain.User
 import uno.lux.mosaic.user.data.domain.UserId

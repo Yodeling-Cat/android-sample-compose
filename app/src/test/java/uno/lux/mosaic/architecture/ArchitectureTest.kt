@@ -22,9 +22,13 @@ import org.junit.Test
  * <concern>/data/network/    the service, DTOs, mappers — the only place HTTP appears
  * <concern>/ui/              composables and ViewModels
  * app/                       the machine; wires the concerns, so it may know every one of them
- * app/theme|util|ui/components   what the app is drawn with; may know none of them
- * common/                    what concerns share; may know none of them
+ * designsystem/              what the app is drawn with     (:core:design-system)
+ * common/                    what concerns share, utilities included  (:core:common)
  * ```
+ *
+ * The last two are Gradle modules now, so *their* dependencies are a compile error rather than a
+ * rule here. What these rules still add is the other direction: nothing stops a concern from being
+ * dragged into one of them, and `internal` cannot express "knows no concern".
  *
  * That is what `every concern package follows the convention` protects, and it is why it matters
  * most: the other rules select files by matching those suffixes, so a file in some invented
@@ -49,13 +53,6 @@ class ArchitectureTest {
 
         /** The top-level packages that are not a concern, and so have no layer convention. */
         val NON_CONCERNS = setOf(APP, COMMON, DESIGN_SYSTEM)
-
-        /**
-         * What the app is drawn *with* rather than wired *by* — the design system module and the
-         * utilities. The rest of `app` (`di`, `navigation`, `fixtures` and `MosaicApp` itself)
-         * exists to wire the concerns together and must import them.
-         */
-        val APP_CORE = listOf(DESIGN_SYSTEM, "$APP.util")
 
         /** The shapes a concern's packages may take, as suffixes on `<root>.<concern>`. */
         val LAYERS = listOf(".data", ".data.domain", ".data.network", ".ui")
@@ -145,12 +142,12 @@ class ArchitectureTest {
     }
 
     @Test
-    fun `the design system and utilities know no concern`() {
+    fun `the design system knows no concern`() {
         val concerns = concerns()
 
         production()
-            .filter { file -> APP_CORE.any { file.pkg.startsWith("$ROOT.$it") } }
-            .assertTrue(additionalMessage = APP_CORE_MESSAGE) { file ->
+            .filter { it.pkg.startsWith("$ROOT.$DESIGN_SYSTEM") }
+            .assertTrue(additionalMessage = DESIGN_SYSTEM_MESSAGE) { file ->
                 file.imports.none { import ->
                     concerns.any { import.name.startsWith("$ROOT.$it.") }
                 }
@@ -197,12 +194,11 @@ private const val COMMON_MESSAGE =
         "really needs (MosaicGradients.avatarBrush took a UserId when all it did was hash a String). " +
         "Note a KDoc [Link] needs an import too: write cross-concern doc references fully qualified."
 
-private const val APP_CORE_MESSAGE =
-    "The design system or a utility imported a concern. Unlike the rest of `app` — " +
-        "`di` binds every repository and `MosaicApp` renders every screen, so those must know the " +
-        "concerns — these are what everything is drawn with, and they stay reusable only " +
-        "while they know nothing. A branded control that grew a `Post` parameter is post UI: file " +
-        "it in `post/ui`, or take the plain type it really needs."
+private const val DESIGN_SYSTEM_MESSAGE =
+    "The design system imported a concern. It is what everything is drawn with, and it stays " +
+        "reusable only while it knows nothing — which is also why it is the one module every " +
+        "other may depend on while it depends on none. A branded control that grew a `Post` " +
+        "parameter is post UI: file it in `post/ui`, or take the plain type it really needs."
 
 private const val REPOSITORY_MESSAGE =
     "A repository with no interface above it imported the Android framework, which makes it " +

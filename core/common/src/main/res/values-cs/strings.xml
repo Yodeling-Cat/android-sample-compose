@@ -1,0 +1,22 @@
+<resources>
+    <string name="action_failed_delete_post">Příspěvek se nepodařilo smazat</string>
+    <string name="action_failed_follow">Sledování se nepodařilo změnit</string>
+    <string name="action_failed_send_comment">Komentář se nepodařilo odeslat</string>
+    <string name="count_millions">%1$s mil.</string>
+    <string name="count_thousands">%1$s tis.</string>
+    <string name="discard_confirmation_confirm">Zahodit</string>
+    <string name="discard_confirmation_dismiss">Pokračovat v úpravách</string>
+    <string name="discard_confirmation_message">Máte neuložené změny. Opravdu je chcete zahodit?</string>
+    <string name="discard_confirmation_title">Zahodit změny?</string>
+    <string name="error_http">Chyba serveru (%1$d)</string>
+    <string name="error_no_connection">Žádné připojení k internetu</string>
+    <string name="error_retry">Zkusit znovu</string>
+    <string name="error_timeout">Vypršel časový limit připojení</string>
+    <string name="error_unknown">Něco se pokazilo</string>
+    <string name="navigate_back">Zpět</string>
+    <string name="time_days">%1$dd</string>
+    <string name="time_hours">%1$dh</string>
+    <string name="time_minutes">%1$dm</string>
+    <string name="time_now">teď</string>
+    <string name="time_weeks">%1$dt</string>
+</resources>

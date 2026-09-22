@@ -1,6 +1,6 @@
 package uno.lux.mosaic.home.ui
 
-import uno.lux.mosaic.app.util.AppError
+import uno.lux.mosaic.common.util.AppError
 import uno.lux.mosaic.post.ui.PostCardData
 
 sealed interface HomeUiState {
