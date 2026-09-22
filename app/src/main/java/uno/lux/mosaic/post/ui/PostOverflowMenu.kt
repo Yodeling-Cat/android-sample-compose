@@ -54,8 +54,8 @@ import uno.lux.mosaic.user.ui.Avatar
  * detail screen's top bar, so both offer the same menu from the same code.
  *
  * [onDelete] is null for a post the signed-in user didn't write, and the sheet then omits the
- * delete row entirely — a nullable action rather than a separate `canDelete` flag, so there is no
- * way for the two to disagree. Deleting is irreversible, so it is confirmed before it fires.
+ * delete row — a nullable action rather than a separate `canDelete` flag, so the two cannot
+ * disagree.
  *
  * [reportSend] is the screen's report state, which only the menu with the dialog open reads: the
  * dialog is modal, so the one report a screen can have in flight is always this one's.
@@ -107,9 +107,8 @@ internal fun PostOverflowMenu(
     }
 
     if (showReportDialog) {
-        // The thanks says a server has the report, so it waits until one does. The dialog stays up
-        // for the whole send and closes here, on the answer — a report that failed keeps the
-        // dialog, and says so in it, rather than thanking the user for nothing.
+        // The thanks says a server has the report, so it waits until one does. A report that
+        // failed keeps the dialog, and says so in it, rather than thanking the user for nothing.
         LaunchedEffect(reportSend) {
             if (reportSend != ReportSendState.SENT) return@LaunchedEffect
 
@@ -220,8 +219,7 @@ private fun PostOverflowSheet(
                 iconRes = R.drawable.ic_delete,
                 label = stringResource(R.string.post_menu_delete),
                 danger = true,
-                // Dismiss first: the confirmation dialog replaces the sheet rather than
-                // stacking on top of it.
+                // Dismiss first: the confirmation dialog replaces the sheet rather than stacking.
                 onClick = {
                     dismiss()
                     onDelete()
@@ -232,10 +230,7 @@ private fun PostOverflowSheet(
     }
 }
 
-/**
- * Hands the post's link to the system share sheet. The link comes from the server as [Post.url],
- * the post title rides along as the subject for targets that use one (e.g. email).
- */
+/** Shares [Post.url], with the title as the subject for targets that use one (e.g. email). */
 private fun sharePostLink(context: Context, post: Post) {
     ShareCompat
         .IntentBuilder(context)
@@ -260,7 +255,6 @@ private fun copyPostLink(context: Context, post: Post) {
     }
 }
 
-/** Shows a short toast for [messageRes] — the shared form behind the sheet's placeholder actions. */
 private fun Context.toast(
     @StringRes messageRes: Int,
 ) {

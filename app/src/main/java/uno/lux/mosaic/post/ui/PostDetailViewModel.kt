@@ -39,25 +39,18 @@ import uno.lux.mosaic.user.data.domain.User
  * Holds the state for a single post's detail view.
  *
  * The state is **one value the ViewModel owns and edits**, not a projection assembled from a flow
- * per moving part. Everything this page discovers for itself — the thread, the send states, the
- * announcement — is a field of [PostDetailUiState], written through [mutateState]. What comes
- * from outside enters through exactly one collector, [observeStores], because the post really
- * does belong to somebody else: [PostRepository] holds it in a store shared with the feed and
- * every profile, so a like toggled underneath, or a delete performed on another screen, has to
- * reach this page without it asking. That is the one thing a plain field could not do, and it is
- * the only reason a subscription remains.
+ * per moving part. Everything this page discovers for itself is a field of [PostDetailUiState].
+ * What comes from outside enters through exactly one collector, [observeStores]: [PostRepository]
+ * holds the post in a store shared with the feed and every profile, so a like toggled underneath,
+ * or a delete performed on another screen, has to reach this page without it asking.
  *
- * Comments, by contrast, are this ViewModel's own: a first page is loaded on creation,
- * [loadMoreComments] appends the rest a window at a time as the reader scrolls, and the lot is
- * discarded when the ViewModel is cleared. This avoids the cross-post keying and memory-retention
- * problems a shared comment store would introduce.
+ * Comments, by contrast, are this ViewModel's own, and are discarded when it is cleared. This
+ * avoids the cross-post keying and memory-retention problems a shared comment store would bring.
  *
- * The entity store normally already holds the post — this page is reached from a feed or profile
- * that fetched it. It does not when the page is restored after **process death**, where the back
- * stack comes back but every in-memory store starts empty, so [loadPost] fetches the post it was
- * given the ID for. That fetch is why an absent post can't simply mean [Content.NotFound]: "not
- * asked yet", "the server says it's gone" and "the request failed" are three different screens,
- * and [PostFetch] is what tells them apart.
+ * The entity store normally already holds the post. It does not when the page is restored after
+ * **process death**, so [loadPost] fetches the post it was given the ID for. That fetch is why an
+ * absent post can't simply mean [Content.NotFound]: "not asked yet", "the server says it's gone"
+ * and "the request failed" are three different screens, and [PostFetch] tells them apart.
  *
  * Intent arrives as one [PostDetailUiEvent] through [onEvent], which the screen reaches through
  * [PostDetailUiState.eventSink]. [postId] is a runtime argument wired through [Factory] /
@@ -82,8 +75,7 @@ class PostDetailViewModel @AssistedInject constructor(
 
     /**
      * How the fetch for a post the stores don't hold resolved. Only consulted while the stores
-     * can't answer — once the post is resolved it is the post that is shown, whatever happened
-     * to a request beforehand.
+     * can't answer: a post that is there is shown, whatever happened to a request beforehand.
      */
     private sealed interface PostFetch {
         data object Pending : PostFetch
@@ -100,10 +92,9 @@ class PostDetailViewModel @AssistedInject constructor(
     // TODO: Wouldn't it be better to initialize as Content.Loading?
 
     /**
-     * The page, as one value this ViewModel owns and edits. Seeded from [content] rather than
-     * from [Content.Loading], so a page opened the ordinary way — from a feed or profile that
-     * already fetched the post — is [Content.Loaded] before the first frame, with no spinner
-     * flashed for a post that was never missing.
+     * The page, as one value this ViewModel owns and edits. Seeded from [content] rather than from
+     * [Content.Loading], so a page opened the ordinary way is [Content.Loaded] before the first
+     * frame, with no spinner flashed for a post that was never missing.
      */
     private val _uiState = MutableStateFlow(
         PostDetailUiState(
@@ -241,8 +232,7 @@ class PostDetailViewModel @AssistedInject constructor(
         // TODO: Sounds like the wrong pattern. I'd rather expect to get a 404 error from the backend.
         //  What even would happen if the entity was deleted from the backend? Does this pattern only handle locally deleted posts?
         // Told by the store that the post is gone, whichever screen deleted it. Without this the
-        // emptied store would read as "not loaded yet" and leave the page spinning on a fetch
-        // nobody is going to make.
+        // emptied store would read as "not loaded yet" and leave the page spinning.
         if (postId in postRepository.deletedIds.value) return Content.NotFound
 
         return when (val fetch = postFetch) {
@@ -265,9 +255,8 @@ class PostDetailViewModel @AssistedInject constructor(
     }
 
     /**
-     * Fetches the post unless the stores already hold it with its author, which they do whenever
-     * this page was opened from a feed or profile. The fetch is for the cold start: a detail page
-     * restored after process death, where this ViewModel is the first thing to ask for the post.
+     * Fetches the post unless the stores already hold it with its author. The fetch is for the
+     * cold start: a page restored after process death, where nothing has asked for the post yet.
      */
     private suspend fun loadPost() {
         if (_uiState.value.content is Content.Loaded) return
@@ -292,22 +281,18 @@ class PostDetailViewModel @AssistedInject constructor(
     }
 
     /**
-     * Deletes the post and pops this screen. Backing out is part of the outcome, not the caller's
-     * follow-up: once the entity is gone the detail view has nothing left to show, and the feed or
-     * profile underneath has already dropped the post through the shared entity store.
+     * Deletes the post and pops this screen. Backing out is part of the outcome: once the entity
+     * is gone this view has nothing left to show, and the feed underneath has already dropped it.
      */
     private fun delete() = launchReporting(FailedAction.DELETE_POST, ::setFailedAction) {
-        // The store marks the deletion, and [content] reads NotFound from it — the same path a
-        // deletion performed on any other screen takes. A failed delete throws before the pop, so
-        // the page stays put and announces the failure itself.
+        // A failed delete throws before the pop, so the page stays put and announces the failure.
         postRepository.delete(postId)
         navigator.goBack()
     }
 
     /**
-     * Reports the post. Unlike [delete] the page stays where it is: a reported post is still a
-     * post, and the reporter is still reading it — and so is the dialog, which is why the outcome
-     * goes to [PostDetailUiState.reportSend] rather than to a snackbar the dialog would cover.
+     * Reports the post. Unlike [delete] the page stays where it is, and the dialog with it, which
+     * is why the outcome goes to [PostDetailUiState.reportSend] and not to a covered snackbar.
      */
     private fun report(reason: ReportReason, details: String) =
         launchReport(::reportJob, ::setReportSend) {
@@ -339,13 +324,11 @@ class PostDetailViewModel @AssistedInject constructor(
     }
 
     /**
-     * Appends the page after the one loaded last. A thread of any length is read a window at a
-     * time, so a post with hundreds of comments costs the same first request as one with three.
+     * Appends the page after the one loaded last.
      *
      * The cursor is the whole guard: it is null before the first page lands and again once the
-     * server says that page was the last, so "there is nothing to ask for" and "we have it all"
-     * need no flag of their own. [loadMoreJob] covers the third case — the screen asking again
-     * while a page is still on the wire.
+     * server says that page was the last, so neither case needs a flag of its own. [loadMoreJob]
+     * covers the third — the screen asking again while a page is still on the wire.
      */
     private fun loadMoreComments() = launchIfIdle(::loadMoreJob) {
         val cursor = _uiState.value.commentThread.nextCursor ?: return@launchIfIdle
@@ -353,9 +336,8 @@ class PostDetailViewModel @AssistedInject constructor(
         catchErrors {
             val page = commentRepository.loadComments(postId, cursor)
             mutateCommentThread { thread ->
-                // A reload that landed while this page was on the wire started the thread over,
-                // and this window no longer follows what is on screen. Dropping it is the same
-                // move [toggleCommentLike] makes on an answer a newer tap has passed.
+                // A reload that landed while this page was on the wire started the thread over, so
+                // this window no longer follows what is on screen and is dropped rather than glued on.
                 if (thread.nextCursor != cursor) {
                     thread
                 } else {
@@ -369,10 +351,7 @@ class PostDetailViewModel @AssistedInject constructor(
         }
     }
 
-    /**
-     * Optimistically flips the like on a comment in the thread, moving it *before* the request goes
-     * out and reconciling with the server's answer when it lands.
-     */
+    /** Flips the like on a comment before the request goes out, reconciling when the answer lands. */
     private fun toggleCommentLike(commentId: CommentId) = launchCatching {
         val thread = _uiState.value.commentThread
         val before = thread.comments.find { it.id == commentId } ?: return@launchCatching
@@ -390,8 +369,8 @@ class PostDetailViewModel @AssistedInject constructor(
                 it.copy(isLiked = confirmed.isLiked, likeCount = confirmed.likeCount)
             }
         } catch (e: CancellationException) {
-            // The screen went away, not the request: it is on the wire and the server most
-            // likely took it, so the optimistic value is the better guess to leave behind.
+            // The screen went away, not the request: the server most likely took it, so the
+            // optimistic value is the better guess to leave behind.
             throw e
         } catch (e: Exception) {
             updateComment(commentId, stillOurs) {
@@ -403,8 +382,7 @@ class PostDetailViewModel @AssistedInject constructor(
 
     /**
      * Applies [mutate] to [commentId] where it sits in the thread, if it is still there and
-     * [predicate] accepts what it currently says. A comment the reload replaced, or one a newer
-     * tap has moved past, is left alone.
+     * [predicate] accepts what it currently says. Anything else is left alone.
      */
     private fun updateComment(
         commentId: CommentId,

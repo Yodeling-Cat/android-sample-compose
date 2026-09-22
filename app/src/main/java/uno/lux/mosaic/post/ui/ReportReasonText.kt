@@ -5,7 +5,6 @@ import androidx.compose.ui.res.stringResource
 import uno.lux.mosaic.R
 import uno.lux.mosaic.common.data.ReportReason
 
-/** Maps a [ReportReason] to its localized display label. */
 @Composable
 fun ReportReason.asText(): String = stringResource(
     when (this) {

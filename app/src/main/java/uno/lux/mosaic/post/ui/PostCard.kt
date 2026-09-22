@@ -24,9 +24,6 @@ import uno.lux.mosaic.video.data.domain.Video
 /** In the feed the body is a perex — clipped to this many lines, with a "Show more" affordance. */
 private const val FEED_BODY_MAX_LINES = 5
 
-/**
- * A single feed post.
- */
 @Composable
 internal fun PostCard(
     post: Post,

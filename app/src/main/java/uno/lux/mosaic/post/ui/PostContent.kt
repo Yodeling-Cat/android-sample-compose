@@ -53,16 +53,13 @@ import uno.lux.mosaic.video.ui.VideoPostPlayer
 
 /*
  * The shared anatomy of a post — header, body, media, actions — composed both by [PostCard]
- * (the feed and profile rows) and by the post detail screen. The two differ only in what they
- * hang off these blocks: the feed card adds an overflow menu and a divider and opens the post on
- * tap, while the detail screen renders the same post as its non-clickable subject. Every block is
- * stateless with hoisted callbacks.
+ * (the feed and profile rows) and by the post detail screen. The feed card adds an overflow menu
+ * and a divider and opens the post on tap; the detail screen draws the post as its subject.
  */
 
 /**
  * Avatar + identity (nickname, `handle · time`) as one tappable target that opens the author's
- * profile, with an optional [trailing] affordance — the feed's overflow menu — kept as its own
- * target beside it.
+ * profile, with an optional [trailing] affordance kept as its own target beside it.
  */
 @Composable
 internal fun PostAuthorHeader(
@@ -72,8 +69,8 @@ internal fun PostAuthorHeader(
     modifier: Modifier = Modifier,
     trailing: (@Composable () -> Unit)? = null,
 ) {
-    // A trailing IconButton already carries the inset its 48dp touch target needs, so the row's
-    // own end padding tightens to match when one is present.
+    // A trailing IconButton carries the inset its 48dp touch target needs, so the row's own end
+    // padding tightens to match when one is present.
     val endPadding = if (trailing == null) 14.dp else 6.dp
 
     Row(
@@ -115,12 +112,6 @@ internal fun PostAuthorHeader(
     }
 }
 
-/**
- * The post's title (Bricolage) over its body (Manrope). [onClick] is null on the detail screen,
- * where the post is already the subject and there is nowhere left to open. [maxBodyLines] clips
- * the body to a perex on the feed (see [PostBodyText]); left uncapped (the default), the body is a
- * plain [Text] — the detail screen never runs the truncation apparatus.
- */
 @Composable
 internal fun PostBody(
     title: String,
@@ -163,11 +154,7 @@ internal fun PostBody(
 
 /**
  * The body copy as a perex, clipped to [maxLines]. When it overflows that cap, the last line is
- * trimmed to leave exactly enough room for an inline "… Show more" suffix, which is then appended
- * in the same [Text] — so the label sits at the end of the perex without ever overlapping the body.
- * The cut is found from the layout result by mapping the pixel position `lineWidth − suffixWidth`
- * back to a character offset, and the reserved width is the suffix's *measured* width, so the fit
- * holds regardless of the label's heavier weight. Tapping is handled by the enclosing [PostBody].
+ * trimmed to leave exactly enough room for an inline "… Show more" suffix.
  */
 @Composable
 private fun PostBodyText(body: String, maxLines: Int) {
@@ -244,10 +231,6 @@ internal fun PostMedia(
     }
 }
 
-/**
- * The like / comment / bookmark row. [onCommentClick] opens the post from the feed and scrolls to
- * the thread on the detail screen — the button is otherwise the same.
- */
 @Composable
 internal fun PostActions(
     post: Post,
@@ -257,8 +240,7 @@ internal fun PostActions(
     modifier: Modifier = Modifier,
 ) {
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
-    // Crossfade the heart between muted and coral so the color change tracks the like pop
-    // (and fades back the same way on unlike) rather than snapping.
+    // Crossfade the heart between muted and coral so the color tracks the pop rather than snapping.
     val likeTint by animateColorAsState(
         targetValue = if (post.isLiked) LocalMosaicColors.current.like else muted,
         label = "likeTint",
@@ -338,14 +320,7 @@ private fun ActionButton(
 /** The Mosaic "pop": overshoot to 1.35×, dip to 0.9×, settle — the design's like/save curve. */
 private val PopEasing = CubicBezierEasing(0.2f, 1.3f, 0.5f, 1f)
 
-/**
- * Plays the Mosaic "pop" (`@keyframes pop` in the design — scale 1 → 1.35 → 0.9 → 1 over 400ms)
- * whenever [active] *changes*, the shared feedback for toggling like and save. Like the design,
- * it pops in both directions — liking and unliking, saving and unsaving. The current value is
- * captured up front so a post scrolling back into view doesn't replay it; only an actual toggle
- * animates. Scaling happens in a [graphicsLayer], so the pop draws over the row without
- * reflowing it.
- */
+/** Plays the Mosaic "pop" whenever [active] *changes* — the feedback for like and save. */
 @Composable
 private fun Modifier.pop(active: Boolean): Modifier {
     val scale = remember { Animatable(1f) }

@@ -10,9 +10,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import uno.lux.mosaic.R
 import uno.lux.mosaic.app.theme.MosaicTheme
 
-/**
- * Confirms deleting a post. Deletion is irreversible.
- */
+/** Confirms deleting a post. Deletion is irreversible. */
 @Composable
 internal fun DeletePostDialog(
     onConfirm: () -> Unit,

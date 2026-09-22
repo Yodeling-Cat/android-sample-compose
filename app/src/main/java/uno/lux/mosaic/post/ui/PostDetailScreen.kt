@@ -109,14 +109,12 @@ fun PostDetailScreen(
 }
 
 /**
- * Stateless post detail screen — full post content (author header, title/body, media, actions)
- * followed by the comment thread, with a sticky comment composer at the bottom. Holding no
- * ViewModel makes it directly previewable and testable.
+ * Stateless post detail screen — the post, its comment thread, and a sticky composer at the
+ * bottom.
  *
  * Every control on this page reports through the one [PostDetailUiState.eventSink]. The leaf
- * components keep their own callbacks and are adapted at the call site: [PostOverflowMenu] is
- * shared with the feed card and knows nothing of this screen's vocabulary, and the rest are
- * ordinary composables that should stay callable from a screen that has no sink at all.
+ * components keep their own callbacks and are adapted at the call site, so they stay callable
+ * from a screen that has no sink at all.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -236,10 +234,8 @@ private val TopBarElevation = 4.dp
 
 /**
  * Where the thread section starts: the row right after the post card, which is the list's single
- * first item. The comments header sits here — or the error and loading placeholders, which stand
- * in the same slot. Compose has no key-based scroll, and a row's index cannot be asked for unless
- * the row is visible, so this one structural fact is the anchor every scroll on the page offsets
- * from: the first comment is the row after the header.
+ * first item. Compose has no key-based scroll, and a row's index cannot be asked for unless the
+ * row is visible, so this is the anchor every scroll on the page offsets from.
  */
 private const val COMMENTS_HEADER_INDEX = 1
 
@@ -257,8 +253,7 @@ private fun PostDetailContent(
 
     // The post is one item at the top, so the end of this list is the end of the thread. While the
     // first page is still coming — or failed — the thread counts as ended: there is no cursor to
-    // ask a second page for yet, and firing on the near-empty list would spend the trigger on a
-    // call that can do nothing.
+    // ask a second page for yet.
     LoadMoreEffect(
         listState = listState,
         endReached = thread.endReached || thread.isLoading || thread.error != null,
@@ -266,10 +261,8 @@ private fun PostDetailContent(
     )
 
     // Bring the comment the user just sent into view — the row after the header, offset by where
-    // the comment sits in the thread. The thread hangs below the whole post, so without this the
-    // reply lands off screen on anything but a short post. The signal is spent either way: a
-    // comment the list no longer shows is one a reload has replaced, and chasing it on a later
-    // frame would move the list under a reader who has since scrolled away.
+    // the comment sits in the thread, since the thread hangs below the whole post. The signal is
+    // spent either way: a comment the list no longer shows is one a reload has replaced.
     LaunchedEffect(thread.scrollTo) {
         val scrollTo = thread.scrollTo ?: return@LaunchedEffect
 
@@ -385,10 +378,9 @@ private fun CommentsError(error: AppError, onRetry: () -> Unit) {
 }
 
 /**
- * The post itself, rendered from the same blocks as the feed's [PostCard] — minus the affordances
- * that only make sense in a list: the body isn't a tap target (this *is* the post), the overflow
- * menu lives in the top bar, and the comment action scrolls to the thread below instead of
- * navigating.
+ * The post itself, from the same blocks as the feed's [PostCard], minus the affordances that only
+ * make sense in a list: the body isn't a tap target, the overflow menu lives in the top bar, and
+ * the comment action scrolls to the thread instead of navigating.
  */
 @Composable
 private fun DetailPostCard(
@@ -526,10 +518,9 @@ private fun CommentRow(
 
 /**
  * The sticky composer at the bottom of the thread. It owns the text and gives it up only once
- * [sendState] reaches [CommentSendState.SENT] — a send that failed leaves what the user typed
- * where it is, ready to send again, rather than clearing the box for a comment that never landed.
- * While [CommentSendState.SENDING] the field and the button are disabled, so one tap is one
- * comment.
+ * [sendState] reaches [CommentSendState.SENT], so a send that failed leaves what the user typed
+ * where it is. While [CommentSendState.SENDING] the field and the button are disabled, so one
+ * tap is one comment.
  */
 @Composable
 private fun CommentComposer(
@@ -548,9 +539,8 @@ private fun CommentComposer(
         if (trimmed.isNotEmpty() && !isSending) onSend(trimmed)
     }
 
-    // The server has the comment, so the text has done its job. Spending the signal here rather
-    // than in the ViewModel is what keeps the two in step: the box empties and the send ends in
-    // the same pass, and a rotation mid-send cannot clear a box that was already refilled.
+    // The server has the comment, so the text has done its job. Spending the signal here keeps the
+    // two in step: the box empties and the send ends in the same pass.
     LaunchedEffect(sendState) {
         if (sendState != CommentSendState.SENT) return@LaunchedEffect
 
@@ -585,8 +575,8 @@ private fun CommentComposer(
                 shape = RoundedCornerShape(12.dp),
                 lineLimits = TextFieldLineLimits.SingleLine,
                 textStyle = MaterialTheme.typography.bodyMedium,
-                // The disabled container matches the enabled one, so a send in flight dims the
-                // text and the border without the field itself appearing to change shape.
+                // The disabled container matches the enabled one, so a send in flight dims the text
+                // without the field appearing to change shape.
                 colors = OutlinedTextFieldDefaults.colors(
                     unfocusedContainerColor = MaterialTheme.colorScheme.background,
                     focusedContainerColor = MaterialTheme.colorScheme.background,
@@ -608,8 +598,8 @@ private fun CommentComposer(
             )
 
             IconButton(onClick = send, enabled = canSend) {
-                // The spinner stands in the button's place, so the disabled field reads as work
-                // in progress rather than as a composer that has stopped responding.
+                // The spinner stands in the button's place, so the disabled field reads as work in
+                // progress rather than as a composer that has stopped responding.
                 if (isSending) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(20.dp),
@@ -657,10 +647,7 @@ private fun PostDetailLoadingPreview() {
     PostDetailPreview(Content.Loading)
 }
 
-/**
- * The screen with its sink stubbed, so each preview supplies only the state it shows. One `{}`
- * stands in for what used to be seventeen separate no-op callbacks.
- */
+/** The screen with its sink stubbed, so each preview supplies only the state it shows. */
 @Composable
 private fun PostDetailPreview(
     content: PostDetailUiState.Content,

@@ -51,14 +51,13 @@ const val REPORT_DETAILS_MAX_LENGTH = 1000
 /**
  * The report-a-post dialog: a single-choice list of [ReportReason]s plus an optional free-text
  * field. The chosen reason and trimmed details are handed to [onSubmit]; Send stays disabled
- * until a reason is picked. The transient selection is owned here, so the host deals only with
- * the submit / dismiss outcomes.
+ * until a reason is picked. The selection is owned here, so the host deals only with the submit
+ * and dismiss outcomes.
  *
- * [sendState] is how the report is going, and the dialog outlives the tap on Send because of it:
- * the host closes this dialog on [ReportSendState.SENT] and not before, so the reasons the user
- * picked are still there to send again after a [ReportSendState.FAILED]. Only Send is taken away
- * while a report is on the wire — Cancel keeps working, because a request the network is sitting
- * on must not be able to trap the user in a dialog.
+ * The host closes this dialog on [ReportSendState.SENT] and not before, so the reason the user
+ * picked is still there to send again after a [ReportSendState.FAILED]. Only Send is taken away
+ * while a report is on the wire — Cancel keeps working, so a stalled request cannot trap the
+ * user in a dialog.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -108,8 +107,8 @@ private fun ReportPostDialogContent(
             style = MaterialTheme.typography.headlineSmall,
         )
         Spacer(Modifier.height(16.dp))
-        // The title and the buttons are measured first and the scroll area takes what is left, so
-        // a long details field scrolls instead of pushing Send out of the dialog. `fill = false`
+        // The title and buttons are measured first and the scroll area takes what is left, so a
+        // long details field scrolls instead of pushing Send out of the dialog. `fill = false`
         // keeps a dialog with nothing typed in it as short as its content.
         Column(
             modifier = Modifier
@@ -139,8 +138,7 @@ private fun ReportPostDialogContent(
                 modifier = Modifier.fillMaxWidth(),
             )
         }
-        // Outside the scroll area above, so a failure is stated where the user is looking when
-        // Send does nothing — right over the button they tapped.
+        // Outside the scroll area, so a failure is stated right over the button they tapped.
         if (sendState == ReportSendState.FAILED) {
             Spacer(Modifier.height(16.dp))
             Text(
@@ -155,8 +153,7 @@ private fun ReportPostDialogContent(
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // The spinner sits beside the buttons rather than inside Send, so a report going out
-            // doesn't resize the button the user is looking at.
+            // Beside the buttons rather than inside Send, so a report going out doesn't resize it.
             if (isSending) {
                 CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
                 Spacer(Modifier.width(16.dp))
