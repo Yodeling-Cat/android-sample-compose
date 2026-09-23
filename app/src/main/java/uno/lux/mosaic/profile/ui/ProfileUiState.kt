@@ -1,7 +1,9 @@
 package uno.lux.mosaic.profile.ui
 
+import androidx.compose.runtime.Immutable
 import uno.lux.mosaic.common.util.AppError
 
+@Immutable
 sealed interface ProfileUiState {
     data object Loading : ProfileUiState
 

@@ -1,6 +1,7 @@
 package uno.lux.mosaic.user.ui
 
 import androidx.annotation.StringRes
+import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable
 import uno.lux.mosaic.R
 import uno.lux.mosaic.common.data.files.FileUpload
@@ -70,6 +71,7 @@ data class EditProfileForm(
     }
 }
 
+@Immutable
 sealed interface EditProfileUiState {
     data object Loading : EditProfileUiState
 

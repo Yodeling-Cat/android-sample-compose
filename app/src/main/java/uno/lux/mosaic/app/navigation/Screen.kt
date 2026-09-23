@@ -1,11 +1,13 @@
 package uno.lux.mosaic.app.navigation
 
+import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable
 import uno.lux.mosaic.post.data.domain.PostId
 import uno.lux.mosaic.user.data.domain.UserId
 import uno.lux.mosaic.video.data.domain.Video
 
 @Serializable
+@Immutable
 sealed interface Screen {
 
     /**

@@ -1,5 +1,6 @@
 package uno.lux.mosaic.post.ui
 
+import androidx.compose.runtime.Immutable
 import uno.lux.mosaic.comment.data.domain.Comment
 import uno.lux.mosaic.comment.data.domain.CommentId
 import uno.lux.mosaic.common.ui.FailedAction
@@ -33,6 +34,7 @@ data class PostDetailUiState(
     val failedAction: FailedAction? = null,
 ) {
 
+    @Immutable
     sealed interface Content {
         data object Loading : Content
 

@@ -75,6 +75,8 @@ mappie-api = { group = "tech.mappie", name = "mappie-api", version.ref = "mappie
 kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 # On build-logic's compile classpath only, so a convention plugin can configure AGP's typed DSL.
 android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
+# On build-logic's compile classpath only, so configureCompose can set the stability config.
+compose-compiler-gradle-plugin = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "kotlin" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

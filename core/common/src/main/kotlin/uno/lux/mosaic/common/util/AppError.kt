@@ -1,5 +1,8 @@
 package uno.lux.mosaic.common.util
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
 sealed interface AppError {
     data object NoConnection : AppError
 

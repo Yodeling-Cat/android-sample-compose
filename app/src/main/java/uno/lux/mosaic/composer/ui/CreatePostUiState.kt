@@ -1,5 +1,6 @@
 package uno.lux.mosaic.composer.ui
 
+import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable
 import uno.lux.mosaic.common.util.AppError
 import uno.lux.mosaic.post.data.domain.NewPost
@@ -16,6 +17,7 @@ const val CREATE_POST_MAX_IMAGES = 10
 const val CREATE_POST_MAX_VIDEO_BYTES = 25L * 1024 * 1024
 
 @Serializable
+@Immutable
 sealed interface CreatePostMedia {
 
     @Serializable
@@ -56,6 +58,7 @@ data class CreatePostForm(
         NewPost(title = title.trim(), body = body.trim(), media = media)
 }
 
+@Immutable
 sealed interface CreatePostError {
 
     data class Failed(

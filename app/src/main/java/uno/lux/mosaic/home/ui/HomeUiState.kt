@@ -1,8 +1,10 @@
 package uno.lux.mosaic.home.ui
 
+import androidx.compose.runtime.Immutable
 import uno.lux.mosaic.common.util.AppError
 import uno.lux.mosaic.post.ui.PostCardData
 
+@Immutable
 sealed interface HomeUiState {
     data object Loading : HomeUiState
 

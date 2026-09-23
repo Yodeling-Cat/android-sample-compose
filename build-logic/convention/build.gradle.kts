@@ -12,6 +12,7 @@ group = "uno.lux.mosaic.buildlogic"
  */
 dependencies {
     compileOnly(libs.android.gradle.plugin)
+    compileOnly(libs.compose.compiler.gradle.plugin)
 }
 
 gradlePlugin {
