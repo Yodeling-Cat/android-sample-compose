@@ -154,11 +154,6 @@ private fun SettingsSection(
     }
 }
 
-/**
- * An on/off setting: its [label] and [supportingText] beside a trailing switch. The whole row is
- * one `toggleable` target — the switch itself takes no click, so a tap anywhere on the row flips it
- * and the accessibility tree sees a single [Role.Switch] node rather than a label and a control.
- */
 @Composable
 private fun SwitchRow(
     label: String,
@@ -192,10 +187,6 @@ private fun SwitchRow(
     }
 }
 
-/**
- * A segmented row over [options], one selectable button each — the shared shape of every picker on
- * this screen. Generic over the option type, so a picker only supplies its options and their labels.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun <T> SingleChoiceRow(

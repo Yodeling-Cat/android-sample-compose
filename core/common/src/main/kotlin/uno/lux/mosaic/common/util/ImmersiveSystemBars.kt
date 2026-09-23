@@ -8,7 +8,6 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 
-/** Hides the system bars (swipe to reveal transiently) while shown, restoring them on dispose. */
 @Composable
 fun ImmersiveSystemBars() {
     val view = LocalView.current

@@ -53,14 +53,11 @@ import uno.lux.mosaic.designsystem.theme.MosaicAccentBrush
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import kotlin.time.Duration.Companion.milliseconds
 
-/** What the button is doing right now. */
 internal enum class HoldPhase { IDLE, HOLDING, HINT }
 
 /**
- * The press-and-hold gesture as a plain state machine.
- *
- * [press] deliberately outlives the finger: the hint keeps running after the release, which is why
- * a press is numbered and only the newest one may write [phase].
+ * A press outlives the finger while its hint runs, so presses are numbered and only the newest may
+ * write [phase].
  */
 @Stable
 internal class HoldToConfirmState(
@@ -72,11 +69,7 @@ internal class HoldToConfirmState(
 
     private var presses = 0
 
-    /**
-     * Runs one press to its end. [awaitRelease] returns when the finger lifts; failing to return
-     * within [holdMillis] *is* the confirmation, so [onConfirm] fires under the still-held finger
-     * rather than on its release.
-     */
+    /** [onConfirm] fires under the still-held finger, not on its release. */
     suspend fun press(awaitRelease: suspend () -> Unit, onConfirm: () -> Unit) {
         val press = ++presses
         // Unguarded: nothing can have superseded a press that has not suspended yet.
@@ -97,22 +90,12 @@ internal class HoldToConfirmState(
         }
     }
 
-    /** Writes [next] only while [press] is still the live one, leaving a superseded press mute. */
     private fun moveTo(press: Int, next: HoldPhase) {
         if (press == presses) phase = next
     }
 }
 
-/**
- * A filled button that commits only after being held for [holdMillis]. The fill sweeps left to
- * right to show the time left.
- *
- * Once a finger lands, the label switches from [text] to [hintText], so a user learns to hold
- * while there is still time to. An early release leaves the hint up for [hintMillis].
- *
- * An accessibility service confirms at once through the semantics [onClick], because holding is a
- * motor-skill barrier.
- */
+/** An accessibility service confirms at once through the semantics [onClick]. */
 @Composable
 fun HoldToConfirmButton(
     text: String,
@@ -243,12 +226,7 @@ fun HoldToConfirmButton(
     }
 }
 
-/**
- * One of the button's two stacked labels. [alpha] is passed as a lambda and read inside
- * [graphicsLayer], so a frame of the swap re-runs the layer rather than recomposing the button.
- * Both labels are permanently in the tree, so each clears itself from the semantics tree — the
- * button names itself instead, rather than having a screen reader read the pair back to back.
- */
+/** Both labels stay in the tree, so each clears its own semantics and the button names itself. */
 @Composable
 private fun HoldLabel(
     text: String,
@@ -266,38 +244,28 @@ private fun HoldLabel(
     )
 }
 
-/** Roomier than Material's 40.dp button: a target a finger rests on wants more than a tap target. */
 private val MinHeight = 52.dp
 
-/** How far the button sinks under the finger, the usual press feedback a filled button gives. */
 private const val PRESSED_SCALE = 0.97f
 private const val PRESS_RESPONSE_MILLIS = 120
 
-/** How long the label and the nudge take to trade places. */
 private const val LABEL_SWAP_MILLIS = 180
 
-/** The inert fill: the accent dimmed to a wash, so the button keeps the brand while it waits. */
 private const val DISABLED_CONTAINER_ALPHA = 0.12f
 
-/** The inert label, dimmed enough to read as unavailable without dissolving into its own fill. */
 private const val DISABLED_LABEL_ALPHA = 0.55f
 
-/** Alphas over the container, so the sweep tracks the theme instead of pinning its own colour. */
 private const val FILL_ALPHA = 0.24f
 private const val LEADING_EDGE_ALPHA = 0.85f
 
 private val LeadingEdgeWidth = 2.dp
 
 /**
- * The sweep breaks away quickly and eases down as it lands — roughly 40% of the bar in the first
- * quarter of the hold, so the press registers at a glance, then a decelerating glide. The end
- * control point stops short of 1 deliberately: easing all the way to a standstill would leave the
- * last stretch looking finished while the hold still had time to run, inviting a release just
- * before it fires.
+ * The end control point stops short of 1: easing to a standstill would make the bar look finished
+ * before the hold fires.
  */
 private val SweepEasing = CubicBezierEasing(0.25f, 0.45f, 0.55f, 0.9f)
 
-/** Time the fill takes to drain once the finger lifts or the action fires. */
 private const val DRAIN_MILLIS = 220
 
 @Preview(showBackground = true)
@@ -314,7 +282,6 @@ private fun HoldToConfirmButtonPreview() {
     }
 }
 
-/** The inert state, which is where the button spends a composer's whole first minute. */
 @Preview(name = "Disabled", showBackground = true)
 @Composable
 private fun HoldToConfirmButtonDisabledPreview() {

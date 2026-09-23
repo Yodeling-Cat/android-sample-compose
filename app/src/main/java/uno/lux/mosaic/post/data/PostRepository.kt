@@ -12,14 +12,6 @@ import uno.lux.mosaic.post.data.domain.PostId
 import uno.lux.mosaic.post.data.domain.PostWithUsers
 import uno.lux.mosaic.user.data.UserRepository
 
-/**
- * The one store of post entities, shared by every screen, so a like toggled on the feed shows on
- * a profile in the same emission. One copy per post is also what makes the optimistic
- * [toggleLike] and [toggleBookmark] safe to revert.
- *
- * Ordered lists of IDs belong to the feed and profile repositories. This store owns only the
- * entities.
- */
 class PostRepository(
     private val dataSource: PostDataSource,
     private val userRepository: UserRepository,
@@ -29,22 +21,14 @@ class PostRepository(
 
     private val _deletedIds = MutableStateFlow<Set<PostId>>(emptySet())
 
-    /**
-     * IDs this session has deleted. Exists because absence from [entities] is ambiguous — a post
-     * can be absent because nothing fetched it *or* because it is gone — and the one observer the
-     * ambiguity bites (a detail page open on the post someone deletes from another screen) can't
-     * resolve it alone.
-     */
+    /** Absence from [entities] can't tell "never fetched" from "deleted"; this can. */
     val deletedIds: StateFlow<Set<PostId>> = _deletedIds.asStateFlow()
 
     fun ingest(posts: List<Post>) {
         _entities.update { current -> current + posts.associateBy { it.id } }
     }
 
-    /**
-     * Fetches a single post into the store, returning it — or null when the server says there is
-     * no such post, so a caller can render "gone" rather than a retryable failure.
-     */
+    /** Null when the server says the post does not exist. */
     suspend fun load(postId: PostId): Post? {
         // The store already knows this one is gone, and must not resurrect it into [entities]
         // whoever asks. No caller can reach this today; it guards the invariant, not a screen.
@@ -53,10 +37,6 @@ class PostRepository(
         return dataSource.fetch(postId)?.let(::store)
     }
 
-    /**
-     * Publishes [draft] and stores the resulting entity, so any screen already resolving that ID
-     * renders it without a re-fetch.
-     */
     suspend fun create(draft: NewPost): Post = store(dataSource.create(draft))
 
     private fun store(fetched: PostWithUsers): Post {
@@ -66,12 +46,6 @@ class PostRepository(
         return fetched.post
     }
 
-    /**
-     * Deletes [postId] and drops it from the store. The ordered ID lists in [uno.lux.mosaic.feed.data.FeedRepository] and
-     * [uno.lux.mosaic.profile.data.ProfileRepository] are deliberately left alone: they resolve IDs through [entities], so a
-     * removed entity disappears from every screen showing it in the same emission — the same
-     * propagation a like toggle relies on, rather than a second place that has to be kept in step.
-     */
     suspend fun delete(postId: PostId) {
         dataSource.delete(postId)
         // Marked deleted *before* the entity drops, so no observer ever sees the post absent
@@ -80,7 +54,6 @@ class PostRepository(
         _entities.update { it - postId }
     }
 
-    /** Flips the viewer's like on [postId], optimistically. */
     suspend fun toggleLike(postId: PostId) {
         val before = _entities.value[postId] ?: return
         val liked = !before.isLiked
@@ -112,7 +85,6 @@ class PostRepository(
         }
     }
 
-    /** Flips the viewer's bookmark on [postId], optimistically. */
     suspend fun toggleBookmark(postId: PostId) {
         val before = _entities.value[postId] ?: return
         val bookmarked = !before.isBookmarked
@@ -132,14 +104,8 @@ class PostRepository(
     }
 
     /**
-     * Applies [edit] to the stored [postId], if the store still holds it and [stillOurs] accepts
-     * what it currently says.
-     *
-     * Re-reading the entity inside the update is the whole point: an edit describes the fields it
-     * owns, so whatever else landed while a request was in flight survives it. [stillOurs] is the
-     * other half — an answer that arrives after a newer tap already moved the post describes a
-     * state nobody is waiting for any more, and dropping it is what keeps the store on the last
-     * thing the user asked for.
+     * Re-reads the entity inside the update, so fields that landed while a request was in flight
+     * survive. [stillOurs] drops an answer a newer tap has overtaken.
      */
     private fun updateEntity(
         postId: PostId,

@@ -33,14 +33,6 @@ fun FullscreenVideoScreen(
     )
 }
 
-/**
- * The full-screen video page, pushed over the rest of the app. It does not own a player: it
- * reuses the shared one from [LocalVideoPlayback], so a video promoted from an inline post keeps
- * playing from the same position. [openFullscreen] either adopts the running inline player or, if
- * this page is the entry point (a profile thumbnail), loads the video fresh; the matching teardown
- * runs in [exitFullscreen] when the page is really popped. The system bars hide for an immersive
- * stage and are restored on the way out. Holding no ViewModel makes it directly previewable.
- */
 @Composable
 internal fun FullscreenVideoScreen(
     url: String,
@@ -83,7 +75,6 @@ internal fun FullscreenVideoScreen(
     }
 }
 
-/** With no [LocalVideoPlayback] provided, the stage is the empty player and its back button. */
 @Preview
 @Composable
 private fun FullscreenVideoScreenPreview() {

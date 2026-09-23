@@ -42,14 +42,6 @@ import uno.lux.mosaic.user.data.domain.UserId
 import uno.lux.mosaic.profile.ui.ProfileUiEvent as UiEvent
 import uno.lux.mosaic.profile.ui.ProfileUiState as UiState
 
-/**
- * Holds the profile page for one [userId]. Likes and bookmarks go through [PostRepository]'s
- * shared store, so they show on every screen.
- *
- * The Saved and Likes tabs load on first open ([UiEvent.SavedTabShown], [UiEvent.LikesTabShown]),
- * so a tab nobody opened costs no request. Saved is shown only on the signed-in user's own
- * profile, and the server refuses it to anyone else.
- */
 @HiltViewModel(assistedFactory = ProfileViewModel.Factory::class)
 class ProfileViewModel @AssistedInject constructor(
     private val profileRepository: ProfileRepository,
@@ -67,17 +59,12 @@ class ProfileViewModel @AssistedInject constructor(
 
     private val _loadError = MutableStateFlow<AppError?>(null)
 
-    /** Whether a load has run at all, which is what makes an absent user mean "no such user". */
+    /** Until a load has run, an absent user means "not loaded", not "no such user". */
     private val _hasLoaded = MutableStateFlow(false)
 
-    /** This profile's two on-demand tabs, bound to [userId] once rather than at every call. */
     private val saved = profileRepository.saved(userId)
     private val liked = profileRepository.liked(userId)
 
-    /**
-     * Resolves one on-demand tab's post IDs into cards, staying null until that tab's first load
-     * lands.
-     */
     private fun cardListFlow(list: PostList): Flow<ProfilePostList?> =
         combine(
             list.ids,
@@ -100,7 +87,6 @@ class ProfileViewModel @AssistedInject constructor(
             ProfilePostList(posts = cards, endReached = !more)
         }
 
-    /** Which of the three lists failed the last time it was asked for a page. */
     private data class LoadFailures(
         val posts: Boolean = false,
         val bookmarks: Boolean = false,
@@ -109,10 +95,7 @@ class ProfileViewModel @AssistedInject constructor(
 
     private val _loadFailures = MutableStateFlow(LoadFailures())
 
-    /**
-     * The two lazily-loaded tabs and the lists' load failures, bundled so the state combine stays
-     * within its typed arity.
-     */
+    /** Bundled so the state `combine` stays within its typed arity. */
     private data class LazyTabs(
         val bookmarks: ProfilePostList?,
         val likes: ProfilePostList?,
@@ -176,12 +159,10 @@ class ProfileViewModel @AssistedInject constructor(
 
     private val _failedAction = MutableStateFlow<FailedAction?>(null)
 
-    /** The last [FailedAction] to fail here, for the screen to announce once and then spend. */
     val failedAction: StateFlow<FailedAction?> = _failedAction.asStateFlow()
 
     private val _reportSend = MutableStateFlow(ReportSendState.IDLE)
 
-    /** How the report dialog's send is going, for the dialog it is still showing under. */
     val reportSend: StateFlow<ReportSendState> = _reportSend.asStateFlow()
 
     private var loadJob: Job? = null
@@ -335,12 +316,10 @@ class ProfileViewModel @AssistedInject constructor(
         userRepository.toggleFollow(userId)
     }
 
-    /** Passed to [launchReporting] by reference, which is why it is a function. */
     private fun setFailedAction(action: FailedAction) {
         _failedAction.value = action
     }
 
-    /** Passed to [launchReport] and [dropReport] by reference, which is why it is a function. */
     private fun setReportSend(state: ReportSendState) {
         _reportSend.value = state
     }
@@ -365,11 +344,6 @@ class ProfileViewModel @AssistedInject constructor(
         trackingFailure({ copy(likes = it) }) { liked.loadMore() }
     }
 
-    /**
-     * Runs one list's page load, recording in [_loadFailures] whether it failed, through [mark],
-     * which names the list. Every attempt starts by clearing the mark, so a retry re-arms the
-     * list's paging the moment it begins.
-     */
     private suspend fun trackingFailure(
         mark: LoadFailures.(failed: Boolean) -> LoadFailures,
         block: suspend () -> Unit,

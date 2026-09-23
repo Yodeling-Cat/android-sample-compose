@@ -9,7 +9,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 
-/** Tracks the last accepted click; rejects calls arriving within [debounceMs] of the prior one. */
 internal class ClickDebounceGuard(
     private val debounceMs: Long,
     private val timeSource: () -> Long = { SystemClock.uptimeMillis() },
@@ -26,10 +25,6 @@ internal class ClickDebounceGuard(
     }
 }
 
-/**
- * Returns a stable lambda that forwards to [this] but drops calls arriving within [debounceMs]
- * milliseconds of the previous accepted call.
- */
 @Composable
 fun (() -> Unit).rememberDebounced(debounceMs: Long = 500L): () -> Unit {
     val currentAction by rememberUpdatedState(this)
@@ -38,7 +33,6 @@ fun (() -> Unit).rememberDebounced(debounceMs: Long = 500L): () -> Unit {
     return remember { { guard.tryFire(currentAction) } }
 }
 
-/** Like [clickable] but ignores taps within [debounceMs] milliseconds of the prior one. */
 fun Modifier.debouncedClickable(
     enabled: Boolean = true,
     debounceMs: Long = 500L,

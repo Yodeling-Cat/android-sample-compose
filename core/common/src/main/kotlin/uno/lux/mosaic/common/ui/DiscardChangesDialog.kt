@@ -10,10 +10,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import uno.lux.mosaic.common.R
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
-/**
- * A reusable confirmation dialog shown when a user attempts to navigate away from a screen
- * with unsaved changes.
- */
 @Composable
 fun DiscardChangesDialog(
     onConfirm: () -> Unit,

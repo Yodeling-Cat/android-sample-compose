@@ -10,17 +10,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerView
 
-/**
- * The one place a `PlayerView` is built, so the inline post and the full-screen page, which share
- * one player, draw the same chrome.
- *
- * It owns no playback. A null [player] detaches without releasing, which is how the inline post
- * lets go while full screen has the stream. It does not read [LocalVideoPlayback], because which
- * player a surface gets is the caller's decision.
- *
- * [isFullscreen] sets which way the fullscreen control points, not where this surface is drawn.
- * [onFullscreenClick] fires only for a real tap; the comment on the binding says how.
- */
+/** A null [player] detaches without releasing it. */
 @OptIn(UnstableApi::class)
 @Composable
 internal fun VideoSurface(

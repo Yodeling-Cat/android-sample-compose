@@ -115,14 +115,6 @@ fun PostDetailScreen(
     )
 }
 
-/**
- * Stateless post detail screen — the post, its comment thread, and a sticky composer at the
- * bottom.
- *
- * Every control on this page reports a [UiEvent] through [onEvent]. The leaf
- * components keep their own callbacks and are adapted at the call site, so they stay callable
- * from a screen that sends different events, or none at all.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun PostDetailScreen(
@@ -236,14 +228,9 @@ internal fun PostDetailScreen(
     }
 }
 
-/** Resting shadow depth of the pinned detail bar once the content is scrolled. */
 private val TopBarElevation = 4.dp
 
-/**
- * Where the thread section starts: the row right after the post card, which is the list's single
- * first item. Compose has no key-based scroll, and a row's index cannot be asked for unless the
- * row is visible, so this is the anchor every scroll on the page offsets from.
- */
+/** Compose scrolls by index, not key, so every scroll on the page offsets from this row. */
 private const val COMMENTS_HEADER_INDEX = 1
 
 @Composable
@@ -390,11 +377,6 @@ private fun CommentsError(error: AppError, onRetry: () -> Unit) {
     }
 }
 
-/**
- * The post itself, from the same blocks as the feed's [PostCard], minus the affordances that only
- * make sense in a list: the body isn't a tap target, the overflow menu lives in the top bar, and
- * the comment action scrolls to the thread instead of navigating.
- */
 @Composable
 private fun DetailPostCard(
     post: Post,
@@ -529,12 +511,6 @@ private fun CommentRow(
     Spacer(Modifier.height(12.dp))
 }
 
-/**
- * The sticky composer at the bottom of the thread. It owns the text and gives it up only once
- * [sendState] reaches [CommentSendState.SENT], so a send that failed leaves what the user typed
- * where it is. While [CommentSendState.SENDING] the field and the button are disabled, so one
- * tap is one comment.
- */
 @Composable
 private fun CommentComposer(
     user: User,
@@ -660,7 +636,6 @@ private fun PostDetailLoadingPreview() {
     PostDetailPreview(Content.Loading)
 }
 
-/** The screen with its events ignored, so each preview supplies only the state it shows. */
 @Composable
 private fun PostDetailPreview(
     content: UiState.Content,

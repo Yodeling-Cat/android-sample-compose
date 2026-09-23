@@ -121,13 +121,6 @@ fun CreatePostScreen(
     }
 }
 
-/**
- * Stateless post composer — a title, a body, and either up to [CREATE_POST_MAX_IMAGES] photos or one
- * video. It is pushed over the shell rather than being a tab, so the bar carries an
- * up-affordance. Holding no ViewModel makes it directly previewable and testable; the two pick
- * callbacks are passed in rather than sent as a [UiEvent] because launching the system
- * picker needs a composition-scoped launcher, not a ViewModel.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun CreatePostScreen(
@@ -245,13 +238,6 @@ private fun CreatePostForm(
     }
 }
 
-/**
- * The draft's media. A post holds photos *or* a video, so the section renders one of three
- * shapes: with nothing chosen both affordances are offered; once photos are picked only the photo
- * strip remains; once a video is picked only it remains. Deliberately **no** affordance for the
- * other kind is shown while one is attached — swapping means removing what's there first, which
- * keeps the exclusivity self-evident rather than something a dialog has to explain.
- */
 @Composable
 private fun PostMediaPicker(
     media: CreatePostMedia,
@@ -306,7 +292,6 @@ private fun PostMediaPicker(
     }
 }
 
-/** Nothing attached yet: both kinds on offer, side by side. */
 @Composable
 private fun EmptyMediaTiles(
     enabled: Boolean,
@@ -330,7 +315,6 @@ private fun EmptyMediaTiles(
     }
 }
 
-/** The picked photos as a scrolling strip, with the add tile trailing until the limit is hit. */
 @Composable
 private fun PickedImages(
     media: CreatePostMedia.Images,
@@ -375,13 +359,6 @@ private fun PickedImages(
     )
 }
 
-/**
- * One picked file: a preview of it with a remove affordance. Coil renders both kinds from the
- * content URI — a still directly, a video via the frame decoder `MosaicApp` registers. Tapping
- * the thumbnail opens the file full screen through [onOpen] — photos in the album viewer, the
- * clip on the video page. [overlay] carries whatever else the kind needs on top, which today is
- * the video's duration badge.
- */
 @Composable
 private fun PickedMediaThumbnail(
     uri: String,
@@ -415,11 +392,6 @@ private fun PickedMediaThumbnail(
     }
 }
 
-/**
- * A tile that opens a picker — one per media kind still on offer. It wears the soft accent rather
- * than an outline, because on a page whose every other control is a field, these two are the only
- * invitations, and a grey box on a white card does not read as one.
- */
 @Composable
 private fun MediaTile(
     @DrawableRes iconRes: Int,
@@ -453,11 +425,6 @@ private fun MediaTile(
     }
 }
 
-/**
- * The publish affordance. Publishing is the one irreversible step in the composer — it puts the
- * post in front of everyone — so it asks to be *held* rather than tapped, and its label yields to
- * a spinner while the upload runs.
- */
 @Composable
 private fun PublishButton(
     isPublishing: Boolean,
@@ -475,7 +442,6 @@ private fun PublishButton(
 
 private val ThumbnailSize = 88.dp
 
-/** Stable list key for the trailing add tile, so it isn't confused with an image URI. */
 private const val ADD_PHOTOS_TILE_KEY = "add-photos"
 
 @Preview(name = "Prefilled form", showBackground = true)
@@ -496,7 +462,6 @@ private fun CreatePostScreenPreview() {
     }
 }
 
-/** The page as it opens: nothing typed, both media tiles on offer, publishing not yet possible. */
 @Preview(name = "Empty form", showBackground = true)
 @Composable
 private fun CreatePostScreenEmptyPreview() {
@@ -529,7 +494,6 @@ private fun CreatePostScreenVideoPreview() {
     }
 }
 
-/** The in-flight publish, where every affordance is inert and the button yields to its spinner. */
 @Preview(name = "Publishing", showBackground = true)
 @Composable
 private fun CreatePostScreenPublishingPreview() {

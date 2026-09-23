@@ -20,11 +20,7 @@ import uno.lux.mosaic.designsystem.theme.MosaicLightNavBarScrim
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import javax.inject.Inject
 
-/**
- * The single Activity. It extends [AppCompatActivity] purely so AppCompat's delegate can apply the
- * user's per-app language below Android 13 (see `AppCompatLocaleRepository`) — no AppCompat UI is
- * used; the whole tree is still Compose.
- */
+/** An [AppCompatActivity] only so AppCompat can apply the per-app language below Android 13. */
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 

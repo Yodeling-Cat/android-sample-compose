@@ -19,7 +19,6 @@ class FakeProfileApi(
     override suspend fun getProfileStats(id: String): ProfileStatsResponse =
         ProfileStatsResponse(profileStats[id] ?: ProfileStatsDto(postsCount = 0))
 
-    /** The (id, cursor) pairs [getUserPosts] was called with, in call order. */
     val userPostCalls = mutableListOf<Pair<String, String?>>()
 
     override suspend fun getUserPosts(
@@ -31,7 +30,6 @@ class FakeProfileApi(
         return userPostsResponse
     }
 
-    /** The (id, cursor) pairs [getBookmarks] was called with, in call order. */
     val bookmarkCalls = mutableListOf<Pair<String, String?>>()
 
     override suspend fun getBookmarks(
@@ -43,7 +41,6 @@ class FakeProfileApi(
         return bookmarksResponse
     }
 
-    /** The (id, cursor) pairs [getLikes] was called with, in call order. */
     val likeCalls = mutableListOf<Pair<String, String?>>()
 
     override suspend fun getLikes(

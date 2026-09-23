@@ -16,10 +16,6 @@ import uno.lux.mosaic.settings.data.domain.Settings
 import uno.lux.mosaic.settings.data.domain.ThemeMode
 import java.io.IOException
 
-/**
- * [SettingsRepository] backed by a Preferences [DataStore], so the stored choices survive
- * process death and restarts.
- */
 class DataStoreSettingsRepository(
     private val dataStore: DataStore<Preferences>,
 ) : SettingsRepository {

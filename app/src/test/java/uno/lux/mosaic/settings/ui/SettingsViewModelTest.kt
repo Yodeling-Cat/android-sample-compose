@@ -26,7 +26,6 @@ class SettingsViewModelTest : ViewModelTest() {
         repository: InMemorySettingsRepository = InMemorySettingsRepository(),
     ) = SettingsViewModel(repository, navigator)
 
-    /** Subscribes for the rest of the test, since the state is only assembled while collected. */
     private fun TestScope.collecting(viewModel: SettingsViewModel) = viewModel.also {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { it.uiState.collect {} }
     }

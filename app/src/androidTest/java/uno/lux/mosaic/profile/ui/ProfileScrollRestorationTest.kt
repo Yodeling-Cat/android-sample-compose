@@ -20,14 +20,6 @@ import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.post.ui.ReportSendState
 import uno.lux.mosaic.profile.data.domain.Profile
 
-/**
- * Pins that the profile's scroll position survives recreation in both places it lives: the posts
- * list's state, and the header-collapse offset the screen owns. The first screenful of a scroll
- * only collapses the header, so losing the offset reopens a slightly scrolled profile expanded.
- *
- * Leaving the page for another back-stack entry saves the same `rememberSaveable` state, so the
- * [StateRestorationTester] round trip covers navigation too.
- */
 @RunWith(AndroidJUnit4::class)
 class ProfileScrollRestorationTest {
 

@@ -2,9 +2,6 @@ package uno.lux.mosaic.post.data.network
 
 import kotlinx.serialization.Serializable
 
-/**
- * Asks for a bookmark to be *in* a state rather than to be flipped.
- */
 @Serializable
 data class SetBookmarkRequestDto(
     val bookmarked: Boolean,

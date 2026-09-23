@@ -23,13 +23,6 @@ import javax.inject.Inject
 import uno.lux.mosaic.composer.ui.CreatePostUiEvent as UiEvent
 import uno.lux.mosaic.composer.ui.CreatePostUiState as UiState
 
-/**
- * Drives the post composer. Publishing goes through [FeedRepository].
- *
- * A failed publishing keeps the typed text and surfaces the error, so nothing is lost to a dropped connection.
- *
- * Leaving with a part-written post asks first, raises the confirmation instead of popping when the form has content.
- */
 @HiltViewModel
 class CreatePostViewModel @Inject constructor(
     private val feedRepository: FeedRepository,
@@ -102,12 +95,6 @@ class CreatePostViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Adds a picked selection. Already-picked URIs are dropped rather than duplicated.
-     *
-     * A no-op while a video is attached: the screen hides the photo affordance in that state, so
-     * reaching here would mean the two media kinds were about to coexist.
-     */
     private fun addImages(uris: List<String>) = updateForm { form ->
         val current = when (val media = form.media) {
             CreatePostMedia.None -> emptyList()
@@ -119,7 +106,6 @@ class CreatePostViewModel @Inject constructor(
         form.copy(media = CreatePostMedia.Images((current + added).take(CREATE_POST_MAX_IMAGES)))
     }
 
-    /** Removing the last photo returns to [CreatePostMedia.None], re-offering the video option. */
     private fun removeImage(uri: String) = updateForm { form ->
         val media = form.media as? CreatePostMedia.Images ?: return@updateForm form
         val remaining = media.uris - uri
@@ -128,12 +114,8 @@ class CreatePostViewModel @Inject constructor(
     }
 
     /**
-     * Attaches a picked clip, rejecting one over [CREATE_POST_MAX_VIDEO_BYTES] before its bytes are
-     * ever read. A provider that reports no size is allowed through and left to the server, since
-     * refusing an unknown-size file would block legitimate ones.
-     *
-     * Duration is read here, at pick time, because it is cheap (metadata only) and the thumbnail
-     * badges it — the upload itself carries no duration, the server deriving that from the file.
+     * A provider that reports no size is let through to the server: refusing unknown sizes would
+     * block legitimate files.
      */
     private fun attachVideo(uri: String) = launchIfIdle(::pickVideoJob) {
         catchErrors(
@@ -214,5 +196,4 @@ class CreatePostViewModel @Inject constructor(
     }
 }
 
-/** Where the in-progress draft is kept in the entry's saved state. */
 private const val DRAFT_KEY = "create_post_draft"

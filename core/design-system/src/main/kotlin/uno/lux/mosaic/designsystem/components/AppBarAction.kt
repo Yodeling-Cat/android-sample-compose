@@ -11,17 +11,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import uno.lux.mosaic.designsystem.R
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
-/**
- * One icon affordance in a top app bar — the navigation icon, or one of the trailing actions.
- *
- * The click is debounced, which is the reason to reach for this over a bare [IconButton]: a
- * double-tapped back arrow must not pop two pages, and every other navigation control in the app
- * carries the same 500 ms guard.
- *
- * [contentDescription] is null by default, for an icon whose meaning something else on screen
- * already carries. Pass one whenever this button is the only thing saying what it does — which is
- * nearly always, since an unlabelled icon is invisible to a screen reader.
- */
+/** Debounced, so a double-tapped back arrow cannot pop two pages. */
 @Composable
 fun AppBarAction(
     @DrawableRes icon: Int,

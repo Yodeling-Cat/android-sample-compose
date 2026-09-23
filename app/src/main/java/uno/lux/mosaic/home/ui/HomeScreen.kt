@@ -85,10 +85,6 @@ fun HomeScreen(
     )
 }
 
-/**
- * Stateless feed screen — renders [uiState] and reports every interaction as a [UiEvent]
- * through [onEvent]. Holding no ViewModel makes it directly previewable and testable.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun HomeScreen(
@@ -178,11 +174,6 @@ internal fun HomeScreen(
     }
 }
 
-/**
- * The feed's pinned top bar — it stays in place while the feed scrolls and fades in a drop shadow
- * whenever the list content is scrolled away from the top ([elevated]), so the shadow is a stable
- * indicator of scroll position rather than something that rides the bar.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FeedTopBar(
@@ -213,7 +204,6 @@ private fun FeedTopBar(
     )
 }
 
-/** Resting shadow depth of the pinned feed bar once the list is scrolled. */
 private val TopBarElevation = 4.dp
 
 @Composable
@@ -310,7 +300,6 @@ private fun EmptyState(modifier: Modifier = Modifier) {
     }
 }
 
-/** End-of-feed marker shown as the last list item once there are no more posts to load. */
 @Composable
 private fun CaughtUpFooter(modifier: Modifier = Modifier) {
     Text(
@@ -325,14 +314,8 @@ private fun CaughtUpFooter(modifier: Modifier = Modifier) {
 }
 
 /**
- * The URL the feed should have playing, or null to stop.
- *
- * With auto-play on that is simply the on-screen winner ([mostVisibleUrl]). With it off nothing
- * ever starts on its own, so the only URL that may play is one already playing ([activeUrl]) —
- * i.e. one the user tapped — and only while it is still the winner, which is what stops it when it
- * scrolls out of the way rather than letting its audio outlive the post on screen.
- *
- * Pure, so the whole rule is unit-testable without a composition or a layout.
+ * With auto-play off, only a video the user started may keep playing, and only while it is still
+ * the most visible.
  */
 internal fun videoToPlay(
     mostVisibleUrl: String?,
@@ -340,13 +323,7 @@ internal fun videoToPlay(
     autoPlayVideos: Boolean,
 ): String? = mostVisibleUrl?.takeIf { autoPlayVideos || it == activeUrl }
 
-/**
- * Returns the on-screen winner — the video post with the greatest visible fraction that meets the
- * 50 % threshold — or null when no video qualifies. Deciding what to do with it is [videoToPlay]'s.
- *
- * [LazyListItemInfo.index] maps 1:1 to [posts] because [FeedList] emits posts first (indices
- * 0..lastIndex) then optionally a footer item at [posts.size].
- */
+/** Assumes [FeedList] emits the posts first, so a list index is a post index. */
 private fun mostVisibleVideo(layoutInfo: LazyListLayoutInfo, posts: List<PostCardData>): Video? {
     val viewportStart = layoutInfo.viewportStartOffset
     val viewportEnd = layoutInfo.viewportEndOffset

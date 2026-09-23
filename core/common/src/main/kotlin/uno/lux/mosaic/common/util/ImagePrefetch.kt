@@ -13,16 +13,8 @@ import coil3.size.Scale
 import coil3.size.Size
 
 /**
- * Warms Coil's cache with the image after the one at [lastVisibleIndex], so scrolling onto it
- * shows a decoded bitmap instead of an empty frame.
- *
- * **[size] and [contentScale] must match what the image is drawn with.** The prefetch and its
- * `AsyncImage` share one memory-cache entry keyed by URL, and Coil rejects a cached bitmap decoded
- * under a different [Scale]. On a mismatch the two overwrite each other and every image reloads
- * forever. [size] is more forgiving: a bitmap at or above the drawn size is reused.
- *
- * [lastVisibleIndex] is read in a `snapshotFlow`, so it may read snapshot state directly. A change
- * to it or to [urls] does not restart the effect.
+ * [size] and [contentScale] must match what the image is drawn with. The prefetch and its
+ * `AsyncImage` share one memory-cache entry, and on a mismatch each reloads the other forever.
  */
 @Composable
 fun PrefetchNextImage(
@@ -54,11 +46,7 @@ fun PrefetchNextImage(
     }
 }
 
-/**
- * The mapping Coil's Compose layer applies internally (`ContentScale.toScale`), duplicated because
- * that function is `internal` to the library: a prefetch has to name the [Scale] its `AsyncImage`
- * will ask for, and no public API exposes it.
- */
+/** Duplicates Coil's `ContentScale.toScale`, which is `internal`. */
 private fun ContentScale.asCoilScale(): Scale = when (this) {
     ContentScale.Fit, ContentScale.Inside -> Scale.FIT
     else -> Scale.FILL

@@ -28,9 +28,6 @@ import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.user.data.domain.User
 import uno.lux.mosaic.user.data.domain.UserId
 
-/**
- * A circular avatar for a [user].
- */
 @Composable
 fun Avatar(
     user: User,
@@ -46,11 +43,6 @@ fun Avatar(
     )
 }
 
-/**
- * A circular avatar. With no [imageUrl] it renders the user's initials on a gradient. A non-null
- * [imageUrl] loads the profile photo over that layer, so the initials double as the loading /
- * error fallback.
- */
 @Composable
 fun Avatar(
     userId: UserId,
@@ -85,7 +77,6 @@ fun Avatar(
     }
 }
 
-/** Initials only, at a spread of sizes: the layer every avatar starts as, and falls back to. */
 @Preview(showBackground = true)
 @Composable
 private fun AvatarPreview() {

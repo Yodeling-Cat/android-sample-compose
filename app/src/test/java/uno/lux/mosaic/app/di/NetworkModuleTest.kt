@@ -8,10 +8,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlin.io.path.createTempDirectory
 
-/**
- * Pins the deliberate parts of the HTTP stack: the explicit timeouts, the cache on the API
- * client, and the image client sharing the API client's pool while carrying no cache of its own.
- */
 class NetworkModuleTest {
 
     private val cache = Cache(createTempDirectory("http").toFile(), maxSize = 1024)

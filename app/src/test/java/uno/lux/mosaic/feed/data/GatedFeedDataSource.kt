@@ -2,10 +2,6 @@ package uno.lux.mosaic.feed.data
 
 import kotlinx.coroutines.CompletableDeferred
 
-/**
- * A [FeedDataSource] whose every fetch waits until the test answers it, so a test can hold one
- * request on the wire while another lands. [calls] records each fetch in the order it was made.
- */
 internal class GatedFeedDataSource : FeedDataSource {
 
     class Call(

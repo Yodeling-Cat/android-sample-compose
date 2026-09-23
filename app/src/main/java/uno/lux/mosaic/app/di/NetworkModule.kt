@@ -34,10 +34,6 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    /**
-     * The server this build talks to, chosen by the `server` product flavor in
-     * `app/build.gradle.kts`: the deployed host, or the Rails app on the dev machine.
-     */
     val BASE_URL: String = BuildConfig.BASE_URL
     private val API_URL = "${BASE_URL}/api/"
 
@@ -51,11 +47,6 @@ object NetworkModule {
     fun provideJson(): Json =
         Json { ignoreUnknownKeys = true }
 
-    /**
-     * Rails answers conditional requests out of the box (`Rack::ETag` + `Rack::ConditionalGet`),
-     * so a cache turns a re-read of an unchanged feed page into a 304 with no body. Only API JSON
-     * lands here — the image client below strips it, because Coil keeps its own disk cache.
-     */
     @Provides
     @Singleton
     fun provideHttpCache(
@@ -92,22 +83,14 @@ object NetworkModule {
                 }
             }.build()
 
-    /**
-     * The app client minus its HTTP cache. `newBuilder` keeps the connection pool, dispatcher and
-     * interceptors, so image loads reuse the API client's warm connections; the cache goes because
-     * Coil already keeps a disk cache of its own, and caching every image twice buys nothing.
-     */
+    /** Coil keeps its own disk cache, so the image client drops the HTTP one. */
     @Provides
     @Singleton
     @ImageHttpClient
     fun provideImageOkHttpClient(okHttpClient: OkHttpClient): OkHttpClient =
         okHttpClient.newBuilder().cache(null).build()
 
-    /**
-     * One [ImageLoader] on the app's own HTTP stack. The video-frame decoder is added because a
-     * `content://` video URI has no matching default decoder, and the composer's picked-clip
-     * thumbnail would render empty without it — every other image in the app is a still.
-     */
+    /** The video-frame decoder renders the composer's thumbnail of a picked `content://` clip. */
     @Provides
     @Singleton
     fun provideImageLoader(
@@ -156,16 +139,10 @@ object NetworkModule {
     fun provideProfileApi(retrofit: Retrofit): ProfileApi = retrofit.create(ProfileApi::class.java)
 }
 
-/** Qualifies the image-loading [OkHttpClient], so it's distinct from the API client. */
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class ImageHttpClient
 
-/**
- * Stamps every request with the signed-in user. The app has no sign-in, so this header is the whole
- * of the server's notion of a caller: it scopes viewer state (`isLiked`, `isBookmarked`) and backs
- * every ownership check.
- */
 private class UserIdHeaderInterceptor(
     private val userId: UserId,
 ) : Interceptor {
@@ -182,14 +159,8 @@ private class UserIdHeaderInterceptor(
 }
 
 /**
- * Full-body request/response logging, except for multipart uploads, which log headers only.
- *
- * `HttpLoggingInterceptor` at [BODY][HttpLoggingInterceptor.Level.BODY] buffers the whole entity
- * and prints it whenever the first bytes look like UTF-8. A multipart body opens with its boundary
- * and part headers — plain text — so the check passes and the *entire* body is dumped, video bytes
- * and all, flooding logcat on a clip upload. Multipart in this app is only ever a file upload
- * (post media, the avatar), so keying on it downgrades exactly the binary requests to
- * [HEADERS][HttpLoggingInterceptor.Level.HEADERS] and leaves every JSON call logging in full.
+ * Logs multipart uploads at [HEADERS][HttpLoggingInterceptor.Level.HEADERS] only: their text
+ * preamble passes the logger's UTF-8 check, so `BODY` would dump the whole video into logcat.
  */
 private object BodyLoggingInterceptor : Interceptor {
 

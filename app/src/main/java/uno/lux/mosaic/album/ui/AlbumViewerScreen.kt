@@ -59,9 +59,6 @@ fun AlbumViewerScreen(
     )
 }
 
-/**
- * Full-screen album viewer: Lets the user swipe between [imageUrls]'s images.
- */
 @Composable
 internal fun AlbumViewerScreen(
     imageUrls: List<String>,
@@ -106,9 +103,6 @@ internal fun AlbumViewerScreen(
     }
 }
 
-/**
- * The "n / total" page counter pill.
- */
 @Composable
 private fun PageIndicator(
     pagerState: PagerState,
@@ -129,9 +123,6 @@ private fun PageIndicator(
     }
 }
 
-/**
- * An image that supports pinch-to-zoom (1×–5×), driven by [detectZoomAndPan].
- */
 @Composable
 private fun ZoomableImage(
     url: String,
@@ -175,14 +166,8 @@ private fun ZoomableImage(
 }
 
 /**
- * Pinch-to-zoom and pan for an image inside a pager.
- *
- * At scale 1, single-finger events are not consumed, so the parent [HorizontalPager] can swipe.
- * Once a gesture becomes a zoom or a pan (two fingers, or one finger on a zoomed image), it
- * consumes every change until it ends, which locks the pager.
- *
- * [imageSize] is the image's intrinsic size, so panning is bounded by the drawn content rather
- * than by the letterboxed composable.
+ * At scale 1, single-finger events are left unconsumed so the parent [HorizontalPager] can swipe.
+ * Once a gesture zooms or pans, it consumes every change until it ends.
  */
 private suspend fun PointerInputScope.detectZoomAndPan(
     scale: () -> Float,
@@ -231,10 +216,6 @@ private suspend fun PointerInputScope.detectZoomAndPan(
     } while (event.changes.any { it.pressed })
 }
 
-/**
- * The size an image of [imageSize] actually draws at inside [viewSize] under
- * [ContentScale.Fit] — [viewSize] itself while the intrinsic size is still unknown.
- */
 private fun contentSizeIn(viewSize: Size, imageSize: Size): Size {
     if (imageSize.width <= 0 || imageSize.height <= 0) return viewSize
 

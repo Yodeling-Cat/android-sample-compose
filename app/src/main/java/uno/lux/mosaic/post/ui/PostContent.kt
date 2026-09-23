@@ -61,10 +61,6 @@ import uno.lux.mosaic.video.ui.VideoPostPlayer
  * and a divider and opens the post on tap; the detail screen draws the post as its subject.
  */
 
-/**
- * Avatar + identity (nickname, `handle · time`) as one tappable target that opens the author's
- * profile, with an optional [trailing] affordance kept as its own target beside it.
- */
 @Composable
 internal fun PostAuthorHeader(
     post: Post,
@@ -156,10 +152,6 @@ internal fun PostBody(
     }
 }
 
-/**
- * The body copy as a perex, clipped to [maxLines]. When it overflows that cap, the last line is
- * trimmed to leave exactly enough room for an inline "… Show more" suffix.
- */
 @Composable
 private fun PostBodyText(body: String, maxLines: Int) {
     val showMore = stringResource(R.string.post_show_more)
@@ -210,7 +202,6 @@ private fun PostBodyText(body: String, maxLines: Int) {
     )
 }
 
-/** A post's attached media, if any: an album's photo strip and/or its video player. */
 @Composable
 internal fun PostMedia(
     post: Post,
@@ -284,7 +275,6 @@ internal fun PostActions(
     }
 }
 
-/** Pill-shaped action: icon + optional count, both tinted by [tint] (accented when active). */
 @Composable
 private fun ActionButton(
     iconRes: Int,
@@ -321,10 +311,8 @@ private fun ActionButton(
     }
 }
 
-/** The Mosaic "pop": overshoot to 1.35×, dip to 0.9×, settle — the design's like/save curve. */
 private val PopEasing = CubicBezierEasing(0.2f, 1.3f, 0.5f, 1f)
 
-/** Plays the Mosaic "pop" whenever [active] *changes* — the feedback for like and save. */
 @Composable
 private fun Modifier.pop(active: Boolean): Modifier {
     val scale = remember { Animatable(1f) }
@@ -367,7 +355,6 @@ private fun PostAuthorHeaderPreview() {
     }
 }
 
-/** Clipped to two lines, so the body overflows and the "Show more" suffix appears. */
 @Preview(showBackground = true)
 @Composable
 private fun PostBodyPerexPreview() {
@@ -378,7 +365,6 @@ private fun PostBodyPerexPreview() {
     }
 }
 
-/** Neither liked nor saved, then both: the two tints each action switches between. */
 @Preview(showBackground = true)
 @Composable
 private fun PostActionsPreview() {

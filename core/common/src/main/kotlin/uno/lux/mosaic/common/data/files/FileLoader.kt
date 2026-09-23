@@ -8,24 +8,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
-/**
- * Reads a picked file URI into a [FileUpload] the data layer can upload. Kept as an
- * interface so ViewModels can depend on it without touching Android
- * `ContentResolver` types, and so tests can supply a fake.
- */
 interface FileLoader {
-    /** Reads the file at [uri] (a `content://` / `file://` URI string) into an upload payload. */
     suspend fun read(uri: String): FileUpload
 
-    /**
-     * Size of the file at [uri] in bytes, or `null` when the provider doesn't report one. Exists so
-     * a size limit can be enforced *without* [read]ing the file into memory first — the point of a
-     * limit is to avoid holding an oversized video, which reading it would already have done.
-     */
+    /** `null` when the provider reports no size. */
     suspend fun sizeOf(uri: String): Long?
 }
 
-/** Android implementation backed by [Context.getContentResolver]. */
 class AndroidFileLoader(
     private val context: Context,
 ) : FileLoader {

@@ -14,10 +14,8 @@ class FakeCommentApi(
     val likeResult: LikeStateDto = LikeStateDto(isLiked = true, likeCount = 1),
 ) : CommentApi {
 
-    /** The `(commentId, body)` pairs passed to [setCommentLike], in call order. */
     val likeRequests = mutableListOf<Pair<String, SetLikeRequestDto>>()
 
-    /** The cursors passed to [getComments], in call order; null is the first page. */
     val commentCursors = mutableListOf<String?>()
 
     override suspend fun getComments(postId: String, cursor: String?, limit: Int): CommentListResponse {

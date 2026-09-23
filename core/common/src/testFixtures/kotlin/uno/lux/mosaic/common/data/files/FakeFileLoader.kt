@@ -1,10 +1,5 @@
 package uno.lux.mosaic.common.data.files
 
-/**
- * Shared [FileLoader] double. [read] records the URI it was asked for and returns a payload naming
- * it, so a test can assert *which* files were uploaded; [error] and [size] drive the failure and
- * size-limit paths.
- */
 class FakeFileLoader(
     private val result: FileUpload? = null,
     private val error: Exception? = null,
@@ -26,7 +21,6 @@ class FakeFileLoader(
     override suspend fun sizeOf(uri: String): Long? = size
 }
 
-/** Reports a fixed duration for any video URI. */
 class FakeVideoMetadataReader(
     private val duration: Int = 12,
 ) : VideoMetadataReader {

@@ -28,11 +28,7 @@ class MainViewModel @Inject constructor(
         observeAppLanguage()
     }
 
-    /**
-     * First launch only: adopts the device's language if we ship it. Called from
-     * the Activity because the locale APIs need AppCompat's delegate to
-     * have attached — which is only guaranteed once `super.onCreate` has run.
-     */
+    /** Call after `super.onCreate`: the locale APIs need AppCompat's delegate attached. */
     fun resolveInitialAppLanguage() = launch {
         appLocaleRepository.resolveInitialLanguage()
     }

@@ -40,15 +40,6 @@ import uno.lux.mosaic.user.data.domain.User
 import java.net.UnknownHostException
 import java.time.Instant
 
-/**
- * The ViewModel is driven the way the screen drives it — one [PostDetailUiEvent] at a time
- * through [PostDetailViewModel.onEvent] — and asserted on the one [PostDetailUiState] it holds.
- *
- * There is no `backgroundScope.launch { uiState.collect {} }` here. The state is a value the
- * ViewModel owns rather than a projection shared while subscribed, so `uiState.value` is the
- * current screen from the moment the ViewModel exists, and a test that forgot to subscribe can
- * no longer read a stale `Loading` and pass for the wrong reason.
- */
 @OptIn(ExperimentalCoroutinesApi::class)
 class PostDetailViewModelTest : ViewModelTest() {
 
@@ -78,7 +69,6 @@ class PostDetailViewModelTest : ViewModelTest() {
     private val backStack = backStackOf(Screen.Shell, Screen.PostDetail("p1"))
     private val navigator = Navigator().apply { attach(backStack) }
 
-    /** The entity store the last [viewModel] was built on, for driving it from outside. */
     private lateinit var postRepository: PostRepository
 
     private fun viewModel(
@@ -104,16 +94,13 @@ class PostDetailViewModelTest : ViewModelTest() {
         )
     }
 
-    /** A comment source on p1, typed as the fake so a test can reach its like bookkeeping. */
     private fun commentSource(thread: List<Comment> = listOf(seedComment)) =
         FakeCommentDataSource(currentUser, mapOf("p1" to thread))
 
-    /** A thread of [size] comments, ids `c1`..`cN` in the order the server would send them. */
     private fun thread(size: Int) = List(size) { index ->
         seedComment.copy(id = "c${index + 1}", text = "Comment ${index + 1}")
     }
 
-    /** A comment source on p1 that hands its thread out [pageSize] comments at a time. */
     private fun pagedSource(thread: List<Comment>, pageSize: Int) =
         FakeCommentDataSource(currentUser, mapOf("p1" to thread), pageSize = pageSize)
 
@@ -917,10 +904,8 @@ class PostDetailViewModelTest : ViewModelTest() {
     }
 }
 
-/** The post the page is showing, for the tests whose subject is the post rather than the load. */
 private val PostDetailViewModel.loaded: Content.Loaded
     get() = uiState.value.content as Content.Loaded
 
-/** The stretch of the thread the page is holding. */
 private val PostDetailViewModel.comments: List<Comment>
     get() = uiState.value.commentThread.comments

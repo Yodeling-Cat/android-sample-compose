@@ -1,32 +1,23 @@
 package uno.lux.mosaic.composer.ui
 
 import kotlinx.serialization.Serializable
-import uno.lux.mosaic.common.data.files.FileUpload
 import uno.lux.mosaic.common.util.AppError
 import uno.lux.mosaic.post.data.domain.NewPost
 import uno.lux.mosaic.post.data.domain.NewPostMedia
 
-/** Field limits the composer enforces; they mirror the backend's so errors surface before a publish. */
+/** These limits mirror the server's validations; change both sides together. */
 const val CREATE_POST_TITLE_MAX_LENGTH = 120
 const val CREATE_POST_BODY_MAX_LENGTH = 5000
 
-/** Mirrors the server's `Album::MAX_PHOTOS`, so an over-long selection is refused before uploading. */
+/** Mirrors the server's `Album::MAX_PHOTOS`. */
 const val CREATE_POST_MAX_IMAGES = 10
 
-/** Mirrors the server's `Video::MAX_BYTES`, so an oversized clip is refused before it is uploaded. */
+/** Mirrors the server's `Video::MAX_BYTES`. */
 const val CREATE_POST_MAX_VIDEO_BYTES = 25L * 1024 * 1024
 
-/**
- * The media attached to a draft: photos or one video, never both. A closed hierarchy makes the
- * illegal combination unrepresentable.
- *
- * Both variants hold content-URI strings, not bytes. They are read into [FileUpload]s once, at
- * publish. [Serializable] so a picked selection survives process death with the rest of the draft.
- */
 @Serializable
 sealed interface CreatePostMedia {
 
-    /** Nothing attached — the only state from which either kind can still be chosen. */
     @Serializable
     data object None : CreatePostMedia
 
@@ -38,12 +29,6 @@ sealed interface CreatePostMedia {
             get() = uris.size < CREATE_POST_MAX_IMAGES
     }
 
-    /**
-     * A single clip. [durationSeconds] is read off the file when it is picked, purely to badge the
-     * composer's own thumbnail: the clip has not been uploaded yet, so the server's derived
-     * duration — the one a published post shows — does not exist for it. It is not sent with the
-     * upload; see `NewPostMedia.Video`.
-     */
     @Serializable
     data class Video(
         val uri: String,
@@ -52,13 +37,8 @@ sealed interface CreatePostMedia {
 }
 
 /**
- * The composer's editable fields. The text is kept exactly as typed — trimming happens once, in
- * [toNewPost], so a trailing space the user is still typing past doesn't fight the cursor.
- *
- * [toNewPost] takes the already-loaded [media] as a parameter rather than producing it, since
- * reading the picked files needs a suspending `FileLoader` the form has no business holding.
- *
- * [Serializable] so a part-written post survives process death — see [uno.lux.mosaic.util.saveDraft].
+ * Text is kept exactly as typed and trimmed in [toNewPost]; trimming on input would fight the
+ * cursor.
  */
 @Serializable
 data class CreatePostForm(
@@ -82,7 +62,6 @@ sealed interface CreatePostError {
         val error: AppError,
     ) : CreatePostError
 
-    /** The chosen clip is over [CREATE_POST_MAX_VIDEO_BYTES], which the server would reject anyway. */
     data object VideoTooLarge : CreatePostError
 }
 

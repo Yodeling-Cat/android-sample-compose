@@ -9,11 +9,6 @@ import kotlinx.coroutines.test.setMain
 import org.junit.rules.TestWatcher
 import org.junit.runner.Description
 
-/**
- * Replaces `Dispatchers.Main` with a [TestDispatcher] for the duration of each test, so
- * code that dispatches on Main (e.g. `viewModelScope`) runs under test control. Defaults to
- * an [UnconfinedTestDispatcher] so launched coroutines execute eagerly.
- */
 @OptIn(ExperimentalCoroutinesApi::class)
 class MainDispatcherRule(
     val dispatcher: TestDispatcher = UnconfinedTestDispatcher(),

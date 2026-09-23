@@ -25,16 +25,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Pins that the back stack survives process death, and that two pushes of the same [Screen] stay
- * two pages, each with its own state, across the restore.
- *
- * [StateRestorationTester] does the save-and-rebuild of a real restart, but not the empty
- * in-memory stores that come with it; the ViewModel tests cover cold-start loading.
- *
- * The host mirrors `MosaicApp`'s wiring rather than using it, which would pull in Hilt and the
- * network.
- */
 @RunWith(AndroidJUnit4::class)
 class BackStackRestorationTest {
 
@@ -44,7 +34,6 @@ class BackStackRestorationTest {
     private val navigator = Navigator()
     private var backStack: List<BackStackEntry> = emptyList()
 
-    /** One of every [Screen], to catch a key that stops being serializable when a field is added. */
     private val everyScreen = listOf(
         Screen.Profile(userId = "u2"),
         Screen.Settings,
@@ -96,7 +85,6 @@ class BackStackRestorationTest {
         }
     }
 
-    /** The saveable-state decorator's half of the deal: state *inside* an entry comes back too. */
     @Test
     fun restoresSaveableStateHeldInsideAnEntry() {
         val tester = startHost()
@@ -110,10 +98,6 @@ class BackStackRestorationTest {
         composeTestRule.onNodeWithTag(COUNTER_TAG).assertTextEquals("1")
     }
 
-    /**
-     * Two pushes of an equal [Screen] are two pages. State is scoped to [BackStackEntry.id], so
-     * each push gets its own entry, and both survive a restore separately.
-     */
     @Test
     fun keepsTwoEntriesOfTheSameScreenIndependent() {
         val tester = startHost()
@@ -133,11 +117,6 @@ class BackStackRestorationTest {
         composeTestRule.onNodeWithTag(COUNTER_TAG).assertTextEquals("2")
     }
 
-    /**
-     * A screen that pins [Screen.sharedId] resolves every push to one entry, so its pushes share
-     * one ViewModel store and one saveable state, before and after a restore. Unlike
-     * `NavigatorTest`, this asserts on the state, not only on the ids.
-     */
     @Test
     fun sharesStateBetweenEntriesOfAScreenThatPinsItsIdentity() {
         val tester = startHost()
@@ -175,10 +154,6 @@ class BackStackRestorationTest {
 private const val CURRENT_KEY_TAG = "current_key"
 private const val COUNTER_TAG = "counter"
 
-/**
- * A stand-in for `MosaicApp`: the same composition-owned back stack, [Navigator] attachment and
- * entry decorators, with every key rendered as its own name instead of a real screen.
- */
 @Composable
 private fun TestNavHost(navigator: Navigator, onBackStack: (List<BackStackEntry>) -> Unit) {
     val backStack = rememberBackStack(navigator, root = Screen.Shell)
@@ -204,7 +179,6 @@ private fun TestNavHost(navigator: Navigator, onBackStack: (List<BackStackEntry>
     )
 }
 
-/** Names the entry on screen, and carries a saveable counter to prove per-entry state restores. */
 @Composable
 private fun KeyLabel(screen: Screen) {
     var taps by rememberSaveable { mutableIntStateOf(0) }

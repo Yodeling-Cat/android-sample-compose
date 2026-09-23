@@ -9,16 +9,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-/**
- * An in-memory [DataStore] of [Preferences], for driving the real [DataStoreSettingsRepository]
- * over the real preference keys.
- *
- * It stands in for the file, not for the repository: what is faked is only where the bytes live,
- * so the mapping under test — [Preferences] keys to domain types and back — is the production one.
- *
- * Writes are serialized, as [DataStore.updateData] promises, so a transform sees what the previous
- * one returned rather than the value it started from.
- */
 class InMemoryPreferencesDataStore : DataStore<Preferences> {
 
     private val state = MutableStateFlow(emptyPreferences())

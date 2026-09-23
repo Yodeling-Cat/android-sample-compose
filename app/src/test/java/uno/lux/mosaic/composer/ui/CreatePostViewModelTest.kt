@@ -64,7 +64,6 @@ class CreatePostViewModelTest : ViewModelTest() {
         )
     }
 
-    /** The picked image URIs, or an empty list when the draft holds no photos. */
     private val CreatePostForm.imageUris: List<String>
         get() = (media as? CreatePostMedia.Images)?.uris.orEmpty()
 
@@ -174,10 +173,6 @@ class CreatePostViewModelTest : ViewModelTest() {
         assertEquals(listOf(Screen.Shell, Screen.CreatePost), backStack.screens())
     }
 
-    /**
-     * The composer mirrors the server's validations, but the day the mirrors drift the server's
-     * structured 422 is what arrives — and its message, not a generic apology, is what must show.
-     */
     @Test
     fun `a publish the server refuses surfaces the server's own message`() = runTest {
         val viewModel = fixture(
@@ -289,7 +284,6 @@ class CreatePostViewModelTest : ViewModelTest() {
         assertEquals(listOf("uri-a", "uri-b"), media.files.map { it.filename })
     }
 
-    /** The duration badges the composer's own thumbnail; it is not what gets uploaded. */
     @Test
     fun `a picked video is attached with the duration read from the file`() = runTest {
         val viewModel = fixture(videoDuration = 42).viewModel
@@ -374,10 +368,6 @@ class CreatePostViewModelTest : ViewModelTest() {
         assertEquals(Screen.FullscreenVideo(url = "clip"), backStack.last().screen)
     }
 
-    /**
-     * The draft carries the file and nothing else — the duration the composer read for its own
-     * badge stays on the UI side, since the server derives the stored video's own.
-     */
     @Test
     fun `Publish uploads the video with the draft`() = runTest {
         val (viewModel, dataSource) = fixture(videoDuration = 7)

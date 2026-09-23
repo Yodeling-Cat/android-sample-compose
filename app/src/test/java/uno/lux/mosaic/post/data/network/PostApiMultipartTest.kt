@@ -14,15 +14,6 @@ import uno.lux.mosaic.post.data.domain.NewPost
 import uno.lux.mosaic.post.data.domain.NewPostMedia
 import uno.lux.mosaic.testing.createApi
 
-/**
- * Pins the `POST /posts` **wire format** by driving the real Retrofit stack over loopback.
- *
- * The other data-source tests swap in a fake [PostApi], which proves what the data source asks
- * for but not what Retrofit actually serializes — and the multipart details are exactly where the
- * client and the Rails backend have to agree: the `images[]` part name Rack needs to build an
- * array, and the omission (rather than empty encoding) of the optional video parts. Both are
- * invisible to a faked API and would only surface as a failed upload against a real server.
- */
 class PostApiMultipartTest {
 
     private lateinit var server: MockWebServer

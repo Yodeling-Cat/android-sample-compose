@@ -190,7 +190,6 @@ internal fun EditProfileScreen(
     }
 }
 
-/** The top-bar save affordance: a text button that yields to a spinner while a save runs. */
 @Composable
 private fun SaveAction(
     isSaving: Boolean,
@@ -292,7 +291,6 @@ private fun EditProfileContent(
     }
 }
 
-/** The tappable avatar preview with a pencil badge signalling it opens the photo picker. */
 @Composable
 private fun AvatarPicker(
     userId: UserId,

@@ -16,14 +16,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
-/**
- * Pins the button's accessibility escape hatch. Holding is a motor-skill barrier, so a service
- * driving the button must be able to confirm outright — and must still be refused when the button
- * is disabled or busy, exactly as a finger would be.
- *
- * These are instrumented rather than plain-JVM because the thing under test *is* the semantics
- * tree: a JVM test could only assert against a stand-in for it.
- */
 @RunWith(AndroidJUnit4::class)
 class HoldToConfirmButtonTest {
 
@@ -87,7 +79,6 @@ class HoldToConfirmButtonTest {
         assertEquals(0, confirmed)
     }
 
-    /** The button names itself, so the two permanently-stacked labels aren't read back to back. */
     @Test
     fun theButtonExposesOneLabelWhicheverIsShowing() {
         setButton {}

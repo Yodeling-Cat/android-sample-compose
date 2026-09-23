@@ -10,27 +10,18 @@ import uno.lux.mosaic.user.data.domain.ProfileUpdate
 import uno.lux.mosaic.user.data.domain.User
 import uno.lux.mosaic.user.data.domain.UserId
 
-/**
- * Single source of truth for user identity.
- */
 class UserRepository(
     private val dataSource: UserDataSource,
 ) {
     private val _cache = MutableStateFlow<Map<UserId, User>>(emptyMap())
 
-    /**
-     * The full map of all currently known users keyed by id.
-     */
     val users: StateFlow<Map<UserId, User>> = _cache.asStateFlow()
 
-    /** Streams the cached [User] for a given id, emitting `null` when the id is unknown. */
     fun user(userId: UserId): Flow<User?> = _cache.map { it[userId] }
 
     /**
-     * Merges a batch of users (e.g. sideloaded from the feed response) into the cache.
-     *
-     * Entries replace wholesale rather than merging field-wise, which is safe only because the API
-     * serves one user projection: a sideloaded author is complete.
+     * Replaces entries wholesale, which is safe only because the API serves one complete user
+     * projection.
      */
     fun ingest(users: List<User>) {
         if (users.isEmpty()) return

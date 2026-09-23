@@ -21,7 +21,6 @@ class ToAppErrorTest {
         assertEquals(AppError.Unknown, IllegalStateException("bug").toAppError())
     }
 
-    /** The detail messages name the rule that fired; the envelope only says that one did. */
     @Test
     fun `a validation refusal carries the server's detail messages`() {
         val exception = httpException(
@@ -50,7 +49,6 @@ class ToAppErrorTest {
         assertEquals(AppError.Http(code = 403, serverMessage = "You do not own this post"), exception.toAppError())
     }
 
-    /** A 5xx body describes the server, not the request — in development it is a raw exception. */
     @Test
     fun `a server-side failure keeps only its status code`() {
         val exception = httpException(500, """{"error":{"code":"INTERNAL","message":"undefined method for nil"}}""")
@@ -58,7 +56,6 @@ class ToAppErrorTest {
         assertEquals(AppError.Http(code = 500, serverMessage = null), exception.toAppError())
     }
 
-    /** A proxy's HTML error page must not end up in a snackbar. */
     @Test
     fun `an unparseable error body maps to the bare status`() {
         val exception = httpException(422, "<html>Bad Gateway</html>")

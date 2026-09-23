@@ -30,14 +30,8 @@ import uno.lux.mosaic.designsystem.theme.MosaicTheme
 private const val LOAD_MORE_PREFETCH = 3
 
 /**
- * Fires [onLoadMore] when the list is scrolled within [LOAD_MORE_PREFETCH] items of the end and
- * [endReached] is false. Both [endReached] and [onLoadMore] are captured via [rememberUpdatedState]
- * so the effect restarts only when [listState] changes, not on every recomposition.
- *
- * It fires on the *edge* into that range, so it holds off while [loadMoreFailed]: the failure
- * changes nothing the edge could wait for, and firing again on its own would retry for as long as
- * the device is offline. The retry is [LoadMoreFooter]'s instead, and the attempt it starts clears
- * [loadMoreFailed], which re-arms this effect.
+ * Holds off while [loadMoreFailed]: firing again by itself would retry for as long as the device is
+ * offline. [LoadMoreFooter] owns the retry.
  */
 @Composable
 fun LoadMoreEffect(
@@ -60,10 +54,6 @@ fun LoadMoreEffect(
     }
 }
 
-/**
- * The last item of a list that has more to load: [LoadingMoreFooter] while the next page is on its
- * way, or, once it has [failed], what went wrong and a way to ask again.
- */
 @Composable
 fun LoadMoreFooter(
     failed: Boolean,
@@ -93,7 +83,6 @@ fun LoadMoreFooter(
     }
 }
 
-/** Spinner shown as the last list item while the next page is being fetched. */
 @Composable
 private fun LoadingMoreFooter(modifier: Modifier = Modifier) {
     Box(

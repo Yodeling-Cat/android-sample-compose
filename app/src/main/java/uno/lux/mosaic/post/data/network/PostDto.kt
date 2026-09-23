@@ -4,12 +4,6 @@ import kotlinx.serialization.Serializable
 import uno.lux.mosaic.common.data.network.InstantSerializer
 import java.time.Instant
 
-/**
- * The server's one post projection, served by every endpoint that answers with a post. It names
- * its author by ID rather than embedding the user: the endpoints returning a *single* post
- * sideload that author under `included` the way a page of posts does, so there is one shape to
- * read rather than two that differ only in where the author turns up.
- */
 @Serializable
 data class PostDto(
     val id: String,

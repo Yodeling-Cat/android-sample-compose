@@ -15,10 +15,8 @@ import androidx.compose.animation.togetherWith
  * their own fade-through instead — see `ShellScreen`.
  */
 
-/** How long a push or pop between full-screen pages runs. */
 private const val PUSH_POP_DURATION_MILLIS = 320
 
-/** Push: the new page slides in from the right while the old one recedes a quarter-width. */
 internal fun pushTransition(): ContentTransform {
     val duration = PUSH_POP_DURATION_MILLIS
 
@@ -30,7 +28,6 @@ internal fun pushTransition(): ContentTransform {
         (slideOutHorizontally(tween(duration)) { width -> -width / 4 } + fadeOut(tween(duration)))
 }
 
-/** Pop: the inverse of [pushTransition] — the leaving page slides back off to the right. */
 internal fun popTransition(): ContentTransform {
     val duration = PUSH_POP_DURATION_MILLIS
 

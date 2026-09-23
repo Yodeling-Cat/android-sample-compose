@@ -16,14 +16,6 @@ import androidx.compose.ui.unit.dp
 import uno.lux.mosaic.designsystem.theme.MosaicElevations
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
-/**
- * One group of a form, lifted onto a card so the page tint behind it reads as ground rather than
- * as an unfinished screen. A form's groups are the only structure it has, so the cards carry that
- * structure and no heading has to state it.
- *
- * Outlined rather than shadowed, because a form is a *stack* of these: a stack of borders reads
- * as a list, where a stack of shadows reads as clutter.
- */
 @Composable
 fun FormCard(
     modifier: Modifier = Modifier,

@@ -46,16 +46,6 @@ import uno.lux.mosaic.user.ui.EditProfileUiEvent
 import uno.lux.mosaic.user.ui.EditProfileUiState
 import uno.lux.mosaic.user.ui.EditProfileViewModel
 
-/**
- * Pins that what the user typed comes back after process death, along with the page itself
- * ([BackStackRestorationTest]).
- *
- * Instrumented because a draft is saved into a `SavedState`, which is a `Bundle` on Android. The
- * round trip below is the platform's own: save through the handle's provider, then build a fresh
- * handle from that state.
- *
- * The doubles are inert: nothing here should reach the network, and anything that tries says so.
- */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
 class DraftRestorationTest {
@@ -76,7 +66,6 @@ class DraftRestorationTest {
         bio = "Mathematician & writer.",
     )
 
-    /** The save/restore the framework performs around a process death, as the platform does it. */
     private fun SavedStateHandle.killAndRestore(): SavedStateHandle {
         val saved: SavedState = savedStateProvider().saveState()
 
@@ -110,10 +99,6 @@ class DraftRestorationTest {
         )
     }
 
-    /**
-     * The media hierarchy is what flattening a draft into loose keys would have lost: which
-     * variant it is, and the duration read for its badge, both have to come back.
-     */
     @Test
     fun anAttachedVideoComesBackWithItsDuration() = runTest {
         val handle = SavedStateHandle()
@@ -198,10 +183,6 @@ class DraftRestorationTest {
         assertEquals("Rewritten.", restored.form.bio)
     }
 
-    /**
-     * The pristine snapshot is re-read from the server on restore, so edits that were never saved
-     * still read as unsaved — which is what keeps the Save button and the discard prompt honest.
-     */
     @Test
     fun restoredEditsAreStillDirty() = runTest {
         val handle = SavedStateHandle()
@@ -229,7 +210,6 @@ class DraftRestorationTest {
 
     private fun userRepository() = UserRepository(StoredUserDataSource(ada))
 
-    /** Serves the one user the editor loads, and refuses everything a draft test can't reach. */
     private class StoredUserDataSource(
         private val user: User,
     ) : UserDataSource {
@@ -262,7 +242,6 @@ class DraftRestorationTest {
         ) = unused()
     }
 
-    /** Answers the size check a video pick makes; reading bytes only happens on publish. */
     private object PickingFileLoader : FileLoader {
         override suspend fun read(uri: String): FileUpload = unused()
 
@@ -274,9 +253,7 @@ class DraftRestorationTest {
     }
 }
 
-/** What [PickedClipMetadataReader] reports for the picked clip. */
 private const val PICKED_CLIP_SECONDS = 42
 
-/** Reached only if a draft test starts doing something a draft test has no business doing. */
 private fun unused(): Nothing =
     throw UnsupportedOperationException("Not reachable while only editing a draft")

@@ -14,13 +14,6 @@ import org.junit.runner.RunWith
 import uno.lux.mosaic.R
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
-/**
- * Pins what [contentDescription] being optional actually means to a screen reader.
- *
- * An icon-only button with no description is an unlabelled node rather than one labelled with the
- * drawable's name, so the default has to be a deliberate choice at every call site — these are
- * instrumented because the semantics tree is the thing under test.
- */
 @RunWith(AndroidJUnit4::class)
 class AppBarActionTest {
 

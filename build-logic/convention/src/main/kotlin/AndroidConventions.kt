@@ -3,14 +3,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.dependencies
 
-/**
- * The settings every module in this build shares, whether it is the application or a library.
- *
- * The SDK levels live here rather than in each module because they are a property of the build,
- * not of a module: a library compiled against a different SDK than the app that ships it is a bug
- * waiting for a release. `targetSdk` is deliberately *not* here — only the application declares
- * one, and bumping it is the reviewed decision AGENTS.md describes.
- */
 internal fun Project.configureAndroid(extension: CommonExtension) {
     pluginManager.apply("org.jlleitschuh.gradle.ktlint")
 
@@ -26,12 +18,7 @@ internal fun Project.configureAndroid(extension: CommonExtension) {
     }
 }
 
-/**
- * Compose, wherever it is drawn.
- *
- * The BOM is `api` rather than `implementation` so a consuming module inherits the same version
- * constraints; two modules resolving different Compose versions is the failure this prevents.
- */
+/** The BOM is `api`, so every consuming module resolves the same Compose versions. */
 internal fun Project.configureCompose(extension: CommonExtension) {
     pluginManager.apply("org.jetbrains.kotlin.plugin.compose")
 

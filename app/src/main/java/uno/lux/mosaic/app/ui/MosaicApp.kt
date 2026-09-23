@@ -24,13 +24,6 @@ import uno.lux.mosaic.user.ui.EditProfileScreen
 import uno.lux.mosaic.video.ui.FullscreenVideoScreen
 import uno.lux.mosaic.video.ui.ProvideVideoPlayback
 
-/**
- * The app's root: renders the [Screen] on top of the back stack, with [Screen.Shell] as the
- * permanent root.
- *
- * ViewModels navigate through [navigator], so this wires no navigation lambdas. It only maps each
- * [Screen] to its page.
- */
 @Composable
 fun MosaicApp(currentUserId: UserId, navigator: Navigator) {
     val backStack = rememberBackStack(navigator, root = Screen.Shell)

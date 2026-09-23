@@ -68,10 +68,6 @@ class HoldToConfirmStateTest {
         assertEquals(HoldPhase.IDLE, state.phase)
     }
 
-    /**
-     * The likely sequence: a user taps, reads the hint, and presses again straight away. The
-     * expiring hint of the spent press must not drag the button out of the new hold.
-     */
     @Test
     fun `a press started during the hint supersedes it`() = runTest {
         var confirmed = 0

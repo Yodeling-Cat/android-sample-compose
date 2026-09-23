@@ -12,12 +12,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
-/**
- * Back from any tab but Home returns to Home before it leaves the shell.
- *
- * It belongs in an instrumented test because the system back press is dispatched by the Activity,
- * which a JVM test has no way to raise.
- */
 @RunWith(AndroidJUnit4::class)
 class ShellBackTest {
 

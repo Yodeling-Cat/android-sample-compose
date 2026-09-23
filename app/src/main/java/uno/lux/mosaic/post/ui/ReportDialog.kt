@@ -42,23 +42,9 @@ import uno.lux.mosaic.R
 import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
-/**
- * Mirrors the server's `PostsService::REPORT_DETAILS_MAX_LENGTH`. The report is acknowledged the
- * moment it is sent, so a report the server would refuse must not be typeable in the first place.
- */
+/** Mirrors the server's `PostsService::REPORT_DETAILS_MAX_LENGTH`. */
 const val REPORT_DETAILS_MAX_LENGTH = 1000
 
-/**
- * The report-a-post dialog: a single-choice list of [ReportReason]s plus an optional free-text
- * field. The chosen reason and trimmed details are handed to [onSubmit]; Send stays disabled
- * until a reason is picked. The selection is owned here, so the host deals only with the submit
- * and dismiss outcomes.
- *
- * The host closes this dialog on [ReportSendState.SENT] and not before, so the reason the user
- * picked is still there to send again after a [ReportSendState.FAILED]. Only Send is taken away
- * while a report is on the wire — Cancel keeps working, so a stalled request cannot trap the
- * user in a dialog.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ReportPostDialog(
@@ -171,7 +157,6 @@ private fun ReportPostDialogContent(
     }
 }
 
-/** One selectable reason; the whole row is the radio target so the tap area isn't just the dot. */
 @Composable
 private fun ReasonRow(
     label: String,

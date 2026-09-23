@@ -7,22 +7,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
-/**
- * Reads the metadata of a picked video, for the composer's own preview. The server derives the
- * duration of a *stored* video from the uploaded file and sends it back on
- * [uno.lux.mosaic.video.data.domain.Video]; this covers the window before that, when the clip exists only as a
- * content URI on the device and there is nothing to ask the server about yet. Nothing read here
- * is uploaded.
- *
- * Kept as an interface for the same reason as [FileLoader]: ViewModels depend on it without
- * touching Android media types, and tests supply a fake.
- */
 interface VideoMetadataReader {
     /** Whole-second duration of the video at [uri], or 0 when it can't be determined. */
     suspend fun durationSeconds(uri: String): Int
 }
 
-/** Android implementation backed by [MediaMetadataRetriever]. */
 class AndroidVideoMetadataReader(
     private val context: Context,
 ) : VideoMetadataReader {

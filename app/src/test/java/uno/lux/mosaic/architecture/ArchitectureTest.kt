@@ -5,56 +5,38 @@ import com.lemonappdev.konsist.api.declaration.KoFileDeclaration
 import com.lemonappdev.konsist.api.verify.assertTrue
 import org.junit.Test
 
-/**
- * Asserts the package convention in AGENTS.md against the real source tree.
- *
- * Every rule derives from the file path, never from a list of names, so a new concern is checked
- * with no edit here. `every concern package follows the convention` is what keeps the other rules
- * honest: they select files by layer suffix, so a file in an invented package would match none of
- * them.
- */
 class ArchitectureTest {
 
     private companion object {
         const val ROOT = "uno.lux.mosaic"
 
-        /** The machine. It wires the concerns together, so it is allowed to import them. */
         const val APP = "app"
 
-        /** What the concerns share. Depends on none of them — see [`common knows no concern`]. */
         const val COMMON = "common"
 
-        /** What the app is drawn with: the palette, the type scale, the branded controls. */
         const val DESIGN_SYSTEM = "designsystem"
 
-        /** The top-level packages that are not a concern, and so have no layer convention. */
         val NON_CONCERNS = setOf(APP, COMMON, DESIGN_SYSTEM)
 
-        /** The shapes a concern's packages may take, as suffixes on `<root>.<concern>`. */
         val LAYERS = listOf(".data", ".data.domain", ".data.network", ".ui")
 
         val KoFileDeclaration.pkg: String get() = packagee?.name.orEmpty()
 
-        /** The top-level package a file lives in: `uno.lux.mosaic.post.data` -> `post`. */
         val KoFileDeclaration.root: String get() = pkg.removePrefix("$ROOT.").substringBefore('.')
 
-        /** Whether the file is in the concern's data layer: `post.data`, `post.data.network`, … */
         val KoFileDeclaration.isDataLayer: Boolean
             get() = pkg.removePrefix("$ROOT.").substringAfter('.', missingDelimiterValue = "").startsWith("data")
 
         /**
-         * Every production file the rules check, parsed once for the class, because Konsist
-         * re-parses the tree on every call. Files with no package are the `build-logic` convention
-         * plugins. A file with a foreign package stays in, so it fails a rule instead of escaping.
+         * Parsed once for the class, because Konsist re-parses on every call. Files with no package
+         * are the `build-logic` plugins.
          */
         val PRODUCTION: List<KoFileDeclaration> =
             Konsist.scopeFromProduction().files.filter { it.packagee != null }
 
-        /** Every concern the tree actually has — discovered, never listed. */
         val CONCERNS: Set<String> = PRODUCTION.map { it.root }.toSet() - NON_CONCERNS
     }
 
-    /** Whether the import names something of ours rather than a library. */
     private fun ours(importName: String): Boolean = importName.startsWith("$ROOT.")
 
     @Test
@@ -112,11 +94,6 @@ class ArchitectureTest {
         assertKnowsNoConcern(DESIGN_SYSTEM, DESIGN_SYSTEM_MESSAGE)
     }
 
-    /**
-     * The shared half of the two rules above: a top-level package that every concern may depend on
-     * has to depend on none of them. They differ only in which package and which explanation, so
-     * the next shared module is a third one-line test rather than a third copy of this body.
-     */
     private fun assertKnowsNoConcern(root: String, message: String) {
         PRODUCTION
             .filter { it.root == root }

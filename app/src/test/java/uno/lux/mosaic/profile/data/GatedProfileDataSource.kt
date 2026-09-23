@@ -3,10 +3,6 @@ package uno.lux.mosaic.profile.data
 import kotlinx.coroutines.CompletableDeferred
 import uno.lux.mosaic.user.data.domain.UserId
 
-/**
- * A [ProfileDataSource] whose every request waits until the test answers it, so a test can hold
- * one request on the wire while another lands. Each list records its requests in call order.
- */
 internal class GatedProfileDataSource : ProfileDataSource {
 
     class Call<T>(

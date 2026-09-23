@@ -10,17 +10,6 @@ import org.junit.Test
 import uno.lux.mosaic.common.data.LikeState
 import uno.lux.mosaic.testing.createApi
 
-/**
- * Pins the **wire contract** of the like and bookmark endpoints by driving the real Retrofit
- * stack over loopback.
- *
- * Both used to be bodiless `POST …/like` toggles, which made them non-idempotent: a retry after
- * a timeout moved the like a second time. The client and the Rails backend now have three things
- * to agree on that a faked [PostApi] cannot show — the verb is `PUT`, the body names the state
- * being asked for under `liked`/`bookmarked`, and the answer carries the state the server
- * settled on. A rename on either side is exactly the kind of drift that would pass every other
- * test in the suite and fail against a real server.
- */
 class PostApiLikeTest {
 
     private lateinit var server: MockWebServer

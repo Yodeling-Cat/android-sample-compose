@@ -561,10 +561,6 @@ private class SucceedOnceThenSuspendFeedDataSource(
     fun complete() = gate.complete(Unit)
 }
 
-/**
- * Serves [page] on every fetch except while [failNext] is set — a feed that loaded and then had
- * the network go out from under it.
- */
 private class FlakyFeedDataSource(
     private val page: FeedPage,
 ) : FeedDataSource {

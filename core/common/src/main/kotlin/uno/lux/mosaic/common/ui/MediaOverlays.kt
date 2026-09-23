@@ -39,19 +39,14 @@ import uno.lux.mosaic.designsystem.theme.MosaicTheme
  * predict, so each piece scrims the pixels behind it in black and draws its glyphs in white.
  */
 
-/** Behind a badge's text: dark enough to carry white labelMedium over any photo. */
 private val BadgeScrim = Color.Black.copy(alpha = 0.42f)
 
-/** Behind a play glyph: lighter, since the thumbnail underneath is the point. */
 private val PlayScrim = Color.Black.copy(alpha = 0.34f)
 
-/** Behind an immersive viewer's back arrow, which sits over full-bleed content. */
 private val BackButtonScrim = Color.Black.copy(alpha = 0.4f)
 
-/** Behind the composer's remove glyph: opaque enough to read over a bright or a dark frame. */
 private val RemoveButtonScrim = Color.Black.copy(alpha = 0.55f)
 
-/** A small dark-scrim pill (white text, optional leading icon) overlaid on a thumbnail corner. */
 @Composable
 fun MediaBadge(
     text: String,
@@ -82,10 +77,6 @@ fun MediaBadge(
     }
 }
 
-/**
- * The circular play affordance over a video thumbnail. [size] and [iconSize] vary with the
- * thumbnail's own scale — a profile grid cell wears a smaller one than a full-width feed player.
- */
 @Composable
 fun PlayBadge(
     contentDescription: String,
@@ -110,9 +101,8 @@ fun PlayBadge(
 }
 
 /**
- * The corner affordance that detaches a picked photo or video in the composer. The visible scrim
- * is an *inner* box because [IconButton] expands to the 48dp minimum touch target — painting the
- * background on the button itself would spill a circle well past the thumbnail's corner.
+ * The scrim is an inner box because [IconButton] grows to the 48dp touch target, which would spill
+ * it past the thumbnail's corner.
  */
 @Composable
 fun MediaRemoveButton(
@@ -139,11 +129,6 @@ fun MediaRemoveButton(
     }
 }
 
-/**
- * The back affordance for the immersive viewers, which hide the system bars and have no app bar
- * to hang a navigation icon on. Inset from the safe-drawing area so it clears the display cutout
- * and the bars once they're swiped back into view.
- */
 @Composable
 fun OverlayBackButton(
     onBack: () -> Unit,
@@ -172,7 +157,6 @@ fun OverlayBackButton(
     }
 }
 
-/** All four pieces over a stand-in thumbnail, since each one only makes sense on top of media. */
 @Preview
 @Composable
 private fun MediaOverlaysPreview() {

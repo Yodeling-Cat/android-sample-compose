@@ -33,7 +33,6 @@ internal class FakeUserDataSource(
         )
     }
 
-    /** Thrown by [toggleFollow] instead of answering, so tests can drive the failure path. */
     var toggleFollowError: Exception? = null
 
     override suspend fun toggleFollow(user: User): User {

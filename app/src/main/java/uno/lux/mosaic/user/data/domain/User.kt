@@ -2,13 +2,7 @@ package uno.lux.mosaic.user.data.domain
 
 typealias UserId = String
 
-/**
- * A platform user.
- *
- * [nickname] is the display name; [handle] is the unique `@`-mention.
- *
- * A `null` optional field means the user left it empty.
- */
+/** A `null` optional field means the user left it empty, never "not loaded yet". */
 data class User(
     val id: UserId,
     val nickname: String,

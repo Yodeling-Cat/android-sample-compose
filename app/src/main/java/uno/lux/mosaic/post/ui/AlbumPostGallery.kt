@@ -33,18 +33,10 @@ import uno.lux.mosaic.designsystem.components.debouncedClickable
 import uno.lux.mosaic.designsystem.theme.MosaicGradients
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
-/**
- * How a gallery tile draws its photo, shared by the rendered image and its prefetch: the prefetch
- * must decode at the same size *and* scale, or its cache entry is one the image rejects.
- */
 private val TileWidth = 240.dp
 private val TileHeight = 180.dp
 private val TileContentScale = ContentScale.Crop
 
-/**
- * An album post's media: its [Album.images] in a horizontally scrolling row. The photo *after*
- * the last visible one is warmed ahead of the scroll by [PrefetchNextImage].
- */
 @Composable
 internal fun AlbumPostGallery(
     album: Album,

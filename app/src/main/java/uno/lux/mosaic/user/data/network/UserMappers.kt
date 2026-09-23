@@ -5,8 +5,7 @@ import uno.lux.mosaic.user.data.domain.User
 // TODO: Why do we hand write this?
 
 /**
- * Handwritten rather than a Mappie object because [UserDto] and [User] are field-identical:
- * there is nothing for a mapper to resolve, and the explicit copy documents the projection.
+ * Handwritten, not Mappie: [UserDto] and [User] are field-identical, so there is nothing to map.
  */
 internal fun UserDto.toDomain() = User(
     id = id,

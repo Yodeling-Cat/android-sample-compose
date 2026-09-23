@@ -26,10 +26,8 @@ private fun bricolage(weight: Int) = Font(
     variationSettings = FontVariation.Settings(FontVariation.weight(weight)),
 )
 
-/** Manrope — UI chrome and body text: clean and legible. */
 val Manrope = FontFamily(manrope(400), manrope(500), manrope(600), manrope(700), manrope(800))
 
-/** Bricolage Grotesque — brand wordmark and post titles: editorial character. */
 val Bricolage = FontFamily(bricolage(400), bricolage(600), bricolage(700))
 
 private val Defaults = Typography()

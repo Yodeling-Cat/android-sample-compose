@@ -9,7 +9,6 @@ sealed interface ProfileUiState {
         val error: AppError,
     ) : ProfileUiState
 
-    /** [isCurrentUser] is true when this is the signed-in user's own profile. */
     data class Loaded(
         val data: ProfileScreenData,
         val isCurrentUser: Boolean,

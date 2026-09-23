@@ -87,17 +87,12 @@ class HomeViewModel @Inject constructor(
 
     private val _failedAction = MutableStateFlow<FailedAction?>(null)
 
-    /** The last [FailedAction] to fail here, for the screen to announce. */
     val failedAction: StateFlow<FailedAction?> = _failedAction.asStateFlow()
 
     private val _reportSend = MutableStateFlow(ReportSendState.IDLE)
 
-    /** How the report dialog's send is going, for the dialog it is still showing under. */
     val reportSend: StateFlow<ReportSendState> = _reportSend.asStateFlow()
 
-    /**
-     * Whether the feed may start a video on its own as it scrolls into view.
-     */
     val autoPlayVideos: StateFlow<Boolean> = settingsRepository.autoPlayVideos
         .stateInWhileSubscribed(viewModelScope, DEFAULT_AUTO_PLAY_VIDEOS)
 

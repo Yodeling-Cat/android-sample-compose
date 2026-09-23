@@ -8,13 +8,7 @@ import java.io.File
 import java.io.IOException
 import java.util.Properties
 
-/**
- * Forwards each attached device's own [port] to this machine's, with `adb reverse`. *Which server
- * a build talks to* in AGENTS.md says why this is a tunnel rather than an IP.
- *
- * **The task never fails the build.** Assembling with no device or no SDK is ordinary, so every
- * failure is one line on the console.
- */
+/** Never fails the build: every failure is one line on the console. */
 abstract class AdbReverseTask : DefaultTask() {
 
     @get:Input
@@ -64,7 +58,6 @@ abstract class AdbReverseTask : DefaultTask() {
         }
     }
 
-    /** Runs [command], returning its exit code and merged output. A missing adb reads as an error. */
     private fun execute(vararg command: String): Pair<Int, String> =
         try {
             val process = ProcessBuilder(*command).redirectErrorStream(true).start()
@@ -77,12 +70,8 @@ abstract class AdbReverseTask : DefaultTask() {
 }
 
 /**
- * Registers `adbReverseLocalServer`, which opens the tunnel to [port], and hangs it off every
- * `assembleLocal*` and `installLocal*` task.
- *
- * Hung off assemble rather than install, because Android Studio's Run button deploys the APK
- * itself and never calls the install task. An override of [host] to a LAN address reaches the
- * server over the network, so it wires up nothing.
+ * Hung off assemble rather than install, because Android Studio's Run button never calls the
+ * install task.
  */
 fun Project.openAdbReverseTunnelForLocalBuilds(host: String, port: String) {
     val adbReverseLocalServer = tasks.register<AdbReverseTask>("adbReverseLocalServer") {
@@ -100,7 +89,6 @@ fun Project.openAdbReverseTunnelForLocalBuilds(host: String, port: String) {
     }
 }
 
-/** The SDK's `adb`, falling back to whatever the PATH provides. */
 private fun Project.findAdb(): String {
     val executable = if (System.getProperty("os.name").startsWith("Windows")) "adb.exe" else "adb"
 

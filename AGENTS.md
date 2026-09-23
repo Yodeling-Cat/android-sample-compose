@@ -479,13 +479,21 @@ A file that feels like it needs banners is telling you something. **Split it, or
 
 This does not ban ordinary comments. `//` on a line that explains *why* is still welcome. The rule is about the decoration.
 
-**A KDoc says what the code cannot.** State the contract, the non-obvious constraint, or the reason a simpler design would break. Then stop. If a reader of the signature and the body would learn nothing from a sentence, delete it. Aim for under ten lines; a class KDoc that runs longer is usually doing one of these:
+**The default is no KDoc.** Names, types and the body carry the meaning. Write one only for what a competent reader would get wrong without it:
 
-- **Restating AGENTS.md.** This file is the place for architecture. A KDoc links to the rule's consequence at that spot, not a copy of the section.
-- **Touring the members.** A note about one property or parameter goes on that declaration, or in `@param`, where the IDE shows it. The class KDoc covers the class.
-- **Telling history.** "The previous version…", "now", "as before", and the story of a past bug belong in the commit message. A KDoc describes the code as it is. Describe the failure a design prevents as a hypothetical, not as an event.
-- **Narrating the obvious.** Do not paraphrase the code, the type, or what a well-known library does. Name a library internal only when the constraint depends on it.
-- **Repeating another KDoc.** When two declarations share a reason, state it once, on the one that enforces it, and link there.
+- a contract the signature cannot show, such as what a `null` return means, or that a call is a no-op when repeated;
+- a trap, where an obvious simplification would break something, such as initialization order, a library quirk, or a platform limitation;
+- a value that mirrors the server, naming the server-side constant it must stay equal to.
+
+Keep it to one or two sentences. If it needs a paragraph, the design belongs in this file and the KDoc does not.
+
+Never write a KDoc that:
+
+- **restates the name**, such as "Pops the top entry off the back stack", or "The report dialog";
+- **describes the architecture**, such as which store a ViewModel reads from, or why a screen is stateless (this file says that once);
+- **tells history**, such as "the previous version", "now", "used to", or the story of a past bug (that belongs in the commit message);
+- **documents a test double or a test** that its name already explains, such as "Thrown by X instead of answering, so tests can drive the failure path";
+- **describes a preview**, a color, a dimension or a duration by what it looks like.
 
 ## Localization
 

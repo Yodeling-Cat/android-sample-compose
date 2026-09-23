@@ -29,7 +29,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import uno.lux.mosaic.app.navigation.Screen
 import uno.lux.mosaic.designsystem.components.DividedNavigationSuiteScaffold
 import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
@@ -38,15 +37,6 @@ import uno.lux.mosaic.profile.ui.ProfileScreen
 import uno.lux.mosaic.user.data.domain.UserId
 import uno.lux.mosaic.shell.ui.ShellUiEvent as UiEvent
 
-/**
- * The tabbed shell. Tab selection is plain state, not a back-stack entry, so switching tabs never
- * grows the stack.
- *
- * A [ShellDestinations] entry that carries a [Screen] is an action, not a tab: selecting it pushes
- * that page over the whole shell, and the current tab stays selected underneath.
- *
- * Back from any tab but [ShellDestinations.HOME] returns to Home. Back from Home leaves the shell.
- */
 @Composable
 fun ShellScreen(
     currentUserId: UserId,
@@ -80,14 +70,6 @@ fun ShellScreen(
     }
 }
 
-/**
- * The shell's frame with no ViewModel behind it: the navigation suite and the cross-fading content
- * area. [tabContent] draws the selected tab, which is what lets a preview stand a placeholder in for
- * the real screens and their ViewModels.
- *
- * [onSelectDestination] receives the destination the user asked for, by tapping its item or, off
- * Home, by pressing back.
- */
 @Composable
 internal fun ShellScreen(
     currentDestination: ShellDestinations,
@@ -128,16 +110,6 @@ internal fun ShellScreen(
     }
 }
 
-/**
- * One navigation item per [ShellDestinations] entry, in declaration order — which is what makes the
- * enum the single source of truth for the navigation suite: adding a destination adds an item, and
- * nothing here names one.
- *
- * [current] is the selected *tab*, so an action entry never reports as selected: it carries a
- * `screen`, [current] is only ever assigned a tab, and the two therefore never match — which is
- * what leaves the tab underneath highlighted while its page sits on top. What a click means is the
- * caller's to decide; [onClick] receives the entry itself.
- */
 private fun NavigationSuiteScope.destinationItems(
     current: ShellDestinations,
     colors: NavigationSuiteItemColors,
@@ -157,21 +129,12 @@ private fun NavigationSuiteScope.destinationItems(
     )
 }
 
-/** How long the outgoing tab takes to fade out, which is also how long the incoming one waits. */
 private const val TAB_FADE_OUT_MILLIS = 90
 
-/** How long the incoming tab's fade-and-scale runs, once the outgoing one has gone. */
 private const val TAB_FADE_IN_MILLIS = 210
 
-/** The incoming tab starts a touch small and settles into place, rather than snapping to size. */
 private const val TAB_INITIAL_SCALE = 0.94f
 
-/**
- * The tab switch: Material's **fade-through**, the transition between peers. The two halves don't
- * overlap — the outgoing tab fades out first and the incoming one waits that long before fading in,
- * scaling up the last sliver as it arrives. Nothing slides, because sliding would claim the tabs sit
- * in some spatial order; a page pushed *over* the shell slides instead (`pushTransition`).
- */
 private fun tabTransition(): ContentTransform {
     val enter = tween<Float>(durationMillis = TAB_FADE_IN_MILLIS, delayMillis = TAB_FADE_OUT_MILLIS)
 

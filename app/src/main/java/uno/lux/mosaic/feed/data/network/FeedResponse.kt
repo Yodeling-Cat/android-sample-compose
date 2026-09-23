@@ -5,7 +5,6 @@ import uno.lux.mosaic.common.data.network.CursorPageDto
 import uno.lux.mosaic.post.data.network.PostDto
 import uno.lux.mosaic.user.data.network.SideloadedUsers
 
-/** Top-level feed response — not wrapped in an extra `data` key. */
 @Serializable
 data class FeedResponse(
     val data: List<PostDto>,

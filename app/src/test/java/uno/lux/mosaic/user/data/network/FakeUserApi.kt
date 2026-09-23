@@ -5,7 +5,6 @@ import okhttp3.RequestBody
 import okio.Buffer
 import uno.lux.mosaic.common.data.network.notFoundException
 
-/** The hosted URL the fake reports after an avatar file is uploaded. */
 const val UPLOADED_AVATAR_URL = "https://cdn.test/avatars/uploaded.png"
 
 class FakeUserApi(
@@ -13,7 +12,6 @@ class FakeUserApi(
     val followResult: FollowToggleDto = FollowToggleDto(isFollowing = true, followerCount = 1),
 ) : UserApi {
 
-    /** Thrown by [getUser] instead of answering, so tests can drive the failure path. */
     var getUserError: Exception? = null
 
     override suspend fun getUser(id: String): UserResponse {
@@ -49,13 +47,11 @@ class FakeUserApi(
         )
     }
 
-    /** The avatar part passed to the most recent [updateUser] call, for test assertions. */
     var lastAvatarPart: MultipartBody.Part? = null
         private set
 
     private fun RequestBody.asString(): String = Buffer().also { writeTo(it) }.readUtf8()
 
-    /** The id passed to the most recent [toggleFollow] call, for test assertions. */
     var lastFollowId: String? = null
         private set
 
@@ -78,5 +74,4 @@ fun userDto(id: String, nickname: String, isFollowing: Boolean = false) = UserDt
     isFollowing = isFollowing,
 )
 
-/** The author every post and comment fixture hangs off unless a test names its own. */
 internal val stubAuthor = userDto("u1", "Ada")

@@ -26,12 +26,7 @@ import uno.lux.mosaic.user.ui.EditProfileUiEvent as UiEvent
 import uno.lux.mosaic.user.ui.EditProfileUiState as UiState
 
 /**
- * Drives the signed-in user's profile editor. The form is seeded from [UserRepository]'s
- * cached user as a **one-time snapshot** — deliberately not kept in sync afterwards, so a
- * concurrent cache refresh can't clobber in-progress edits. Saving goes back through the
- * repository, which replaces the cached entry, making the change instantly visible on every
- * screen observing the user; once the save lands, the editor pops itself off the back stack
- * through the injected [Navigator] (a failed save stays put and surfaces its error).
+ * Seeds the form once from the cached user and never re-syncs, so a refresh cannot clobber edits.
  */
 @HiltViewModel
 class EditProfileViewModel @Inject constructor(
@@ -198,5 +193,4 @@ class EditProfileViewModel @Inject constructor(
     }
 }
 
-/** Where in-progress edits are kept in the entry's saved state. */
 private const val DRAFT_KEY = "edit_profile_draft"

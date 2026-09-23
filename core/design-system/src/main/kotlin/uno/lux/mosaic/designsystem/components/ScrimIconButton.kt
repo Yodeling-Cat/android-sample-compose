@@ -23,14 +23,8 @@ import uno.lux.mosaic.designsystem.R
 import uno.lux.mosaic.designsystem.theme.MosaicGradients
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
-/** Behind the glyph while the bar is transparent: dark enough to carry a white icon over any cover. */
 private val ButtonScrim = Color.Black.copy(alpha = 0.32f)
 
-/**
- * An app-bar icon button for a bar that starts transparent over full-bleed content and fills to
- * the surface color on scroll. Its gray circular scrim (and white tint) fade to a bare on-surface
- * icon as [progress] goes 0 → 1, so the button tracks whatever drives the bar's own fill.
- */
 @Composable
 fun ScrimIconButton(
     @DrawableRes iconRes: Int,
@@ -57,7 +51,6 @@ fun ScrimIconButton(
     }
 }
 
-/** The fade from over-the-cover (0) to a filled bar (1), with the halfway point between. */
 @Preview
 @Composable
 private fun ScrimIconButtonPreview() {

@@ -34,13 +34,6 @@ import uno.lux.mosaic.designsystem.theme.MosaicGradients
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.video.data.domain.Video
 
-/**
- * A video post's media area: a 16:9 stage that starts as a tappable thumbnail and, once playing,
- * hosts the shared player inline. Playback is owned by [LocalVideoPlayback] — the same instance
- * the full-screen page reuses — so tapping the player's fullscreen control hands the running
- * stream to [onOpenFullscreen] without losing position. When the local is null (previews), only
- * the thumbnail renders.
- */
 @Composable
 internal fun VideoPostPlayer(
     video: Video,
@@ -83,17 +76,7 @@ internal fun VideoPostPlayer(
     }
 }
 
-/**
- * The pre-playback poster: the server-extracted frame if there is one.
- *
- * The gradient is a *stand-in for a missing frame*, not a backdrop — it shows only when there is
- * no thumbnail to draw, or the one we were given failed to load. A clip that has its frame sits on
- * black instead, which is what the stage is once the video plays.
- *
- * The frame is fitted rather than cropped, so a clip that is not 16:9 keeps its whole first
- * impression and lets the black fill the bars. That also matches what happens on play:
- * `PlayerView` fits by default, so cropping here made the image jump the moment it started.
- */
+/** Fitted, not cropped, to match `PlayerView`, so the image does not jump when playback starts. */
 @Composable
 private fun VideoThumbnail(
     video: Video,
@@ -135,14 +118,6 @@ private fun VideoThumbnail(
     }
 }
 
-/**
- * The poster-frame request, told up front how large the image it is fetching is.
- *
- * The server sends the extracted frame's exact pixel dimensions, so Coil can start decoding
- * immediately instead of waiting a frame for the stage to be measured, and targets the bitmap's
- * true size rather than sampling for the layout's guess. The dimensions are optional on the wire;
- * without them the request carries no size and Coil resolves one from the layout as usual.
- */
 @Composable
 private fun rememberThumbnailRequest(video: Video): ImageRequest {
     val context = LocalContext.current
@@ -160,7 +135,6 @@ private fun rememberThumbnailRequest(video: Video): ImageRequest {
     }
 }
 
-/** With no [LocalVideoPlayback] provided, the player shows its poster state. */
 @Preview(showBackground = true)
 @Composable
 private fun VideoPostPlayerPreview() {

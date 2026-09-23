@@ -37,7 +37,6 @@ class EditProfileViewModelTest : ViewModelTest() {
         bio = "Mathematician & writer.",
     )
 
-    /** What the shared fake hands back for a picked avatar, so assertions can name the bytes. */
     private val avatarUpload = FileUpload(byteArrayOf(1, 2, 3), "image/png", "avatar.png")
 
     private data class Fixture(

@@ -22,14 +22,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 /**
- * A drop-in for `NavigationSuiteScaffold` whose phone bottom bar carries a 1.dp top hairline,
- * seating it against the content instead of letting it blend in; on larger or unfolded windows the
- * navigation rail is shown unchanged. Supply [navigationSuiteItems] and screen [content] exactly
- * as you would the standard scaffold.
- *
- * We only drop to [NavigationSuiteScaffoldLayout] because the bar needs a [Modifier] for the
- * divider; the background [Surface] and the content's window-inset consumption replicate what the
- * standard scaffold does internally.
+ * Built on [NavigationSuiteScaffoldLayout] only to give the bar a divider; the background and inset
+ * handling copy the standard scaffold's.
  */
 @Composable
 fun DividedNavigationSuiteScaffold(
@@ -69,7 +63,6 @@ fun DividedNavigationSuiteScaffold(
     }
 }
 
-/** Draws a 1.dp divider in [color] along this component's top edge, over its content. */
 private fun Modifier.topDivider(color: Color): Modifier = drawWithContent {
     drawContent()
     val thickness = 1.dp.toPx()

@@ -11,17 +11,6 @@ import org.junit.Before
 import org.junit.Test
 import uno.lux.mosaic.testing.createApi
 
-/**
- * Pins the **wire format** of the profile's three lists — `GET /users/:id/posts`,
- * `GET /users/:id/bookmarks` and `GET /users/:id/likes`, which share one response shape — by
- * driving the real Retrofit stack over loopback against a body captured verbatim from the Rails
- * backend.
- *
- * [NetworkProfileDataSourceTest] fakes [ProfileApi], which proves what the data source does with a
- * response but not that the response parses. The parts client and server have to agree on live
- * here: the request paths, the snake_case `page` keys next to the camelCase item fields, and the
- * `included.users` sideload no tab can render without.
- */
 class ProfileApiTabsTest {
 
     private lateinit var server: MockWebServer
@@ -98,12 +87,6 @@ class ProfileApiTabsTest {
         assertTrue(page.users[1].isFollowing)
     }
 
-    /**
-     * The sideload is the *same* projection `GET /users/:id` serves, not an identity-only subset.
-     * That is what lets these users go straight into the cache: a partial one would be
-     * indistinguishable from a user who has genuinely left the fields empty, so ingesting it
-     * would blank the bio and identity chips of a profile already loaded in full.
-     */
     @Test
     fun `the sideloaded authors carry full profile detail`() = runTest {
         val grace = dataSource.bookmarks("u1", cursor = null).users.first()

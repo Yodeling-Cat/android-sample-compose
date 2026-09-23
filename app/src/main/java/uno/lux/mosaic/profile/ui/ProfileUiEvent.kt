@@ -33,23 +33,14 @@ sealed interface ProfileUiEvent {
 
     data object ToggleFollow : ProfileUiEvent
 
-    /**
-     * The screen has announced the failed action and is done with it — spent once shown, so a
-     * configuration change cannot announce it again.
-     */
     data object FailedActionShown : ProfileUiEvent
 
     data object LoadMorePosts : ProfileUiEvent
 
-    /**
-     * The Saved tab became visible. Fetches the list the first time only — later visits are
-     * served from the repository, and a pull-to-refresh is what re-fetches it.
-     */
     data object SavedTabShown : ProfileUiEvent
 
     data object LoadMoreBookmarks : ProfileUiEvent
 
-    /** The Likes tab became visible. Loads once, the way [SavedTabShown] does. */
     data object LikesTabShown : ProfileUiEvent
 
     data object LoadMoreLikes : ProfileUiEvent

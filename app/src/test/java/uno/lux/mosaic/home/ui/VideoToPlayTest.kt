@@ -4,10 +4,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
-/**
- * The feed's playback rule, exercised without a composition: [videoToPlay] is the whole of what
- * the auto-play setting changes about the feed.
- */
 class VideoToPlayTest {
 
     private val onScreen = "https://example.test/on-screen.mp4"

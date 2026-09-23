@@ -193,9 +193,8 @@ internal fun ProfileScreen(
 }
 
 /**
- * Saves the header's collapse offset by hand: `rememberSaveable { mutableFloatStateOf(…) }`
- * resolves to the `MutableState<Float>` overload, giving up the [FloatState] that the layout
- * pass and the app bar read on every frame.
+ * A hand-written saver: `rememberSaveable { mutableFloatStateOf(…) }` resolves to the
+ * `MutableState<Float>` overload and loses the [FloatState] the layout reads every frame.
  */
 private val CollapseSaver = Saver<MutableFloatState, Float>(
     save = { it.floatValue },
@@ -474,7 +473,6 @@ private fun ProfileHeader(
     }
 }
 
-/** A circular avatar wrapped in a surface-colored ring, so it reads against the cover. */
 @Composable
 private fun AvatarRing(
     user: User,
@@ -491,7 +489,6 @@ private fun AvatarRing(
     }
 }
 
-/** Filled while not yet following, tonal once following — both solid to read over the cover. */
 @Composable
 private fun FollowButton(
     isFollowing: Boolean,
@@ -580,11 +577,6 @@ private fun Stat(value: Int, label: String) {
     }
 }
 
-/**
- * The profile's tab entries, in order. Adding a tab is an enum addition plus its branch in
- * [ProfileContent]. [ownerOnly] marks a tab that belongs only on the signed-in user's own
- * profile: Saved is private, and the server refuses it to anyone else. Likes are public.
- */
 private enum class ProfileTab(
     @get:StringRes val labelRes: Int,
     val ownerOnly: Boolean = false,
@@ -666,7 +658,6 @@ private fun LazyListScope.postItems(
     }
 }
 
-/** Fires an on-demand tab's first load when it becomes visible, and pages it thereafter. */
 @Composable
 private fun OnDemandTabEffects(
     listState: LazyListState,
@@ -685,11 +676,6 @@ private fun OnDemandTabEffects(
     )
 }
 
-/**
- * One on-demand tab's rows — Saved or Likes. A null [list] is the state before that tab's first
- * fetch lands, so unlike the posts above it has a loading state of its own. [loadFailed] turns
- * either spinner into a retry: of [onFirstLoad] before the list has loaded, of [onLoadMore] after.
- */
 private fun LazyListScope.onDemandTabItems(
     list: ProfilePostList?,
     loadFailed: Boolean,
@@ -753,7 +739,6 @@ private fun EmptyTab(
     }
 }
 
-/** A plain back button for the loading / not-found states, which have no cover to scrim over. */
 @Composable
 private fun PlainBackButton(onBack: () -> Unit, modifier: Modifier = Modifier) {
     IconButton(
@@ -770,18 +755,8 @@ private fun PlainBackButton(onBack: () -> Unit, modifier: Modifier = Modifier) {
     }
 }
 
-/** How far into the header's collapse the bar has finished filling to the surface color. */
 private const val BAR_FILL_FRACTION = 0.5f
 
-/**
- * A transparent app bar over the cover that fills to the surface color as the header collapses.
- * Its button scrims fade on the same [progress], which reaches opaque [BAR_FILL_FRACTION] of the
- * way through, so the chrome settles before the cover is gone.
- *
- * The bar drops its shadow once the tab row pins beneath it, so that keys off the raw [collapse],
- * which tracks where the tabs are. [collapse] is read here, not at screen scope, so a scroll
- * recomposes only the bar.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProfileTopBar(

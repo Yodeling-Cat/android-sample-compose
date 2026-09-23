@@ -5,7 +5,6 @@ import org.junit.Test
 import uno.lux.mosaic.user.data.network.UserDto
 import java.time.Instant
 
-/** Covers what Mappie can't verify structurally — the author routed through the manual UserDto mapper. */
 class CommentMappersTest {
 
     @Test

@@ -56,7 +56,6 @@ class ProfileViewModelTest : ViewModelTest() {
     private val backStack = backStackOf(Screen.Shell, Screen.Profile("u1"))
     private val navigator = Navigator().apply { attach(backStack) }
 
-    /** A post by someone else that u1 saved — the Saved tab's defining case. */
     private val savedPost = Post(
         id = "p2",
         url = testPostUrl("p2"),
@@ -69,7 +68,6 @@ class ProfileViewModelTest : ViewModelTest() {
         isBookmarked = true,
     )
 
-    /** A post by someone else that u1 liked — a self-like is impossible, so it is never u1's. */
     private val likedPost = Post(
         id = "p3",
         url = testPostUrl("p3"),
@@ -82,7 +80,6 @@ class ProfileViewModelTest : ViewModelTest() {
         isLiked = true,
     )
 
-    /** The data source the last [viewModel] built, for asserting on what was fetched. */
     private lateinit var profileDataSource: FakeProfileDataSource
 
     private fun viewModel(
@@ -90,9 +87,7 @@ class ProfileViewModelTest : ViewModelTest() {
         currentUserId: UserId = "u1",
         bookmarks: List<Post> = listOf(savedPost),
         likes: List<Post> = listOf(likedPost),
-        /** The authors sideloaded with the profile's own posts — in practice only its own user. */
         postAuthors: List<User> = listOf(ada),
-        /** Whether the profile's own posts continue past their first page. */
         postsHaveMore: Boolean = false,
         userDataSource: UserDataSource = FakeUserDataSource(mapOf("u1" to ada, "u2" to grace)),
         postDataSource: FakePostDataSource = FakePostDataSource(),
@@ -726,7 +721,6 @@ class ProfileViewModelTest : ViewModelTest() {
     }
 }
 
-/** A [UserDataSource] whose fetch suspends on [gate], so a test can observe the in-flight state. */
 private class GatedUserDataSource(
     private val gate: CompletableDeferred<Unit>,
     private val user: User,

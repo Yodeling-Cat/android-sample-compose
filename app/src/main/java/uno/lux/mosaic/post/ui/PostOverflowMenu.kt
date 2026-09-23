@@ -53,16 +53,6 @@ import uno.lux.mosaic.post.data.domain.Post
 import uno.lux.mosaic.user.data.domain.User
 import uno.lux.mosaic.user.ui.Avatar
 
-/**
- * The post's "⋮" button, its bottom sheet of actions, and the dialogs they raise. The feed card
- * and the detail screen's top bar both host it.
- *
- * [onDelete] is null for someone else's post, which hides the delete row, so no separate
- * `canDelete` flag can disagree with it.
- *
- * [reportSend] is the screen's report state. The dialog is modal, so the one report in flight is
- * always this menu's.
- */
 @Composable
 internal fun PostOverflowMenu(
     post: Post,
@@ -181,10 +171,6 @@ private fun PostOverflowSheet(
     }
 }
 
-/**
- * What the overflow sheet holds, without the sheet: a [ModalBottomSheet] opens by animating in,
- * so a preview only ever sees it hidden. Each callback is the whole of a row's tap.
- */
 @Composable
 private fun PostOverflowSheetContent(
     post: Post,
@@ -262,7 +248,6 @@ private fun PostOverflowSheetContent(
     }
 }
 
-/** Shares [Post.url], with the title as the subject for targets that use one (e.g. email). */
 private fun sharePostLink(context: Context, post: Post) {
     ShareCompat
         .IntentBuilder(context)
@@ -273,10 +258,6 @@ private fun sharePostLink(context: Context, post: Post) {
         .startChooser()
 }
 
-/**
- * Copies the post's link to the clipboard. From Android 13 the system shows its own copy
- * confirmation, so the toast fallback is only needed on older versions.
- */
 private fun copyPostLink(context: Context, post: Post) {
     val clipboard = context.getSystemService<ClipboardManager>()!!
     val label = context.getString(R.string.post_link_clip_label)

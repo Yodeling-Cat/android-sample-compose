@@ -6,11 +6,6 @@ import org.junit.Test
 import uno.lux.mosaic.testing.testPostUrl
 import java.time.Instant
 
-/**
- * Covers what Mappie can't verify structurally on its own — the nested album/video mapping.
- * (The createdAt timestamp arrives already parsed from the DTO layer; its parsing is covered by
- * [uno.lux.mosaic.core.network.InstantSerializerTest].)
- */
 class PostMappersTest {
 
     @Test
@@ -83,10 +78,6 @@ class PostMappersTest {
         assertEquals(405, video.thumbnailHeight)
     }
 
-    /**
-     * A clip the server could not probe publishes without a resolution or a poster frame, so the
-     * fields are absent from the payload entirely rather than sent as zeroes.
-     */
     @Test
     fun `PostMapper leaves a video's resolution and thumbnail null when the server sent none`() {
         val mapped = dto(
@@ -111,8 +102,7 @@ class PostMappersTest {
     }
 
     /**
-     * The shared fixture with every scalar set to something distinctive, so a mapping that drops
-     * a field or crosses two of them fails rather than matching a default by luck.
+     * Every scalar is distinct, so a dropped or crossed field fails rather than matching a default.
      */
     private fun dto(
         createdAt: Instant = Instant.parse("2025-01-01T00:00:00Z"),

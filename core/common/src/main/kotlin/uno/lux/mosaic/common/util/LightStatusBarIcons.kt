@@ -7,13 +7,8 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 /**
- * Draws the status bar's icons light while shown, and restores them on dispose.
- *
- * `MainActivity` picks the icons from the theme, which is wrong for a page that paints something
- * dark behind the status bar whatever the theme, such as an accent app bar in light mode.
- *
- * Restoring once on dispose is enough: only a theme flip overwrites the icons, and Settings, where
- * the theme is flipped, pushes over this page and disposes the effect.
+ * Restores on dispose only: nothing but a theme flip overwrites the icons, and flipping it pushes
+ * Settings over this page.
  */
 @Composable
 fun LightStatusBarIcons() {

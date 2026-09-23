@@ -10,16 +10,6 @@ import org.junit.Test
 import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.testing.createApi
 
-/**
- * Pins the `POST /posts/:id/report` **wire contract** by driving the real Retrofit stack over
- * loopback.
- *
- * A faked [PostApi] proves the data source reports the right post for the right reason, but not
- * what the Rails backend actually reads: the JSON field names, the *spelling* of each reason
- * (`PostsService::REPORT_REASONS`), the omission of the optional details, and that the empty
- * `204 No Content` a report is answered with is accepted — which is why [PostApi.reportPost]
- * returns `Unit` rather than a response envelope.
- */
 class PostApiReportTest {
 
     private lateinit var server: MockWebServer
@@ -64,11 +54,7 @@ class PostApiReportTest {
         assertEquals("""{"reason":"other"}""", server.takeRequest().body.readUtf8())
     }
 
-    /**
-     * Every reason, in the spelling the server's `REPORT_REASONS` lists. Written out rather than
-     * derived from the enum, so this reads as the contract itself: a renamed constant or a new
-     * reason has to be answered here, and the backend's own list updated to match.
-     */
+    /** Written out rather than derived from the enum, so this test is the contract itself. */
     @Test
     fun `every reason goes out in the server's spelling`() = runTest {
         val expected = mapOf(

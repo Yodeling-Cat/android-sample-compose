@@ -35,16 +35,6 @@ import uno.lux.mosaic.user.data.domain.User
 import uno.lux.mosaic.post.ui.PostDetailUiEvent as UiEvent
 import uno.lux.mosaic.post.ui.PostDetailUiState as UiState
 
-/**
- * Holds a single post's detail page as one [UiState] value that it owns and edits.
- *
- * The post lives in [PostRepository]'s shared store, so a like or delete made on another screen
- * reaches this page through [observeStores], the one collector. Comments belong to this
- * ViewModel alone and are discarded with it.
- *
- * After process death the store is empty, so [loadPost] fetches the post, and [PostFetch] keeps
- * "not loaded yet", "gone" and "failed" apart instead of reading absence as [Content.NotFound].
- */
 @HiltViewModel(assistedFactory = PostDetailViewModel.Factory::class)
 class PostDetailViewModel @AssistedInject constructor(
     private val postRepository: PostRepository,
@@ -62,10 +52,6 @@ class PostDetailViewModel @AssistedInject constructor(
 
     // TODO: Extract, and generalize?
 
-    /**
-     * How the fetch for a post the stores don't hold resolved. Only consulted while the stores
-     * can't answer: a post that is there is shown, whatever happened to a request beforehand.
-     */
     private sealed interface PostFetch {
         data object Pending : PostFetch
 
@@ -80,11 +66,6 @@ class PostDetailViewModel @AssistedInject constructor(
 
     // TODO: Wouldn't it be better to initialize as Content.Loading?
 
-    /**
-     * The page, as one value this ViewModel owns and edits. Seeded from [content] rather than from
-     * [Content.Loading], so a page opened the ordinary way is [Content.Loaded] before the first
-     * frame, with no spinner flashed for a post that was never missing.
-     */
     private val _uiState = MutableStateFlow(
         UiState(
             content = content(),
@@ -232,16 +213,11 @@ class PostDetailViewModel @AssistedInject constructor(
         updateContent()
     }
 
-    /** Loads the post and the thread's first page side by side, each unless it is already loading. */
     private fun retry() {
         launchIfIdle(::loadJob) { loadPost() }
         retryComments()
     }
 
-    /**
-     * Fetches the post unless the stores already hold it with its author. The fetch is for the
-     * cold start: a page restored after process death, where nothing has asked for the post yet.
-     */
     private suspend fun loadPost() {
         if (_uiState.value.content is Content.Loaded) return
 
@@ -264,30 +240,17 @@ class PostDetailViewModel @AssistedInject constructor(
         postRepository.toggleBookmark(postId)
     }
 
-    /**
-     * Deletes the post and pops this screen. Backing out is part of the outcome: once the entity
-     * is gone this view has nothing left to show, and the feed underneath has already dropped it.
-     */
     private fun delete() = launchReporting(FailedAction.DELETE_POST, ::setFailedAction) {
         // A failed delete throws before the pop, so the page stays put and announces the failure.
         postRepository.delete(postId)
         navigator.goBack()
     }
 
-    /**
-     * Reports the post. Unlike [delete] the page stays where it is, and the dialog with it, which
-     * is why the outcome goes to [UiState.reportSend] and not to a covered snackbar.
-     */
     private fun report(reason: ReportReason, details: String) =
         launchReport(::reportJob, ::setReportSend) {
             postRepository.report(postId, reason, details)
         }
 
-    /**
-     * Starts the thread over from its first page. Every such load goes through [commentsJob], so
-     * a second one asked for while the first is on the wire — a double tap on Retry, or the post's
-     * Retry landing on the thread's — is dropped rather than fetching the same page twice.
-     */
     private fun retryComments() = launchIfIdle(::commentsJob) { loadComments() }
 
     private suspend fun loadComments() {
@@ -310,11 +273,6 @@ class PostDetailViewModel @AssistedInject constructor(
         }
     }
 
-    /**
-     * Appends the page after the one loaded last. A null cursor means there is nothing to ask for:
-     * the first page has not landed, or the server sent the last one. [loadMoreJob] stops a second
-     * request while one is in flight.
-     */
     private fun loadMoreComments() = launchIfIdle(::loadMoreJob) {
         val cursor = _uiState.value.commentThread.nextCursor ?: return@launchIfIdle
         mutateCommentThread { it.copy(loadMoreFailed = false) }
@@ -343,7 +301,6 @@ class PostDetailViewModel @AssistedInject constructor(
         }
     }
 
-    /** Flips the like on a comment before the request goes out, reconciling when the answer lands. */
     private fun toggleCommentLike(commentId: CommentId) = launchCatching {
         val thread = _uiState.value.commentThread
         val before = thread.comments.find { it.id == commentId } ?: return@launchCatching
@@ -374,10 +331,6 @@ class PostDetailViewModel @AssistedInject constructor(
         }
     }
 
-    /**
-     * Applies [mutate] to [commentId] where it sits in the thread, if it is still there and
-     * [predicate] accepts what it currently says. Anything else is left alone.
-     */
     private fun updateComment(
         commentId: CommentId,
         predicate: (Comment) -> Boolean = { true },

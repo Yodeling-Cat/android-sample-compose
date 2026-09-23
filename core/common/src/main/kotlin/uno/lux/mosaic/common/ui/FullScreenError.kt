@@ -23,10 +23,6 @@ import androidx.compose.ui.unit.dp
 import uno.lux.mosaic.common.R
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
-/**
- * Full-screen error state: an error icon inside a circle, a message, and a "Retry" button.
- * Used by screens whose initial data load failed and left nothing to show.
- */
 @Composable
 fun FullScreenError(
     message: String,

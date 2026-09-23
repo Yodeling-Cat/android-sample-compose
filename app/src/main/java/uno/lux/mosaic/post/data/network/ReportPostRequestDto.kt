@@ -10,13 +10,7 @@ data class ReportPostRequestDto(
     val details: String? = null,
 )
 
-/**
- * A [ReportReason] as the server spells it (`PostsService::REPORT_REASONS`).
- *
- * Kept apart from the domain enum so the wire spelling is stated where the wire types live, and
- * so neither side's naming constrains the other's. [toDto]'s `when` is exhaustive, so a reason
- * added to [ReportReason] without a spelling here fails to compile rather than at the server.
- */
+/** A [ReportReason] as the server spells it (`PostsService::REPORT_REASONS`). */
 @Serializable
 enum class ReportReasonDto {
     @SerialName("spam")

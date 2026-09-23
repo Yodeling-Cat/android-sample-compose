@@ -6,11 +6,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import uno.lux.mosaic.app.di.NetworkModule
 
-/**
- * Builds a real Retrofit service against this loopback server, using **production's own Json** —
- * not a copy of its settings, since a test that pins the wire format against a config nobody
- * ships would keep passing while the real one drifted.
- */
+/** Uses production's own Json, so the wire format is pinned against the config that ships. */
 fun <T> MockWebServer.createApi(service: Class<T>): T =
     Retrofit
         .Builder()

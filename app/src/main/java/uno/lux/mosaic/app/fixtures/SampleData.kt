@@ -9,11 +9,6 @@ import uno.lux.mosaic.video.data.domain.Video
 import java.time.Duration
 import java.time.Instant
 
-/**
- * Stand-in content for the in-memory repository and Compose previews. Timestamps are
- * anchored to "now" at first access so the relative labels ("4m", "2h", "3d") stay
- * believable whenever the app is launched.
- */
 internal val SampleUsers = listOf(
     User(
         id = "u1",
@@ -74,61 +69,33 @@ internal val SampleUsers = listOf(
     ),
 )
 
-/** The sample user signed in as "me" — their own profile shows the Edit-profile action. */
 const val LOGGED_IN_USER_ID = "u1"
 
-/**
- * The stand-in stream each sample [Video] points at — a short, freely hosted MP4, one per video.
- * Sharing a stream between two videos is what to avoid here: the shared player keys playback on
- * the URL, so two videos pointing at the same file are one playback and cannot play independently.
- *
- * They have to *look* different too. The host's `sample-3.mp4` and `sample-5.mp4` are the same
- * clip under two names, which leaves a playback bug indistinguishable from correct behaviour.
- */
+/** Each sample video needs its own clip: the shared player keys playback on the URL. */
 private const val IMITATION_GAME_VIDEO_URL = "https://getsamplefiles.com/download/mp4/sample-2.mp4"
 private const val KERNEL_BOOT_VIDEO_URL = "https://getsamplefiles.com/download/mp4/sample-5.mp4"
 
-/**
- * Poster frames for the sample clips. An uploaded video's is extracted server-side, but the sample
- * clips are external files the server never read, so — exactly as its own seed data does — they
- * point at a hosted JPEG and carry fixed dimensions to match.
- */
 private const val IMITATION_GAME_THUMBNAIL_URL = "https://getsamplefiles.com/download/jpg/sample-1.jpg"
 private const val KERNEL_BOOT_THUMBNAIL_URL = "https://getsamplefiles.com/download/jpg/sample-4.jpg"
 
-/** The stand-in photos the "Engine sketches" album shows, as freely hosted JPEGs. */
 private val EngineSketchImages = listOf(
     "https://getsamplefiles.com/download/jpg/sample-1.jpg",
     "https://getsamplefiles.com/download/jpg/sample-2.jpg",
     "https://getsamplefiles.com/download/jpg/sample-3.jpg",
 )
 
-/**
- * The "Launch room" album's photos. Deliberately its own set, and a different count from
- * [EngineSketchImages], so the two albums are told apart at a glance and the pager and item-count
- * badge are exercised at more than one length.
- */
 private val LaunchRoomImages = listOf(
     "https://getsamplefiles.com/download/jpg/sample-4.jpg",
     "https://getsamplefiles.com/download/jpg/sample-5.jpg",
 )
 
 /**
- * Sample comments seeded per post id; timestamps are anchored to first access.
- *
- * Declared *above* [SamplePosts] on purpose: a post's `commentCount` is read from here through
- * [sampleCommentCount], and top-level properties in a file initialize in declaration order, so
- * moving this back below the posts would have every one of them counting an empty map.
+ * Must stay above [SamplePosts]: top-level properties initialize in order, and each post counts its
+ * comments from here.
  */
 internal val SampleComments: Map<PostId, List<Comment>> =
     buildSampleComments(Instant.now())
 
-/**
- * How many comments the fixtures give [postId] — what its `commentCount` is, rather than a number
- * written beside one. The server derives the count from its comment rows the same way, and these
- * fixtures used to claim 17, 51 and 612 against threads holding two or three, which made every
- * preview of a post card disagree with the detail page it opened.
- */
 private fun sampleCommentCount(postId: PostId) =
     SampleComments.getValue(postId).size
 
@@ -201,10 +168,6 @@ private fun buildSampleComments(now: Instant): Map<PostId, List<Comment>> = mapO
     ),
 )
 
-/**
- * Sample posts stand in for server payloads, so they carry the shareable link the way the server
- * would send it rather than leaving the app to assemble one.
- */
 private fun samplePostUrl(id: PostId) =
     "https://mosaic.tree-among-shrubs.com/p/$id"
 

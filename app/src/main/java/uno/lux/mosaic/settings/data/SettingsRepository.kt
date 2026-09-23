@@ -11,9 +11,6 @@ import uno.lux.mosaic.settings.data.domain.DEFAULT_AUTO_PLAY_VIDEOS
 import uno.lux.mosaic.settings.data.domain.Settings
 import uno.lux.mosaic.settings.data.domain.ThemeMode
 
-/**
- * Stores user settings & preferences.
- */
 interface SettingsRepository {
 
     val settings: Flow<Settings>
@@ -24,7 +21,6 @@ interface SettingsRepository {
     val autoPlayVideos: Flow<Boolean>
         get() = settings.map { it.autoPlayVideos }.distinctUntilChanged()
 
-    /** `null` until a language has been chosen. Storing it does not apply it — [AppLocaleRepository] does. */
     val language: Flow<AppLanguage?>
         get() = settings.map { it.language }.distinctUntilChanged()
 

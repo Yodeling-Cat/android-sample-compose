@@ -14,12 +14,6 @@ import uno.lux.mosaic.R
 import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
-/**
- * What the dialog hands its host when Send is tapped.
- *
- * It belongs in an instrumented test because the reason and the details are owned by the dialog
- * itself rather than by anything a JVM test could call.
- */
 @RunWith(AndroidJUnit4::class)
 class ReportDialogInputTest {
 

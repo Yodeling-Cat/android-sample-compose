@@ -3,11 +3,6 @@ package uno.lux.mosaic.common.util
 import java.time.Duration
 import java.time.Instant
 
-/**
- * A relative timestamp bucketed for compact, social-style display. The bucketing is pure
- * and unit-tested here; turning a bucket into localized text ("now", "5m", …) happens in
- * the UI layer against string resources.
- */
 sealed interface RelativeTime {
     data object Now : RelativeTime
 
@@ -28,7 +23,6 @@ sealed interface RelativeTime {
     ) : RelativeTime
 }
 
-/** Buckets the gap between [createdAt] and [now]; [now] is injectable for deterministic tests. */
 fun relativeTime(createdAt: Instant, now: Instant = Instant.now()): RelativeTime {
     val elapsed = Duration.between(createdAt, now)
 

@@ -20,13 +20,8 @@ import uno.lux.mosaic.settings.data.domain.ThemeMode
 class DataStoreSettingsRepositoryTest {
 
     /**
-     * A [Preferences] store for one test, held in memory rather than in a temporary file.
-     *
-     * DataStore's file storage commits a write by renaming a temp file over the destination,
-     * which Windows refuses — so on Windows the *second* write to one store throws, and every
-     * test below that writes twice failed while CI on Linux stayed green. What these tests are
-     * about is the repository's mapping between preference keys and domain types, and
-     * [InMemoryPreferencesDataStore] keeps that mapping real while dropping the file.
+     * In memory, not a temp file: DataStore commits by renaming over the file, which Windows
+     * refuses on the second write.
      */
     private fun dataStore(): DataStore<Preferences> =
         InMemoryPreferencesDataStore()
