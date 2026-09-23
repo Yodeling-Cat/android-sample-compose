@@ -8,7 +8,6 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -107,6 +106,7 @@ class PostDetailViewModel @AssistedInject constructor(
     val uiState: StateFlow<PostDetailUiState> = _uiState.asStateFlow()
 
     private var loadJob: Job? = null
+    private var commentsJob: Job? = null
     private var loadMoreJob: Job? = null
     private var reportJob: Job? = null
 
@@ -247,11 +247,10 @@ class PostDetailViewModel @AssistedInject constructor(
         updateContent()
     }
 
-    private fun retry() = launchIfIdle(::loadJob) {
-        coroutineScope {
-            launch { loadPost() }
-            launch { loadComments() }
-        }
+    /** Loads the post and the thread's first page side by side, each unless it is already loading. */
+    private fun retry() {
+        launchIfIdle(::loadJob) { loadPost() }
+        retryComments()
     }
 
     /**
@@ -299,9 +298,12 @@ class PostDetailViewModel @AssistedInject constructor(
             postRepository.report(postId, reason, details)
         }
 
-    private fun retryComments() {
-        viewModelScope.launch { loadComments() }
-    }
+    /**
+     * Starts the thread over from its first page. Every such load goes through [commentsJob], so
+     * a second one asked for while the first is on the wire — a double tap on Retry, or the post's
+     * Retry landing on the thread's — is dropped rather than fetching the same page twice.
+     */
+    private fun retryComments() = launchIfIdle(::commentsJob) { loadComments() }
 
     private suspend fun loadComments() {
         mutateCommentThread { it.copy(isLoading = true, error = null, loadMoreFailed = false) }

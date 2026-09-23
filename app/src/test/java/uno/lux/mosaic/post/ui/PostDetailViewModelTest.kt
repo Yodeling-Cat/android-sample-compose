@@ -833,6 +833,23 @@ class PostDetailViewModelTest : ViewModelTest() {
         assertEquals(listOf("p1" to null, "p1" to "c2", "p1" to null), source.loadRequests)
     }
 
+    // A second tap on Retry while the first reload is on the wire would only fetch the same page
+    // twice, and whichever landed first would clear the spinner over the one still coming.
+    @Test
+    fun `RetryComments is ignored while the thread is already loading`() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        val source = pagedSource(thread(5), pageSize = 2).apply { whileLoading = { gate.await() } }
+        val vm = viewModel(commentDataSource = source)
+
+        vm.onEvent(PostDetailUiEvent.RetryComments)
+        vm.onEvent(PostDetailUiEvent.RetryComments)
+
+        assertEquals(listOf("p1" to null), source.loadRequests)
+        assertTrue(vm.uiState.value.commentThread.isLoading)
+
+        gate.complete(Unit)
+    }
+
     // A reload that lands mid-flight has started the thread over, so the page still on the wire
     // describes a window that no longer follows what is on screen — appending it would show the
     // reader comments from two different threads, and duplicate keys in the list.
