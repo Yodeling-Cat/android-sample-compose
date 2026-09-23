@@ -43,10 +43,10 @@ Run the three JVM-only checks instead. State plainly which parts of a change the
 
 ## Toolchain / build setup
 
-- **Kotlin 2.4.10**, **AGP 9.3.1**, **Gradle 9.6.1**, Compose BOM **2026.06.01**. Java 11 is the source and target version. The Gradle daemon runs on JDK 21.
+- **Kotlin 2.4.20**, **AGP 9.4.1**, **Gradle 9.6.1**, Compose BOM **2026.09.00**. Java 11 is the source and target version. The Gradle daemon runs on JDK 21.
 - `compileSdk` and `targetSdk` are both **37** (the `release(37)` DSL). `minSdk` is **26**. `compileSdk` and `minSdk` are stated **once**, in `build-logic`'s `configureAndroid`, which the application and the libraries both go through — compiling a library against a different SDK than the app that ships it is a bug waiting for a release. `targetSdk` is the exception and stays in `app/build.gradle.kts`: only an application has one, and bumping it is the reviewed decision described above. The project bumps these two settings separately, on purpose. A new SDK version lands on `compileSdk` first. It moves to `targetSdk` only after a review of its behavior changes. That review is cheap here for five reasons: the app declares only the `INTERNET` permission, it picks media through `PickVisualMedia`, it runs no foreground service, it is already edge-to-edge, and it ships no native code. Check these five items again when the next SDK version lands.
 - The project uses AGP 9's **built-in Kotlin**, so it has no `org.jetbrains.kotlin.android` plugin. Annotation processing uses **KSP**, because kapt is not compatible. Hilt runs on KSP too.
-- AGP bundles Kotlin 2.2.10. The root `build.gradle.kts` raises the compiler version to 2.4.10 through the **buildscript classpath**. This is the documented way to override it. The Compose compiler, kotlinx-serialization, and **Mappie** are locked to the Kotlin version. **A Kotlin version bump is blocked until Mappie publishes a matching build.** KSP versions on its own schedule (`2.3.10`).
+- AGP bundles Kotlin 2.2.10. The root `build.gradle.kts` raises the compiler version to 2.4.20 through the **buildscript classpath**. This is the documented way to override it. The Compose compiler, kotlinx-serialization, and **Mappie** are locked to the Kotlin version. **A Kotlin version bump is blocked until Mappie publishes a matching build.** KSP versions on its own schedule (`2.3.12`).
 - Add dependencies to the **version catalog** (`gradle/libs.versions.toml`) and reference them through `libs.*`. Never hardcode a version number in a build script. `build-logic` reads the same catalog through its own `settings.gradle.kts`, so the rule holds inside the convention plugins too.
 
 ## Backend
@@ -361,7 +361,7 @@ Video playback position is deliberately not restored.
 
 ## Compose performance
 
-Strong skipping is on, through the built-in Compose compiler in Kotlin 2.4.10. This shapes what is worth doing:
+Strong skipping is on, through the built-in Compose compiler in Kotlin 2.4.20. This shapes what is worth doing:
 
 - **Do not wrap lambdas in `remember` by reflex, or chase `@Stable`/`@Immutable`.** Strong skipping auto-remembers lambdas, and it lets composables with unstable parameters skip through instance equality. Feed rows skip fine, even though `Post` carries an `Instant` and a `List`.
 - **Skipping works by instance, so a mutation must preserve identity for everything unchanged.** `PostRepository` stores a `Map<PostId, Post>` and mutates it with `_entities.update { it + (postId to updated) }`, so a like recomposes exactly one `PostCard`. Mapping `copy()` over the whole collection would recompose every visible row. Avoid that.
