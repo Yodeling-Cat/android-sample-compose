@@ -10,10 +10,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import uno.lux.mosaic.common.ui.OverlayBackButton
 import uno.lux.mosaic.common.util.ImmersiveSystemBars
 import uno.lux.mosaic.common.util.findActivity
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
 @Composable
 fun FullscreenVideoScreen(
@@ -77,5 +79,14 @@ internal fun FullscreenVideoScreen(
         )
 
         OverlayBackButton(onBack = onBack, modifier = Modifier.align(Alignment.TopStart))
+    }
+}
+
+/** With no [LocalVideoPlayback] provided, the stage is the empty player and its back button. */
+@Preview
+@Composable
+private fun FullscreenVideoScreenPreview() {
+    MosaicTheme {
+        FullscreenVideoScreen(url = "", title = null, onBack = {})
     }
 }

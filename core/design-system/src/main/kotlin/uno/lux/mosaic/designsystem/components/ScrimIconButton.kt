@@ -3,6 +3,7 @@ package uno.lux.mosaic.designsystem.components
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
@@ -15,7 +16,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import uno.lux.mosaic.designsystem.R
+import uno.lux.mosaic.designsystem.theme.MosaicGradients
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
 /** Behind the glyph while the bar is transparent: dark enough to carry a white icon over any cover. */
 private val ButtonScrim = Color.Black.copy(alpha = 0.32f)
@@ -47,6 +53,26 @@ fun ScrimIconButton(
                 tint = lerp(Color.White, MaterialTheme.colorScheme.onSurface, progress),
                 modifier = Modifier.size(22.dp),
             )
+        }
+    }
+}
+
+/** The fade from over-the-cover (0) to a filled bar (1), with the halfway point between. */
+@Preview
+@Composable
+private fun ScrimIconButtonPreview() {
+    MosaicTheme {
+        Row(Modifier.background(MosaicGradients.mediaBrush("preview"))) {
+            listOf(0f, 0.5f, 1f).forEach { progress ->
+                Box(Modifier.background(MaterialTheme.colorScheme.surface.copy(alpha = progress))) {
+                    ScrimIconButton(
+                        iconRes = R.drawable.ic_app,
+                        contentDescription = stringResource(R.string.app_name),
+                        progress = progress,
+                        onClick = {},
+                    )
+                }
+            }
         }
     }
 }

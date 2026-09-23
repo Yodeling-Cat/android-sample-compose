@@ -6,6 +6,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import uno.lux.mosaic.designsystem.R
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
 /**
  * One icon affordance in a top app bar — the navigation icon, or one of the trailing actions.
@@ -29,6 +33,18 @@ fun AppBarAction(
         Icon(
             painter = painterResource(icon),
             contentDescription = contentDescription,
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun AppBarActionPreview() {
+    MosaicTheme {
+        AppBarAction(
+            icon = R.drawable.ic_app,
+            onClick = {},
+            contentDescription = stringResource(R.string.app_name),
         )
     }
 }

@@ -38,13 +38,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import uno.lux.mosaic.R
+import uno.lux.mosaic.app.fixtures.SamplePosts
+import uno.lux.mosaic.app.fixtures.SampleUsers
 import uno.lux.mosaic.common.asText
 import uno.lux.mosaic.common.util.compactCount
 import uno.lux.mosaic.common.util.relativeTime
 import uno.lux.mosaic.designsystem.components.debouncedClickable
 import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.post.data.domain.Post
 import uno.lux.mosaic.user.data.domain.User
 import uno.lux.mosaic.user.ui.Avatar
@@ -346,5 +350,52 @@ private fun Modifier.pop(active: Boolean): Modifier {
     return graphicsLayer {
         scaleX = scale.value
         scaleY = scale.value
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PostAuthorHeaderPreview() {
+    val post = SamplePosts.first()
+
+    MosaicTheme {
+        PostAuthorHeader(
+            post = post,
+            author = SampleUsers.first { it.id == post.authorId },
+            onOpenProfile = {},
+        )
+    }
+}
+
+/** Clipped to two lines, so the body overflows and the "Show more" suffix appears. */
+@Preview(showBackground = true)
+@Composable
+private fun PostBodyPerexPreview() {
+    val post = SamplePosts.first()
+
+    MosaicTheme {
+        PostBody(title = post.title, body = post.body, maxBodyLines = 2)
+    }
+}
+
+/** Neither liked nor saved, then both: the two tints each action switches between. */
+@Preview(showBackground = true)
+@Composable
+private fun PostActionsPreview() {
+    MosaicTheme {
+        Column {
+            PostActions(
+                post = SamplePosts.first { !it.isLiked && !it.isBookmarked },
+                onToggleLike = {},
+                onToggleBookmark = {},
+                onCommentClick = {},
+            )
+            PostActions(
+                post = SamplePosts.first { it.isLiked && it.isBookmarked },
+                onToggleLike = {},
+                onToggleBookmark = {},
+                onCommentClick = {},
+            )
+        }
     }
 }

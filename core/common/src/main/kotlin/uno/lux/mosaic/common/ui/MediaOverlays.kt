@@ -2,9 +2,12 @@ package uno.lux.mosaic.common.ui
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
@@ -22,10 +25,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import uno.lux.mosaic.common.R
 import uno.lux.mosaic.designsystem.components.rememberDebounced
+import uno.lux.mosaic.designsystem.theme.MosaicGradients
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
 /*
  * Chrome overlaid on media — the badges, play buttons and back affordance that sit on top of
@@ -162,6 +168,43 @@ fun OverlayBackButton(
                 tint = Color.White,
                 modifier = Modifier.size(24.dp),
             )
+        }
+    }
+}
+
+/** All four pieces over a stand-in thumbnail, since each one only makes sense on top of media. */
+@Preview
+@Composable
+private fun MediaOverlaysPreview() {
+    MosaicTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(180.dp)
+                .background(MosaicGradients.mediaBrush("preview")),
+        ) {
+            OverlayBackButton(onBack = {}, modifier = Modifier.align(Alignment.TopStart))
+            MediaRemoveButton(
+                contentDescription = "Remove",
+                enabled = true,
+                onRemove = {},
+                modifier = Modifier.align(Alignment.TopEnd),
+            )
+            PlayBadge(
+                contentDescription = "Play",
+                size = 58.dp,
+                iconSize = 32.dp,
+                modifier = Modifier.align(Alignment.Center),
+            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(10.dp),
+            ) {
+                MediaBadge(text = "2/5", iconRes = R.drawable.ic_play_arrow)
+                MediaBadge(text = "0:42")
+            }
         }
     }
 }

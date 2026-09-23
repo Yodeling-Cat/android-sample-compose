@@ -2,6 +2,7 @@ package uno.lux.mosaic.common.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,10 +20,12 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import uno.lux.mosaic.common.R
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
 private const val LOAD_MORE_PREFETCH = 3
 
@@ -100,5 +103,16 @@ private fun LoadingMoreFooter(modifier: Modifier = Modifier) {
         contentAlignment = Alignment.Center,
     ) {
         CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun LoadMoreFooterPreview() {
+    MosaicTheme {
+        Column {
+            LoadMoreFooter(failed = false, onRetry = {})
+            LoadMoreFooter(failed = true, onRetry = {})
+        }
     }
 }

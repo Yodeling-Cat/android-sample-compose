@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -35,15 +36,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ShareCompat
 import androidx.core.content.getSystemService
 import kotlinx.coroutines.launch
 import uno.lux.mosaic.R
+import uno.lux.mosaic.app.fixtures.SamplePosts
+import uno.lux.mosaic.app.fixtures.SampleUsers
 import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.designsystem.components.debouncedClickable
 import uno.lux.mosaic.designsystem.components.rememberDebounced
 import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.post.data.domain.Post
 import uno.lux.mosaic.user.data.domain.User
 import uno.lux.mosaic.user.ui.Avatar
@@ -148,6 +153,51 @@ private fun PostOverflowSheet(
     }
 
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+        PostOverflowSheetContent(
+            post = post,
+            author = author,
+            onToggleBookmark = {
+                onToggleBookmark()
+                dismiss()
+            },
+            onShare = {
+                sharePostLink(context, post)
+                dismiss()
+            },
+            onCopyLink = {
+                copyPostLink(context, post)
+                dismiss()
+            },
+            onReport = {
+                onReport()
+                dismiss()
+            },
+            // Dismiss first: the confirmation dialog replaces the sheet rather than stacking.
+            onDelete = onDelete?.let {
+                {
+                    dismiss()
+                    it()
+                }
+            },
+        )
+    }
+}
+
+/**
+ * What the overflow sheet holds, without the sheet: a [ModalBottomSheet] opens by animating in,
+ * so a preview only ever sees it hidden. Each callback is the whole of a row's tap.
+ */
+@Composable
+private fun PostOverflowSheetContent(
+    post: Post,
+    author: User,
+    onToggleBookmark: () -> Unit,
+    onShare: () -> Unit,
+    onCopyLink: () -> Unit,
+    onReport: () -> Unit,
+    onDelete: (() -> Unit)?,
+) {
+    Column {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -181,26 +231,17 @@ private fun PostOverflowSheet(
             label = stringResource(
                 if (post.isBookmarked) R.string.post_menu_unsave else R.string.post_menu_save,
             ),
-            onClick = {
-                onToggleBookmark()
-                dismiss()
-            },
+            onClick = onToggleBookmark,
         )
         SheetRow(
             iconRes = R.drawable.ic_share,
             label = stringResource(R.string.post_menu_share),
-            onClick = {
-                sharePostLink(context, post)
-                dismiss()
-            },
+            onClick = onShare,
         )
         SheetRow(
             iconRes = R.drawable.ic_link,
             label = stringResource(R.string.post_menu_copy_link),
-            onClick = {
-                copyPostLink(context, post)
-                dismiss()
-            },
+            onClick = onCopyLink,
         )
         HorizontalDivider(
             color = MaterialTheme.colorScheme.outlineVariant,
@@ -209,21 +250,14 @@ private fun PostOverflowSheet(
         SheetRow(
             iconRes = R.drawable.ic_flag,
             label = stringResource(R.string.post_menu_report),
-            onClick = {
-                onReport()
-                dismiss()
-            },
+            onClick = onReport,
         )
         if (onDelete != null) {
             SheetRow(
                 iconRes = R.drawable.ic_delete,
                 label = stringResource(R.string.post_menu_delete),
                 danger = true,
-                // Dismiss first: the confirmation dialog replaces the sheet rather than stacking.
-                onClick = {
-                    dismiss()
-                    onDelete()
-                },
+                onClick = onDelete,
             )
         }
         Spacer(Modifier.height(16.dp))
@@ -287,5 +321,36 @@ private fun SheetRow(
             modifier = Modifier.size(22.dp),
         )
         Text(text = label, style = MaterialTheme.typography.bodyLarge, color = contentColor)
+    }
+}
+
+@Preview(name = "Someone else's post")
+@Composable
+private fun PostOverflowSheetPreview() {
+    PostOverflowSheetPreviewContent(canDelete = false)
+}
+
+@Preview(name = "Own post")
+@Composable
+private fun PostOverflowSheetOwnPreview() {
+    PostOverflowSheetPreviewContent(canDelete = true)
+}
+
+@Composable
+private fun PostOverflowSheetPreviewContent(canDelete: Boolean) {
+    val post = SamplePosts.first()
+
+    MosaicTheme {
+        Surface(color = MaterialTheme.colorScheme.surfaceContainerLow) {
+            PostOverflowSheetContent(
+                post = post,
+                author = SampleUsers.first { it.id == post.authorId },
+                onToggleBookmark = {},
+                onShare = {},
+                onCopyLink = {},
+                onReport = {},
+                onDelete = if (canDelete) ({}) else null,
+            )
+        }
     }
 }

@@ -33,11 +33,14 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerInputScope
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import uno.lux.mosaic.app.fixtures.SamplePosts
 import uno.lux.mosaic.common.ui.OverlayBackButton
 import uno.lux.mosaic.common.util.ImmersiveSystemBars
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import kotlin.math.min
 
 @Composable
@@ -239,4 +242,16 @@ private fun contentSizeIn(viewSize: Size, imageSize: Size): Size {
     val scale = min(viewSize.width / imageSize.width, viewSize.height / imageSize.height)
 
     return Size(imageSize.width * scale, imageSize.height * scale)
+}
+
+@Preview
+@Composable
+private fun AlbumViewerScreenPreview() {
+    MosaicTheme {
+        AlbumViewerScreen(
+            imageUrls = SamplePosts.firstNotNullOf { it.album }.images,
+            initialIndex = 1,
+            onBack = {},
+        )
+    }
 }

@@ -20,15 +20,18 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import uno.lux.mosaic.R
+import uno.lux.mosaic.app.fixtures.SamplePosts
 import uno.lux.mosaic.common.formatVideoDuration
 import uno.lux.mosaic.common.ui.MediaBadge
 import uno.lux.mosaic.common.ui.PlayBadge
 import uno.lux.mosaic.designsystem.components.debouncedClickable
 import uno.lux.mosaic.designsystem.theme.MosaicGradients
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.video.data.domain.Video
 
 /**
@@ -154,5 +157,18 @@ private fun rememberThumbnailRequest(video: Video): ImageRequest {
 
                 if (width != null && height != null) size(width, height)
             }.build()
+    }
+}
+
+/** With no [LocalVideoPlayback] provided, the player shows its poster state. */
+@Preview(showBackground = true)
+@Composable
+private fun VideoPostPlayerPreview() {
+    MosaicTheme {
+        VideoPostPlayer(
+            video = SamplePosts.firstNotNullOf { it.video },
+            onOpenFullscreen = {},
+            modifier = Modifier.padding(16.dp),
+        )
     }
 }
