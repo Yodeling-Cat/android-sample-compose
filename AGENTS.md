@@ -99,8 +99,8 @@ The top level of the package tree is **slices, not layers**. Layers are the shap
 
 ```
 :app
-  post/ user/ comment/ album/ video/         aggregates: the entity, its wire types, its store, its UI
-  feed/ profile/ composer/ settings/ shell/  features and read models — they own no entity
+  post/ user/ comment/ album/ video/               aggregates: the entity, its wire types, its store, its UI
+  feed/ home/ profile/ composer/ settings/ shell/  features and read models — they own no entity
   app/                 the machine — MainActivity, MosaicApplication, MosaicApp
   app/di/              Hilt modules
   app/navigation/      Navigator, Screen keys, BackStackEntry, page transitions
@@ -138,13 +138,14 @@ Inside a concern there are four layers and no fifth:
 ```
 user  album  video  settings  -> (nothing)
 post      -> album comment user video      comment  -> post user
-feed      -> post settings user video      profile  -> post user video
-composer  -> feed post                     shell    -> feed profile user
+feed      -> post user                     profile  -> post user video
+home      -> feed post settings user video
+composer  -> feed post                     shell    -> home profile user
 ```
 
 Every slice may depend on `app`. `app` wires everything together. `common/` and `designsystem/` import no slice — which is now a compile error rather than a convention, since they are modules that cannot see `:app`.
 
-The feature-to-feature edges are deliberate. `composer -> feed`: publishing a post prepends the new ID to the feed. `feed -> settings`: auto-play reads a setting. `shell -> feed profile`: its tabs *are* those screens.
+The feature-to-feature edges are deliberate. `home -> feed`: the Home tab is the screen that shows the feed, while `feed` keeps only its ordered IDs and paging. `composer -> feed`: publishing a post prepends the new ID to the feed. `home -> settings`: auto-play reads a setting. `shell -> home profile`: its tabs *are* those screens.
 
 `post <-> comment` is a real cycle, and the project tolerates it. If it ever causes a problem, the fix is to fold `comment/` into `post/`.
 
