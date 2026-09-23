@@ -33,7 +33,6 @@ import uno.lux.mosaic.settings.data.SettingsRepository
 import uno.lux.mosaic.settings.data.domain.DEFAULT_AUTO_PLAY_VIDEOS
 import uno.lux.mosaic.user.data.UserRepository
 import uno.lux.mosaic.user.data.domain.UserId
-import uno.lux.mosaic.video.data.domain.Video
 import javax.inject.Inject
 
 @HiltViewModel
@@ -44,8 +43,7 @@ class HomeViewModel @Inject constructor(
     settingsRepository: SettingsRepository,
     private val navigator: Navigator,
     @param:CurrentUserId private val currentUserId: UserId,
-) : ViewModel(),
-    HomeActions {
+) : ViewModel() {
 
     private val _loadError = MutableStateFlow<AppError?>(null)
     private val _loadMoreFailed = MutableStateFlow(false)
@@ -109,20 +107,80 @@ class HomeViewModel @Inject constructor(
         retry()
     }
 
-    override fun refresh() = launchRefresh(::loadJob, _isRefreshing) { load() }
+    fun onEvent(event: HomeUiEvent) {
+        when (event) {
+            HomeUiEvent.Refresh -> {
+                refresh()
+            }
 
-    override fun retry() = launchIfIdle(::loadJob) {
+            HomeUiEvent.Retry -> {
+                retry()
+            }
+
+            HomeUiEvent.RefreshErrorShown -> {
+                _loadError.value = null
+            }
+
+            HomeUiEvent.FailedActionShown -> {
+                _failedAction.value = null
+            }
+
+            HomeUiEvent.LoadMore -> {
+                loadMore()
+            }
+
+            is HomeUiEvent.ToggleLike -> {
+                toggleLike(event.postId)
+            }
+
+            is HomeUiEvent.ToggleBookmark -> {
+                toggleBookmark(event.postId)
+            }
+
+            is HomeUiEvent.Delete -> {
+                delete(event.postId)
+            }
+
+            is HomeUiEvent.Report -> {
+                report(event.postId, event.reason, event.details)
+            }
+
+            HomeUiEvent.CloseReport -> {
+                dropReport(::reportJob, ::setReportSend)
+            }
+
+            HomeUiEvent.OpenSettings -> {
+                navigator.goToSingleTop(Screen.Settings)
+            }
+
+            is HomeUiEvent.OpenProfile -> {
+                navigator.goTo(Screen.Profile(event.userId))
+            }
+
+            is HomeUiEvent.OpenPost -> {
+                navigator.goTo(Screen.PostDetail(event.postId))
+            }
+
+            is HomeUiEvent.OpenVideo -> {
+                navigator.goTo(Screen.FullscreenVideo(event.video))
+            }
+
+            is HomeUiEvent.OpenAlbum -> {
+                navigator.goTo(Screen.AlbumViewer(event.imageUrls, event.initialIndex))
+            }
+        }
+    }
+
+    private fun refresh() = launchRefresh(::loadJob, _isRefreshing) { load() }
+
+    private fun retry() = launchIfIdle(::loadJob) {
         // Back to NotLoaded first, so a retry after a loaded feed shows the spinner rather than
         // the stale list it is replacing.
         feedRepository.reset()
         load()
     }
 
-    override fun onRefreshErrorShown() {
-        _loadError.value = null
-    }
-
-    override fun loadMore() = launchIfIdle(::loadMoreJob) {
+    private fun loadMore() = launchIfIdle(::loadMoreJob) {
         _loadMoreFailed.value = false
 
         catchErrors(onError = { _loadMoreFailed.value = true }) { feedRepository.loadMore() }
@@ -135,27 +193,25 @@ class HomeViewModel @Inject constructor(
         ignoreErrors(_loadError) { feedRepository.refresh() }
     }
 
-    override fun onToggleLike(postId: PostId) = launchCatching {
+    private fun toggleLike(postId: PostId) = launchCatching {
         postRepository.toggleLike(postId)
     }
 
-    override fun onToggleBookmark(postId: PostId) = launchCatching {
+    private fun toggleBookmark(postId: PostId) = launchCatching {
         postRepository.toggleBookmark(postId)
     }
 
-    override fun onDeletePost(postId: PostId) = launchReporting(FailedAction.DELETE_POST, ::setFailedAction) {
+    private fun delete(postId: PostId) = launchReporting(FailedAction.DELETE_POST, ::setFailedAction) {
         postRepository.delete(postId)
     }
 
-    override fun onReportPost(
+    private fun report(
         postId: PostId,
         reason: ReportReason,
         details: String,
     ) = launchReport(::reportJob, ::setReportSend) {
         postRepository.report(postId, reason, details)
     }
-
-    override fun onReportClosed() = dropReport(::reportJob, ::setReportSend)
 
     private fun setFailedAction(action: FailedAction) {
         _failedAction.value = action
@@ -164,19 +220,4 @@ class HomeViewModel @Inject constructor(
     private fun setReportSend(state: ReportSendState) {
         _reportSend.value = state
     }
-
-    override fun onFailedActionShown() {
-        _failedAction.value = null
-    }
-
-    override fun openSettings() = navigator.goToSingleTop(Screen.Settings)
-
-    override fun openProfile(userId: UserId) = navigator.goTo(Screen.Profile(userId))
-
-    override fun openPost(postId: PostId) = navigator.goTo(Screen.PostDetail(postId))
-
-    override fun openVideo(video: Video) = navigator.goTo(Screen.FullscreenVideo(video))
-
-    override fun openAlbum(imageUrls: List<String>, initialIndex: Int) =
-        navigator.goTo(Screen.AlbumViewer(imageUrls, initialIndex))
 }

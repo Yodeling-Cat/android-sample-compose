@@ -100,7 +100,7 @@ class HomeViewModelTest : ViewModelTest() {
     }
 
     @Test
-    fun `onToggleLike likes the post through the repository`() = runTest {
+    fun `ToggleLike likes the post through the repository`() = runTest {
         // The count in the answer is the server's, so the fake is told what it started from.
         val viewModel = viewModel(
             postDataSource = FakePostDataSource().apply { likeCounts["p1"] = post.likeCount },
@@ -109,7 +109,7 @@ class HomeViewModelTest : ViewModelTest() {
             viewModel.uiState.collect {}
         }
 
-        viewModel.onToggleLike("p1")
+        viewModel.onEvent(HomeUiEvent.ToggleLike("p1"))
 
         val feed = viewModel.uiState.value as HomeUiState.Feed
         assertTrue(
@@ -126,13 +126,13 @@ class HomeViewModelTest : ViewModelTest() {
     }
 
     @Test
-    fun `onToggleBookmark bookmarks the post through the repository`() = runTest {
+    fun `ToggleBookmark bookmarks the post through the repository`() = runTest {
         val viewModel = viewModel()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
 
-        viewModel.onToggleBookmark("p1")
+        viewModel.onEvent(HomeUiEvent.ToggleBookmark("p1"))
 
         val feed = viewModel.uiState.value as HomeUiState.Feed
         assertTrue(
@@ -154,13 +154,13 @@ class HomeViewModelTest : ViewModelTest() {
     }
 
     @Test
-    fun `onDeletePost drops the post from the feed`() = runTest {
+    fun `Delete drops the post from the feed`() = runTest {
         val viewModel = viewModel()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
 
-        viewModel.onDeletePost("p1")
+        viewModel.onEvent(HomeUiEvent.Delete("p1"))
 
         assertTrue((viewModel.uiState.value as HomeUiState.Feed).posts.isEmpty())
     }
@@ -175,7 +175,7 @@ class HomeViewModelTest : ViewModelTest() {
             viewModel.uiState.collect {}
         }
 
-        viewModel.onDeletePost("p1")
+        viewModel.onEvent(HomeUiEvent.Delete("p1"))
 
         val feed = viewModel.uiState.value as HomeUiState.Feed
         assertEquals(listOf(PostCardData(post, author, isOwn = true)), feed.posts)
@@ -189,7 +189,7 @@ class HomeViewModelTest : ViewModelTest() {
             viewModel.uiState.collect {}
         }
 
-        viewModel.onDeletePost("p1")
+        viewModel.onEvent(HomeUiEvent.Delete("p1"))
 
         assertNull(viewModel.failedAction.value)
     }
@@ -197,15 +197,15 @@ class HomeViewModelTest : ViewModelTest() {
     // Announced once and then spent, the same lifetime the refresh error has: what is left in
     // the state is what a rotation would replay.
     @Test
-    fun `onFailedActionShown clears the announcement`() = runTest {
+    fun `FailedActionShown clears the announcement`() = runTest {
         val dataSource = FakePostDataSource().apply { deleteError = UnknownHostException("offline") }
         val viewModel = viewModel(postDataSource = dataSource)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
-        viewModel.onDeletePost("p1")
+        viewModel.onEvent(HomeUiEvent.Delete("p1"))
 
-        viewModel.onFailedActionShown()
+        viewModel.onEvent(HomeUiEvent.FailedActionShown)
 
         assertNull(viewModel.failedAction.value)
     }
@@ -213,7 +213,7 @@ class HomeViewModelTest : ViewModelTest() {
     // Reporting from the feed reports the card that was tapped and leaves the feed alone —
     // the post is still there, and still says what it said.
     @Test
-    fun `onReportPost reports the post without changing the feed`() = runTest {
+    fun `Report reports the post without changing the feed`() = runTest {
         val dataSource = FakePostDataSource()
         val viewModel = viewModel(postDataSource = dataSource)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -221,7 +221,7 @@ class HomeViewModelTest : ViewModelTest() {
         }
         val before = (viewModel.uiState.value as HomeUiState.Feed).posts
 
-        viewModel.onReportPost("p1", ReportReason.VIOLENCE, "")
+        viewModel.onEvent(HomeUiEvent.Report("p1", ReportReason.VIOLENCE, ""))
 
         assertEquals(
             listOf(FakePostDataSource.Report("p1", ReportReason.VIOLENCE, "")),
@@ -237,7 +237,7 @@ class HomeViewModelTest : ViewModelTest() {
         val dataSource = FakePostDataSource().apply { reportError = UnknownHostException("offline") }
         val viewModel = viewModel(postDataSource = dataSource)
 
-        viewModel.onReportPost("p1", ReportReason.VIOLENCE, "")
+        viewModel.onEvent(HomeUiEvent.Report("p1", ReportReason.VIOLENCE, ""))
 
         assertEquals(ReportSendState.FAILED, viewModel.reportSend.value)
         assertNull(viewModel.failedAction.value)
@@ -246,10 +246,10 @@ class HomeViewModelTest : ViewModelTest() {
     @Test
     fun `a report the server takes reaches SENT, and closing the dialog spends it`() = runTest {
         val viewModel = viewModel()
-        viewModel.onReportPost("p1", ReportReason.VIOLENCE, "")
+        viewModel.onEvent(HomeUiEvent.Report("p1", ReportReason.VIOLENCE, ""))
         assertEquals(ReportSendState.SENT, viewModel.reportSend.value)
 
-        viewModel.onReportClosed()
+        viewModel.onEvent(HomeUiEvent.CloseReport)
 
         assertEquals(ReportSendState.IDLE, viewModel.reportSend.value)
     }
@@ -291,7 +291,7 @@ class HomeViewModelTest : ViewModelTest() {
         assertTrue(viewModel.uiState.value is HomeUiState.Feed)
 
         dataSource.failNext = true
-        viewModel.refresh()
+        viewModel.onEvent(HomeUiEvent.Refresh)
 
         val feed = viewModel.uiState.value as HomeUiState.Feed
         assertEquals(listOf(PostCardData(post, author, isOwn = true)), feed.posts)
@@ -301,16 +301,16 @@ class HomeViewModelTest : ViewModelTest() {
     // Announced once and then spent: what is left in the state is what a rotation would replay,
     // and a failure the user has already read is not worth reading twice.
     @Test
-    fun `onRefreshErrorShown clears the transient error without touching the feed`() = runTest {
+    fun `RefreshErrorShown clears the transient error without touching the feed`() = runTest {
         val dataSource = FlakyFeedDataSource(FeedPage(listOf(post), listOf(author), null, false))
         val viewModel = viewModel(feedDataSource = dataSource)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
         dataSource.failNext = true
-        viewModel.refresh()
+        viewModel.onEvent(HomeUiEvent.Refresh)
 
-        viewModel.onRefreshErrorShown()
+        viewModel.onEvent(HomeUiEvent.RefreshErrorShown)
 
         val feed = viewModel.uiState.value as HomeUiState.Feed
         assertNull(feed.refreshError)
@@ -325,10 +325,10 @@ class HomeViewModelTest : ViewModelTest() {
             viewModel.uiState.collect {}
         }
         dataSource.failNext = true
-        viewModel.refresh()
+        viewModel.onEvent(HomeUiEvent.Refresh)
 
         dataSource.failNext = false
-        viewModel.refresh()
+        viewModel.onEvent(HomeUiEvent.Refresh)
 
         assertNull((viewModel.uiState.value as HomeUiState.Feed).refreshError)
     }
@@ -342,7 +342,7 @@ class HomeViewModelTest : ViewModelTest() {
         }
         dataSource.failNext = true
 
-        viewModel.loadMore()
+        viewModel.onEvent(HomeUiEvent.LoadMore)
 
         assertTrue((viewModel.uiState.value as HomeUiState.Feed).loadMoreFailed)
     }
@@ -355,10 +355,10 @@ class HomeViewModelTest : ViewModelTest() {
             viewModel.uiState.collect {}
         }
         dataSource.failNext = true
-        viewModel.loadMore()
+        viewModel.onEvent(HomeUiEvent.LoadMore)
         dataSource.failNext = false
 
-        viewModel.loadMore()
+        viewModel.onEvent(HomeUiEvent.LoadMore)
 
         assertFalse((viewModel.uiState.value as HomeUiState.Feed).loadMoreFailed)
     }
@@ -371,16 +371,16 @@ class HomeViewModelTest : ViewModelTest() {
             viewModel.uiState.collect {}
         }
         dataSource.failNext = true
-        viewModel.loadMore()
+        viewModel.onEvent(HomeUiEvent.LoadMore)
         dataSource.failNext = false
 
-        viewModel.refresh()
+        viewModel.onEvent(HomeUiEvent.Refresh)
 
         assertFalse((viewModel.uiState.value as HomeUiState.Feed).loadMoreFailed)
     }
 
     @Test
-    fun `retry shows Loading while reloading after the feed was already loaded`() = runTest {
+    fun `Retry shows Loading while reloading after the feed was already loaded`() = runTest {
         val dataSource = SucceedOnceThenSuspendFeedDataSource(
             firstPage = FeedPage(listOf(post), listOf(author), null, false),
         )
@@ -390,33 +390,33 @@ class HomeViewModelTest : ViewModelTest() {
         }
         assertTrue(viewModel.uiState.value is HomeUiState.Feed)
 
-        viewModel.retry()
+        viewModel.onEvent(HomeUiEvent.Retry)
 
         assertEquals(HomeUiState.Loading, viewModel.uiState.value)
     }
 
     @Test
-    fun `refresh raises isRefreshing until the feed data source finishes`() = runTest {
+    fun `Refresh raises isRefreshing until the feed data source finishes`() = runTest {
         // The initial load has to have finished, or the refresh is the duplicate fetch that
-        // `refresh is ignored while the initial load is still running` pins.
+        // `Refresh is ignored while the initial load is still running` pins.
         val dataSource = SucceedOnceThenSuspendFeedDataSource(
             firstPage = FeedPage(listOf(post), listOf(author), null, false),
         )
         val viewModel = viewModel(feedDataSource = dataSource)
 
         assertFalse(viewModel.isRefreshing.value)
-        viewModel.refresh()
+        viewModel.onEvent(HomeUiEvent.Refresh)
         assertTrue(viewModel.isRefreshing.value)
         dataSource.complete()
         assertFalse(viewModel.isRefreshing.value)
     }
 
     @Test
-    fun `refresh is ignored while the initial load is still running`() = runTest {
+    fun `Refresh is ignored while the initial load is still running`() = runTest {
         val dataSource = SuspendingFeedDataSource()
         val viewModel = viewModel(feedDataSource = dataSource)
 
-        viewModel.refresh()
+        viewModel.onEvent(HomeUiEvent.Refresh)
 
         // The load already in flight owns the spinner; a second fetch of the same page is not
         // what a pull mid-load should buy.
@@ -436,7 +436,7 @@ class HomeViewModelTest : ViewModelTest() {
         }
         val cardBefore = (viewModel.uiState.value as HomeUiState.Feed).posts[1]
 
-        viewModel.onToggleLike(post.id)
+        viewModel.onEvent(HomeUiEvent.ToggleLike(post.id))
 
         // PostCard takes the post and the author as separate parameters, so these two instances
         // are what strong skipping compares. The card wrapping them is rebuilt every emission.
@@ -446,38 +446,38 @@ class HomeViewModelTest : ViewModelTest() {
     }
 
     @Test
-    fun `openSettings pushes the settings page`() {
-        viewModel().openSettings()
+    fun `OpenSettings pushes the settings page`() {
+        viewModel().onEvent(HomeUiEvent.OpenSettings)
 
         assertEquals(Screen.Settings, backStack.last().screen)
     }
 
     @Test
-    fun `openSettings does not stack a second settings page`() {
+    fun `OpenSettings does not stack a second settings page`() {
         val viewModel = viewModel()
 
-        viewModel.openSettings()
-        viewModel.openSettings()
+        viewModel.onEvent(HomeUiEvent.OpenSettings)
+        viewModel.onEvent(HomeUiEvent.OpenSettings)
 
         assertEquals(listOf(Screen.Shell, Screen.Settings), backStack.screens())
     }
 
     @Test
-    fun `openProfile pushes the author's profile page`() {
-        viewModel().openProfile("u1")
+    fun `OpenProfile pushes the author's profile page`() {
+        viewModel().onEvent(HomeUiEvent.OpenProfile("u1"))
 
         assertEquals(Screen.Profile("u1"), backStack.last().screen)
     }
 
     @Test
-    fun `openPost pushes the post's detail page`() {
-        viewModel().openPost("p1")
+    fun `OpenPost pushes the post's detail page`() {
+        viewModel().onEvent(HomeUiEvent.OpenPost("p1"))
 
         assertEquals(Screen.PostDetail("p1"), backStack.last().screen)
     }
 
     @Test
-    fun `openVideo pushes the fullscreen player for that video`() {
+    fun `OpenVideo pushes the fullscreen player for that video`() {
         val video = Video(
             id = "v1",
             title = "Talk",
@@ -485,7 +485,7 @@ class HomeViewModelTest : ViewModelTest() {
             videoUrl = "https://example.test/v1.mp4",
         )
 
-        viewModel().openVideo(video)
+        viewModel().onEvent(HomeUiEvent.OpenVideo(video))
 
         assertEquals(
             Screen.FullscreenVideo(url = "https://example.test/v1.mp4", title = "Talk"),
@@ -494,10 +494,10 @@ class HomeViewModelTest : ViewModelTest() {
     }
 
     @Test
-    fun `openAlbum pushes the album viewer at the tapped image`() {
+    fun `OpenAlbum pushes the album viewer at the tapped image`() {
         val images = listOf("https://example.test/1.jpg", "https://example.test/2.jpg")
 
-        viewModel().openAlbum(images, initialIndex = 1)
+        viewModel().onEvent(HomeUiEvent.OpenAlbum(images, initialIndex = 1))
 
         assertEquals(Screen.AlbumViewer(images, initialIndex = 1), backStack.last().screen)
     }
