@@ -39,7 +39,6 @@ import uno.lux.mosaic.profile.data.PostList
 import uno.lux.mosaic.profile.data.ProfileRepository
 import uno.lux.mosaic.user.data.UserRepository
 import uno.lux.mosaic.user.data.domain.UserId
-import uno.lux.mosaic.video.data.domain.Video
 
 /**
  * Holds the profile state for one [userId]. Combines [UserRepository], [ProfileRepository]
@@ -49,7 +48,8 @@ import uno.lux.mosaic.video.data.domain.Video
  * observers. Navigation intents (opening a post, profile, viewer or the editor, going back) are
  * pushes and pops on the injected [Navigator]. [userId] is a runtime arg wired through [Factory].
  *
- * The Saved and Likes tabs are loaded lazily, on [onSavedTabShown] / [onLikesTabShown]. Saved is
+ * The Saved and Likes tabs are loaded lazily, on [ProfileUiEvent.SavedTabShown] /
+ * [ProfileUiEvent.LikesTabShown]. Saved is
  * private: the screen offers that tab only on the signed-in user's own profile, and the server
  * refuses the list to anyone else regardless. Likes are public, and load the same way only
  * because a tab nobody opened should cost no request.
@@ -62,8 +62,7 @@ class ProfileViewModel @AssistedInject constructor(
     private val navigator: Navigator,
     @param:CurrentUserId private val currentUserId: UserId,
     @Assisted private val userId: UserId,
-) : ViewModel(),
-    ProfileActions {
+) : ViewModel() {
 
     @AssistedFactory
     interface Factory {
@@ -199,9 +198,97 @@ class ProfileViewModel @AssistedInject constructor(
         retry()
     }
 
-    fun refresh() = launchRefresh(::loadJob, _isRefreshing) { load() }
+    fun onEvent(event: ProfileUiEvent) {
+        when (event) {
+            ProfileUiEvent.Refresh -> {
+                refresh()
+            }
 
-    fun retry() = launchIfIdle(::loadJob) { load() }
+            ProfileUiEvent.Retry -> {
+                retry()
+            }
+
+            is ProfileUiEvent.ToggleLike -> {
+                toggleLike(event.postId)
+            }
+
+            is ProfileUiEvent.ToggleBookmark -> {
+                toggleBookmark(event.postId)
+            }
+
+            is ProfileUiEvent.Delete -> {
+                delete(event.postId)
+            }
+
+            is ProfileUiEvent.Report -> {
+                report(event.postId, event.reason, event.details)
+            }
+
+            ProfileUiEvent.CloseReport -> {
+                dropReport(::reportJob, ::setReportSend)
+            }
+
+            ProfileUiEvent.ToggleFollow -> {
+                toggleFollow()
+            }
+
+            ProfileUiEvent.FailedActionShown -> {
+                _failedAction.value = null
+            }
+
+            ProfileUiEvent.LoadMorePosts -> {
+                loadMorePosts()
+            }
+
+            ProfileUiEvent.SavedTabShown -> {
+                ensureSavedLoaded()
+            }
+
+            ProfileUiEvent.LoadMoreBookmarks -> {
+                loadMoreBookmarks()
+            }
+
+            ProfileUiEvent.LikesTabShown -> {
+                ensureLikesLoaded()
+            }
+
+            ProfileUiEvent.LoadMoreLikes -> {
+                loadMoreLikes()
+            }
+
+            ProfileUiEvent.GoBack -> {
+                navigator.goBack()
+            }
+
+            ProfileUiEvent.OpenEditProfile -> {
+                navigator.goToSingleTop(Screen.EditProfile)
+            }
+
+            is ProfileUiEvent.OpenPost -> {
+                navigator.goTo(Screen.PostDetail(event.postId))
+            }
+
+            is ProfileUiEvent.OpenProfile -> {
+                navigator.goTo(Screen.Profile(event.userId))
+            }
+
+            is ProfileUiEvent.OpenVideo -> {
+                navigator.goTo(Screen.FullscreenVideo(event.video))
+            }
+
+            is ProfileUiEvent.OpenAlbum -> {
+                navigator.goTo(Screen.AlbumViewer(event.imageUrls, event.initialIndex))
+            }
+
+            is ProfileUiEvent.OpenAvatar -> {
+                navigator.goTo(Screen.AlbumViewer(listOf(event.avatarUrl), initialIndex = 0))
+            }
+        }
+    }
+
+    private fun refresh() = launchRefresh(::loadJob, _isRefreshing) { load() }
+
+    private fun retry() = launchIfIdle(::loadJob) { load() }
 
     private suspend fun load() {
         _loadError.value = null
@@ -230,19 +317,19 @@ class ProfileViewModel @AssistedInject constructor(
         _hasLoaded.value = true
     }
 
-    override fun onToggleLike(postId: PostId) = launchCatching {
+    private fun toggleLike(postId: PostId) = launchCatching {
         postRepository.toggleLike(postId)
     }
 
-    override fun onToggleBookmark(postId: PostId) = launchCatching {
+    private fun toggleBookmark(postId: PostId) = launchCatching {
         postRepository.toggleBookmark(postId)
     }
 
-    override fun onDeletePost(postId: PostId) = launchReporting(FailedAction.DELETE_POST, ::setFailedAction) {
+    private fun delete(postId: PostId) = launchReporting(FailedAction.DELETE_POST, ::setFailedAction) {
         postRepository.delete(postId)
     }
 
-    override fun onReportPost(
+    private fun report(
         postId: PostId,
         reason: ReportReason,
         details: String,
@@ -250,9 +337,7 @@ class ProfileViewModel @AssistedInject constructor(
         postRepository.report(postId, reason, details)
     }
 
-    override fun onReportClosed() = dropReport(::reportJob, ::setReportSend)
-
-    override fun onToggleFollow() = launchReporting(FailedAction.FOLLOW, ::setFailedAction) {
+    private fun toggleFollow() = launchReporting(FailedAction.FOLLOW, ::setFailedAction) {
         userRepository.toggleFollow(userId)
     }
 
@@ -266,36 +351,23 @@ class ProfileViewModel @AssistedInject constructor(
         _reportSend.value = state
     }
 
-    /**
-     * The screen has announced [failedAction] and is done with it — spent once shown, so a
-     * configuration change cannot announce it again.
-     */
-    override fun onFailedActionShown() {
-        _failedAction.value = null
-    }
-
-    override fun loadMorePosts() = launchIfIdle(::loadMorePostsJob) {
+    private fun loadMorePosts() = launchIfIdle(::loadMorePostsJob) {
         trackingFailure({ copy(posts = it) }) { profileRepository.loadMorePosts(userId) }
     }
 
-    /**
-     * The Saved tab became visible. Fetches the list the first time only — later visits are
-     * served from the repository, and a pull-to-refresh is what re-fetches it.
-     */
-    override fun onSavedTabShown() = launchIfIdle(::bookmarksJob) {
+    private fun ensureSavedLoaded() = launchIfIdle(::bookmarksJob) {
         trackingFailure({ copy(bookmarks = it) }) { saved.ensureLoaded() }
     }
 
-    override fun loadMoreBookmarks() = launchIfIdle(::bookmarksJob) {
+    private fun loadMoreBookmarks() = launchIfIdle(::bookmarksJob) {
         trackingFailure({ copy(bookmarks = it) }) { saved.loadMore() }
     }
 
-    /** The Likes tab became visible. Loads once, the way [onSavedTabShown] does. */
-    override fun onLikesTabShown() = launchIfIdle(::likesJob) {
+    private fun ensureLikesLoaded() = launchIfIdle(::likesJob) {
         trackingFailure({ copy(likes = it) }) { liked.ensureLoaded() }
     }
 
-    override fun loadMoreLikes() = launchIfIdle(::likesJob) {
+    private fun loadMoreLikes() = launchIfIdle(::likesJob) {
         trackingFailure({ copy(likes = it) }) { liked.loadMore() }
     }
 
@@ -312,20 +384,4 @@ class ProfileViewModel @AssistedInject constructor(
 
         catchErrors(onError = { _loadFailures.update { it.mark(true) } }, block = block)
     }
-
-    override fun goBack() = navigator.goBack()
-
-    override fun openEditProfile() = navigator.goToSingleTop(Screen.EditProfile)
-
-    override fun openPost(postId: PostId) = navigator.goTo(Screen.PostDetail(postId))
-
-    override fun openProfile(userId: UserId) = navigator.goTo(Screen.Profile(userId))
-
-    override fun openVideo(video: Video) = navigator.goTo(Screen.FullscreenVideo(video))
-
-    override fun openAlbum(imageUrls: List<String>, initialIndex: Int) =
-        navigator.goTo(Screen.AlbumViewer(imageUrls, initialIndex))
-
-    override fun openAvatar(avatarUrl: String) =
-        navigator.goTo(Screen.AlbumViewer(listOf(avatarUrl), initialIndex = 0))
 }

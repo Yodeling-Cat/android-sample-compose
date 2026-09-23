@@ -139,13 +139,13 @@ class ProfileViewModelTest : ViewModelTest() {
     }
 
     @Test
-    fun `onDeletePost drops the post from the profile`() = runTest {
+    fun `Delete drops the post from the profile`() = runTest {
         val viewModel = viewModel()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
 
-        viewModel.onDeletePost("p1")
+        viewModel.onEvent(ProfileUiEvent.Delete("p1"))
 
         val loaded = viewModel.uiState.value as ProfileUiState.Loaded
         assertTrue(loaded.data.posts.isEmpty())
@@ -154,7 +154,7 @@ class ProfileViewModelTest : ViewModelTest() {
     // Someone else's profile is where a post is most likely to be reported, and reporting one
     // must leave the profile showing exactly what it showed.
     @Test
-    fun `onReportPost reports the post and leaves the profile as it was`() = runTest {
+    fun `Report reports the post and leaves the profile as it was`() = runTest {
         val dataSource = FakePostDataSource()
         val viewModel = viewModel(postDataSource = dataSource)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -162,7 +162,7 @@ class ProfileViewModelTest : ViewModelTest() {
         }
         val before = (viewModel.uiState.value as ProfileUiState.Loaded).data.posts
 
-        viewModel.onReportPost("p1", ReportReason.MISINFORMATION, "None of this is true")
+        viewModel.onEvent(ProfileUiEvent.Report("p1", ReportReason.MISINFORMATION, "None of this is true"))
 
         assertEquals(
             listOf(
@@ -181,56 +181,56 @@ class ProfileViewModelTest : ViewModelTest() {
         val dataSource = FakePostDataSource().apply { reportError = UnknownHostException("offline") }
         val viewModel = viewModel(postDataSource = dataSource)
 
-        viewModel.onReportPost("p1", ReportReason.MISINFORMATION, "")
+        viewModel.onEvent(ProfileUiEvent.Report("p1", ReportReason.MISINFORMATION, ""))
 
         assertEquals(ReportSendState.FAILED, viewModel.reportSend.value)
         assertNull(viewModel.failedAction.value)
     }
 
     @Test
-    fun `onReportClosed drops the outcome the dialog has acted on`() = runTest {
+    fun `CloseReport drops the outcome the dialog has acted on`() = runTest {
         val viewModel = viewModel()
-        viewModel.onReportPost("p1", ReportReason.MISINFORMATION, "")
+        viewModel.onEvent(ProfileUiEvent.Report("p1", ReportReason.MISINFORMATION, ""))
 
-        viewModel.onReportClosed()
+        viewModel.onEvent(ProfileUiEvent.CloseReport)
 
         assertEquals(ReportSendState.IDLE, viewModel.reportSend.value)
     }
 
     @Test
-    fun `goBack pops the profile page`() {
-        viewModel().goBack()
+    fun `GoBack pops the profile page`() {
+        viewModel().onEvent(ProfileUiEvent.GoBack)
 
         assertEquals(listOf(Screen.Shell), backStack.screens())
     }
 
     @Test
-    fun `openEditProfile pushes the profile editor`() {
-        viewModel().openEditProfile()
+    fun `OpenEditProfile pushes the profile editor`() {
+        viewModel().onEvent(ProfileUiEvent.OpenEditProfile)
 
         assertEquals(Screen.EditProfile, backStack.last().screen)
     }
 
     @Test
-    fun `openEditProfile does not stack a second editor`() {
+    fun `OpenEditProfile does not stack a second editor`() {
         val viewModel = viewModel()
 
-        viewModel.openEditProfile()
-        viewModel.openEditProfile()
+        viewModel.onEvent(ProfileUiEvent.OpenEditProfile)
+        viewModel.onEvent(ProfileUiEvent.OpenEditProfile)
 
         assertEquals(listOf(Screen.Shell, Screen.Profile("u1"), Screen.EditProfile), backStack.screens())
     }
 
     @Test
-    fun `openPost pushes the post's detail page`() {
-        viewModel().openPost("p1")
+    fun `OpenPost pushes the post's detail page`() {
+        viewModel().onEvent(ProfileUiEvent.OpenPost("p1"))
 
         assertEquals(Screen.PostDetail("p1"), backStack.last().screen)
     }
 
     @Test
-    fun `openAvatar pushes a single-image album viewer`() {
-        viewModel().openAvatar("https://example.test/avatar.jpg")
+    fun `OpenAvatar pushes a single-image album viewer`() {
+        viewModel().onEvent(ProfileUiEvent.OpenAvatar("https://example.test/avatar.jpg"))
 
         assertEquals(
             Screen.AlbumViewer(listOf("https://example.test/avatar.jpg"), initialIndex = 0),
@@ -328,7 +328,7 @@ class ProfileViewModelTest : ViewModelTest() {
     }
 
     @Test
-    fun `onToggleLike likes the post through the shared entity store`() = runTest {
+    fun `ToggleLike likes the post through the shared entity store`() = runTest {
         // The count in the answer is the server's, so the fake is told what it started from.
         val viewModel = viewModel(
             postDataSource = FakePostDataSource().apply { likeCounts["p1"] = post.likeCount },
@@ -337,7 +337,7 @@ class ProfileViewModelTest : ViewModelTest() {
             viewModel.uiState.collect {}
         }
 
-        viewModel.onToggleLike("p1")
+        viewModel.onEvent(ProfileUiEvent.ToggleLike("p1"))
 
         val liked = (viewModel.uiState.value as ProfileUiState.Loaded).data.posts.single()
         assertTrue(liked.isLiked)
@@ -345,13 +345,13 @@ class ProfileViewModelTest : ViewModelTest() {
     }
 
     @Test
-    fun `onToggleBookmark bookmarks the post through the shared entity store`() = runTest {
+    fun `ToggleBookmark bookmarks the post through the shared entity store`() = runTest {
         val viewModel = viewModel()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
 
-        viewModel.onToggleBookmark("p1")
+        viewModel.onEvent(ProfileUiEvent.ToggleBookmark("p1"))
 
         val bookmarked = (viewModel.uiState.value as ProfileUiState.Loaded).data.posts.single()
         assertTrue(bookmarked.isBookmarked)
@@ -369,13 +369,13 @@ class ProfileViewModelTest : ViewModelTest() {
     }
 
     @Test
-    fun `onSavedTabShown loads the saved posts with their authors`() = runTest {
+    fun `SavedTabShown loads the saved posts with their authors`() = runTest {
         val viewModel = viewModel()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
 
-        viewModel.onSavedTabShown()
+        viewModel.onEvent(ProfileUiEvent.SavedTabShown)
 
         val saved = (viewModel.uiState.value as ProfileUiState.Loaded).data.bookmarks!!
         val card = saved.posts.single()
@@ -394,7 +394,7 @@ class ProfileViewModelTest : ViewModelTest() {
         }
         profileDataSource.offline = true
 
-        viewModel.onSavedTabShown()
+        viewModel.onEvent(ProfileUiEvent.SavedTabShown)
 
         val data = (viewModel.uiState.value as ProfileUiState.Loaded).data
         assertNull(data.bookmarks)
@@ -408,10 +408,10 @@ class ProfileViewModelTest : ViewModelTest() {
             viewModel.uiState.collect {}
         }
         profileDataSource.offline = true
-        viewModel.onSavedTabShown()
+        viewModel.onEvent(ProfileUiEvent.SavedTabShown)
         profileDataSource.offline = false
 
-        viewModel.onSavedTabShown()
+        viewModel.onEvent(ProfileUiEvent.SavedTabShown)
 
         val data = (viewModel.uiState.value as ProfileUiState.Loaded).data
         assertFalse(data.bookmarksLoadFailed)
@@ -426,7 +426,7 @@ class ProfileViewModelTest : ViewModelTest() {
         }
         profileDataSource.offline = true
 
-        viewModel.loadMorePosts()
+        viewModel.onEvent(ProfileUiEvent.LoadMorePosts)
 
         assertTrue((viewModel.uiState.value as ProfileUiState.Loaded).data.postsLoadMoreFailed)
     }
@@ -438,23 +438,23 @@ class ProfileViewModelTest : ViewModelTest() {
             viewModel.uiState.collect {}
         }
         profileDataSource.offline = true
-        viewModel.loadMorePosts()
+        viewModel.onEvent(ProfileUiEvent.LoadMorePosts)
         profileDataSource.offline = false
 
-        viewModel.refresh()
+        viewModel.onEvent(ProfileUiEvent.Refresh)
 
         assertFalse((viewModel.uiState.value as ProfileUiState.Loaded).data.postsLoadMoreFailed)
     }
 
     @Test
-    fun `onSavedTabShown fetches only once across repeat visits`() = runTest {
+    fun `SavedTabShown fetches only once across repeat visits`() = runTest {
         val viewModel = viewModel()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
 
-        viewModel.onSavedTabShown()
-        viewModel.onSavedTabShown()
+        viewModel.onEvent(ProfileUiEvent.SavedTabShown)
+        viewModel.onEvent(ProfileUiEvent.SavedTabShown)
 
         assertEquals(1, profileDataSource.bookmarkCalls.size)
     }
@@ -466,7 +466,7 @@ class ProfileViewModelTest : ViewModelTest() {
             viewModel.uiState.collect {}
         }
 
-        viewModel.onSavedTabShown()
+        viewModel.onEvent(ProfileUiEvent.SavedTabShown)
 
         val saved = (viewModel.uiState.value as ProfileUiState.Loaded).data.bookmarks
         assertEquals(emptyList<Any>(), saved?.posts)
@@ -483,9 +483,9 @@ class ProfileViewModelTest : ViewModelTest() {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
-        viewModel.onSavedTabShown()
+        viewModel.onEvent(ProfileUiEvent.SavedTabShown)
 
-        viewModel.onToggleLike("p2")
+        viewModel.onEvent(ProfileUiEvent.ToggleLike("p2"))
 
         val card = (viewModel.uiState.value as ProfileUiState.Loaded)
             .data.bookmarks!!
@@ -496,26 +496,26 @@ class ProfileViewModelTest : ViewModelTest() {
     }
 
     @Test
-    fun `refresh leaves an unopened Saved tab unfetched`() = runTest {
+    fun `Refresh leaves an unopened Saved tab unfetched`() = runTest {
         val viewModel = viewModel()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
 
-        viewModel.refresh()
+        viewModel.onEvent(ProfileUiEvent.Refresh)
 
         assertTrue(profileDataSource.bookmarkCalls.isEmpty())
     }
 
     @Test
-    fun `refresh re-fetches the Saved tab once it has been opened`() = runTest {
+    fun `Refresh re-fetches the Saved tab once it has been opened`() = runTest {
         val viewModel = viewModel()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
-        viewModel.onSavedTabShown()
+        viewModel.onEvent(ProfileUiEvent.SavedTabShown)
 
-        viewModel.refresh()
+        viewModel.onEvent(ProfileUiEvent.Refresh)
 
         assertEquals(2, profileDataSource.bookmarkCalls.size)
     }
@@ -532,13 +532,13 @@ class ProfileViewModelTest : ViewModelTest() {
     }
 
     @Test
-    fun `onLikesTabShown loads the liked posts with their authors`() = runTest {
+    fun `LikesTabShown loads the liked posts with their authors`() = runTest {
         val viewModel = viewModel()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
 
-        viewModel.onLikesTabShown()
+        viewModel.onEvent(ProfileUiEvent.LikesTabShown)
 
         val card = (viewModel.uiState.value as ProfileUiState.Loaded)
             .data.likes!!
@@ -551,26 +551,26 @@ class ProfileViewModelTest : ViewModelTest() {
     // Likes are public, so the tab loads on someone else's profile exactly as on your own —
     // the one behavioural difference from Saved.
     @Test
-    fun `onLikesTabShown loads on another user's profile too`() = runTest {
+    fun `LikesTabShown loads on another user's profile too`() = runTest {
         val viewModel = viewModel(userId = "u2", currentUserId = "u1")
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
 
-        viewModel.onLikesTabShown()
+        viewModel.onEvent(ProfileUiEvent.LikesTabShown)
 
         assertEquals(listOf("u2" to null), profileDataSource.likeCalls)
     }
 
     @Test
-    fun `onLikesTabShown fetches only once across repeat visits`() = runTest {
+    fun `LikesTabShown fetches only once across repeat visits`() = runTest {
         val viewModel = viewModel()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
 
-        viewModel.onLikesTabShown()
-        viewModel.onLikesTabShown()
+        viewModel.onEvent(ProfileUiEvent.LikesTabShown)
+        viewModel.onEvent(ProfileUiEvent.LikesTabShown)
 
         assertEquals(1, profileDataSource.likeCalls.size)
     }
@@ -583,21 +583,21 @@ class ProfileViewModelTest : ViewModelTest() {
             viewModel.uiState.collect {}
         }
 
-        viewModel.onLikesTabShown()
+        viewModel.onEvent(ProfileUiEvent.LikesTabShown)
 
         assertTrue(profileDataSource.bookmarkCalls.isEmpty())
         assertNull((viewModel.uiState.value as ProfileUiState.Loaded).data.bookmarks)
     }
 
     @Test
-    fun `refresh re-fetches the Likes tab once it has been opened`() = runTest {
+    fun `Refresh re-fetches the Likes tab once it has been opened`() = runTest {
         val viewModel = viewModel()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
-        viewModel.onLikesTabShown()
+        viewModel.onEvent(ProfileUiEvent.LikesTabShown)
 
-        viewModel.refresh()
+        viewModel.onEvent(ProfileUiEvent.Refresh)
 
         assertEquals(2, profileDataSource.likeCalls.size)
     }
@@ -608,9 +608,9 @@ class ProfileViewModelTest : ViewModelTest() {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
-        viewModel.onSavedTabShown()
+        viewModel.onEvent(ProfileUiEvent.SavedTabShown)
 
-        viewModel.onToggleBookmark("p2")
+        viewModel.onEvent(ProfileUiEvent.ToggleBookmark("p2"))
 
         val bookmarks = (viewModel.uiState.value as ProfileUiState.Loaded).data.bookmarks!!
         assertTrue(bookmarks.posts.isEmpty())
@@ -625,9 +625,9 @@ class ProfileViewModelTest : ViewModelTest() {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
-        viewModel.onSavedTabShown()
+        viewModel.onEvent(ProfileUiEvent.SavedTabShown)
 
-        viewModel.onToggleLike("p2")
+        viewModel.onEvent(ProfileUiEvent.ToggleLike("p2"))
 
         val bookmarks = (viewModel.uiState.value as ProfileUiState.Loaded).data.bookmarks!!
         assertEquals(listOf("p2"), bookmarks.posts.map { it.post.id })
@@ -641,29 +641,29 @@ class ProfileViewModelTest : ViewModelTest() {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
-        viewModel.onLikesTabShown()
+        viewModel.onEvent(ProfileUiEvent.LikesTabShown)
 
-        viewModel.onToggleLike("p1")
+        viewModel.onEvent(ProfileUiEvent.ToggleLike("p1"))
 
         val likes = (viewModel.uiState.value as ProfileUiState.Loaded).data.likes!!
         assertTrue(likes.posts.any { it.post.id == "p1" })
     }
 
     @Test
-    fun `openProfile pushes the saved post's author`() {
-        viewModel().openProfile("u2")
+    fun `OpenProfile pushes the saved post's author`() {
+        viewModel().onEvent(ProfileUiEvent.OpenProfile("u2"))
 
         assertEquals(Screen.Profile("u2"), backStack.last().screen)
     }
 
     @Test
-    fun `onToggleFollow follows the viewed user and updates the follower count`() = runTest {
+    fun `ToggleFollow follows the viewed user and updates the follower count`() = runTest {
         val viewModel = viewModel(userId = "u2", currentUserId = "u1")
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
 
-        viewModel.onToggleFollow()
+        viewModel.onEvent(ProfileUiEvent.ToggleFollow)
 
         val user = (viewModel.uiState.value as ProfileUiState.Loaded).data.user
         assertTrue(user.isFollowing)
@@ -682,7 +682,7 @@ class ProfileViewModelTest : ViewModelTest() {
             viewModel.uiState.collect {}
         }
 
-        viewModel.onToggleFollow()
+        viewModel.onEvent(ProfileUiEvent.ToggleFollow)
 
         val user = (viewModel.uiState.value as ProfileUiState.Loaded).data.user
         assertFalse(user.isFollowing)
@@ -700,7 +700,7 @@ class ProfileViewModelTest : ViewModelTest() {
             viewModel.uiState.collect {}
         }
 
-        viewModel.onDeletePost("p1")
+        viewModel.onEvent(ProfileUiEvent.Delete("p1"))
 
         val loaded = viewModel.uiState.value as ProfileUiState.Loaded
         assertEquals(listOf(post), loaded.data.posts)
@@ -710,7 +710,7 @@ class ProfileViewModelTest : ViewModelTest() {
     // Announced once and then spent, the same lifetime the feed gives its refresh error: what is
     // left in the state is what a rotation would replay.
     @Test
-    fun `onFailedActionShown clears the announcement`() = runTest {
+    fun `FailedActionShown clears the announcement`() = runTest {
         val userDataSource = FakeUserDataSource(mapOf("u1" to ada, "u2" to grace)).apply {
             toggleFollowError = UnknownHostException("offline")
         }
@@ -718,9 +718,9 @@ class ProfileViewModelTest : ViewModelTest() {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
-        viewModel.onToggleFollow()
+        viewModel.onEvent(ProfileUiEvent.ToggleFollow)
 
-        viewModel.onFailedActionShown()
+        viewModel.onEvent(ProfileUiEvent.FailedActionShown)
 
         assertNull(viewModel.failedAction.value)
     }

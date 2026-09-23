@@ -49,7 +49,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.FloatState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableFloatState
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -80,7 +79,6 @@ import uno.lux.mosaic.R
 import uno.lux.mosaic.app.fixtures.SamplePosts
 import uno.lux.mosaic.app.fixtures.SampleUsers
 import uno.lux.mosaic.common.asText
-import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.common.ui.FailedAction
 import uno.lux.mosaic.common.ui.FailedActionEffect
 import uno.lux.mosaic.common.ui.FullScreenError
@@ -88,7 +86,6 @@ import uno.lux.mosaic.common.ui.FullScreenProgress
 import uno.lux.mosaic.common.ui.LoadMoreEffect
 import uno.lux.mosaic.common.ui.LoadMoreFooter
 import uno.lux.mosaic.common.util.compactCount
-import uno.lux.mosaic.common.util.createActionsProxy
 import uno.lux.mosaic.designsystem.components.ScrimIconButton
 import uno.lux.mosaic.designsystem.components.debouncedClickable
 import uno.lux.mosaic.designsystem.components.rememberDebounced
@@ -96,61 +93,14 @@ import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
 import uno.lux.mosaic.designsystem.theme.MosaicElevations
 import uno.lux.mosaic.designsystem.theme.MosaicGradients
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
-import uno.lux.mosaic.post.data.domain.PostId
 import uno.lux.mosaic.post.ui.PostCard
 import uno.lux.mosaic.post.ui.ReportSendState
 import uno.lux.mosaic.profile.data.domain.Profile
 import uno.lux.mosaic.user.data.domain.User
 import uno.lux.mosaic.user.data.domain.UserId
 import uno.lux.mosaic.user.ui.Avatar
-import uno.lux.mosaic.video.data.domain.Video
 import kotlin.math.roundToInt
 import uno.lux.mosaic.common.R as CommonR
-
-@Stable
-interface ProfileActions {
-    fun onToggleLike(postId: PostId)
-
-    fun onToggleBookmark(postId: PostId)
-
-    fun onDeletePost(postId: PostId)
-
-    fun onReportPost(
-        postId: PostId,
-        reason: ReportReason,
-        details: String,
-    )
-
-    fun onReportClosed()
-
-    fun onToggleFollow()
-
-    fun onFailedActionShown()
-
-    fun loadMorePosts()
-
-    fun onSavedTabShown()
-
-    fun loadMoreBookmarks()
-
-    fun onLikesTabShown()
-
-    fun loadMoreLikes()
-
-    fun goBack()
-
-    fun openEditProfile()
-
-    fun openPost(postId: PostId)
-
-    fun openProfile(userId: UserId)
-
-    fun openVideo(video: Video)
-
-    fun openAlbum(imageUrls: List<String>, initialIndex: Int)
-
-    fun openAvatar(avatarUrl: String)
-}
 
 @Composable
 fun ProfileScreen(
@@ -172,11 +122,9 @@ fun ProfileScreen(
         isRefreshing = isRefreshing,
         failedAction = failedAction,
         reportSend = reportSend,
-        onRefresh = viewModel::refresh,
-        onRetry = viewModel::retry,
-        actions = viewModel,
+        onEvent = viewModel::onEvent,
         modifier = modifier,
-        onBack = if (showBackButton) viewModel::goBack else null,
+        showBackButton = showBackButton,
     )
 }
 
@@ -186,15 +134,14 @@ internal fun ProfileScreen(
     isRefreshing: Boolean,
     failedAction: FailedAction?,
     reportSend: ReportSendState,
-    onRefresh: () -> Unit,
-    onRetry: () -> Unit,
-    actions: ProfileActions,
+    onEvent: (ProfileUiEvent) -> Unit,
     modifier: Modifier = Modifier,
-    onBack: (() -> Unit)? = null,
+    showBackButton: Boolean = false,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    val onBack: (() -> Unit)? = if (showBackButton) ({ onEvent(ProfileUiEvent.GoBack) }) else null
 
-    FailedActionEffect(failedAction, snackbarHostState, actions::onFailedActionShown)
+    FailedActionEffect(failedAction, snackbarHostState) { onEvent(ProfileUiEvent.FailedActionShown) }
 
     Box(
         modifier = modifier
@@ -210,7 +157,7 @@ internal fun ProfileScreen(
             is ProfileUiState.Error -> {
                 FullScreenError(
                     message = uiState.error.asText(),
-                    onRetry = onRetry,
+                    onRetry = { onEvent(ProfileUiEvent.Retry) },
                 )
                 if (onBack != null) PlainBackButton(onBack, Modifier.align(Alignment.TopStart))
             }
@@ -227,8 +174,7 @@ internal fun ProfileScreen(
                     isCurrentUser = uiState.isCurrentUser,
                     isRefreshing = isRefreshing,
                     reportSend = reportSend,
-                    onRefresh = onRefresh,
-                    actions = actions,
+                    onEvent = onEvent,
                     onBack = onBack,
                 )
             }
@@ -262,8 +208,7 @@ private fun ProfileContent(
     isCurrentUser: Boolean,
     isRefreshing: Boolean,
     reportSend: ReportSendState,
-    onRefresh: () -> Unit,
-    actions: ProfileActions,
+    onEvent: (ProfileUiEvent) -> Unit,
     onBack: (() -> Unit)?,
 ) {
     // Saved is the signed-in user's own private list, so it is hidden on anyone else's profile.
@@ -319,23 +264,23 @@ private fun ProfileContent(
             listState = listState,
             endReached = data.postsEndReached,
             loadMoreFailed = data.postsLoadMoreFailed,
-            onLoadMore = actions::loadMorePosts,
+            onLoadMore = { onEvent(ProfileUiEvent.LoadMorePosts) },
         )
 
         ProfileTab.LIKES -> OnDemandTabEffects(
             listState = listState,
             list = data.likes,
             loadFailed = data.likesLoadFailed,
-            onShown = actions::onLikesTabShown,
-            onLoadMore = actions::loadMoreLikes,
+            onShown = { onEvent(ProfileUiEvent.LikesTabShown) },
+            onLoadMore = { onEvent(ProfileUiEvent.LoadMoreLikes) },
         )
 
         ProfileTab.SAVED -> OnDemandTabEffects(
             listState = listState,
             list = data.bookmarks,
             loadFailed = data.bookmarksLoadFailed,
-            onShown = actions::onSavedTabShown,
-            onLoadMore = actions::loadMoreBookmarks,
+            onShown = { onEvent(ProfileUiEvent.SavedTabShown) },
+            onLoadMore = { onEvent(ProfileUiEvent.LoadMoreBookmarks) },
         )
     }
 
@@ -343,7 +288,7 @@ private fun ProfileContent(
     // downward drag re-expands the header before the refresh gesture gets the leftover.
     PullToRefreshBox(
         isRefreshing = isRefreshing,
-        onRefresh = onRefresh,
+        onRefresh = { onEvent(ProfileUiEvent.Refresh) },
         modifier = Modifier.fillMaxSize(),
     ) {
         Box(
@@ -355,9 +300,9 @@ private fun ProfileContent(
                 ProfileHeader(
                     user = data.user,
                     isCurrentUser = isCurrentUser,
-                    onEditProfile = actions::openEditProfile,
-                    onToggleFollow = actions::onToggleFollow,
-                    onOpenAvatar = actions::openAvatar,
+                    onEditProfile = { onEvent(ProfileUiEvent.OpenEditProfile) },
+                    onToggleFollow = { onEvent(ProfileUiEvent.ToggleFollow) },
+                    onOpenAvatar = { url -> onEvent(ProfileUiEvent.OpenAvatar(url)) },
                     // Reserve `collapse` less height and draw the header shifted up by that much,
                     // so it slides behind the bar with no gap left below. Read in the layout pass,
                     // so a scroll reflows the header without recomposing this screen.
@@ -386,17 +331,17 @@ private fun ProfileContent(
                         ProfileTab.POSTS -> postItems(
                             screenData = data,
                             reportSend = reportSend,
-                            actions = actions,
+                            onEvent = onEvent,
                             isCurrentUser = isCurrentUser,
                         )
 
                         ProfileTab.LIKES -> onDemandTabItems(
                             list = data.likes,
                             loadFailed = data.likesLoadFailed,
-                            onFirstLoad = actions::onLikesTabShown,
-                            onLoadMore = actions::loadMoreLikes,
+                            onFirstLoad = { onEvent(ProfileUiEvent.LikesTabShown) },
+                            onLoadMore = { onEvent(ProfileUiEvent.LoadMoreLikes) },
                             reportSend = reportSend,
-                            actions = actions,
+                            onEvent = onEvent,
                             keyPrefix = "likes",
                             emptyMessageRes = R.string.profile_empty_likes,
                         )
@@ -404,10 +349,10 @@ private fun ProfileContent(
                         ProfileTab.SAVED -> onDemandTabItems(
                             list = data.bookmarks,
                             loadFailed = data.bookmarksLoadFailed,
-                            onFirstLoad = actions::onSavedTabShown,
-                            onLoadMore = actions::loadMoreBookmarks,
+                            onFirstLoad = { onEvent(ProfileUiEvent.SavedTabShown) },
+                            onLoadMore = { onEvent(ProfileUiEvent.LoadMoreBookmarks) },
                             reportSend = reportSend,
-                            actions = actions,
+                            onEvent = onEvent,
                             keyPrefix = "saved",
                             emptyMessageRes = R.string.profile_empty_saved,
                         )
@@ -681,7 +626,7 @@ private fun ProfileTabs(
 private fun LazyListScope.postItems(
     screenData: ProfileScreenData,
     reportSend: ReportSendState,
-    actions: ProfileActions,
+    onEvent: (ProfileUiEvent) -> Unit,
     isCurrentUser: Boolean,
 ) {
     val posts = screenData.posts
@@ -696,22 +641,25 @@ private fun LazyListScope.postItems(
             post = post,
             author = author,
             reportSend = reportSend,
-            onToggleLike = { actions.onToggleLike(post.id) },
-            onToggleBookmark = { actions.onToggleBookmark(post.id) },
+            onToggleLike = { onEvent(ProfileUiEvent.ToggleLike(post.id)) },
+            onToggleBookmark = { onEvent(ProfileUiEvent.ToggleBookmark(post.id)) },
             // Already on this author's profile — tapping the header again is a no-op.
             onOpenProfile = {},
-            onOpenVideo = actions::openVideo,
-            onOpenAlbum = actions::openAlbum,
-            onOpenPost = { actions.openPost(post.id) },
-            onReport = { reason, details -> actions.onReportPost(post.id, reason, details) },
-            onReportClosed = actions::onReportClosed,
+            onOpenVideo = { video -> onEvent(ProfileUiEvent.OpenVideo(video)) },
+            onOpenAlbum = { urls, index -> onEvent(ProfileUiEvent.OpenAlbum(urls, index)) },
+            onOpenPost = { onEvent(ProfileUiEvent.OpenPost(post.id)) },
+            onReport = { reason, details -> onEvent(ProfileUiEvent.Report(post.id, reason, details)) },
+            onReportClosed = { onEvent(ProfileUiEvent.CloseReport) },
             // Every post here is by the profile's user, so "own post" is whose profile this is.
-            onDelete = if (isCurrentUser) ({ actions.onDeletePost(post.id) }) else null,
+            onDelete = if (isCurrentUser) ({ onEvent(ProfileUiEvent.Delete(post.id)) }) else null,
         )
     }
     if (!screenData.postsEndReached) {
         item(key = "posts-loading-more") {
-            LoadMoreFooter(failed = screenData.postsLoadMoreFailed, onRetry = actions::loadMorePosts)
+            LoadMoreFooter(
+                failed = screenData.postsLoadMoreFailed,
+                onRetry = { onEvent(ProfileUiEvent.LoadMorePosts) },
+            )
         }
     }
 }
@@ -746,7 +694,7 @@ private fun LazyListScope.onDemandTabItems(
     onFirstLoad: () -> Unit,
     onLoadMore: () -> Unit,
     reportSend: ReportSendState,
-    actions: ProfileActions,
+    onEvent: (ProfileUiEvent) -> Unit,
     keyPrefix: String,
     @StringRes emptyMessageRes: Int,
 ) {
@@ -765,16 +713,18 @@ private fun LazyListScope.onDemandTabItems(
             post = data.post,
             author = data.author,
             reportSend = reportSend,
-            onToggleLike = { actions.onToggleLike(data.post.id) },
-            onToggleBookmark = { actions.onToggleBookmark(data.post.id) },
+            onToggleLike = { onEvent(ProfileUiEvent.ToggleLike(data.post.id)) },
+            onToggleBookmark = { onEvent(ProfileUiEvent.ToggleBookmark(data.post.id)) },
             // A saved or liked post can be by anyone, so its header opens that author's profile.
-            onOpenProfile = { actions.openProfile(data.author.id) },
-            onOpenVideo = actions::openVideo,
-            onOpenAlbum = actions::openAlbum,
-            onOpenPost = { actions.openPost(data.post.id) },
-            onReport = { reason, details -> actions.onReportPost(data.post.id, reason, details) },
-            onReportClosed = actions::onReportClosed,
-            onDelete = if (data.isOwn) ({ actions.onDeletePost(data.post.id) }) else null,
+            onOpenProfile = { onEvent(ProfileUiEvent.OpenProfile(data.author.id)) },
+            onOpenVideo = { video -> onEvent(ProfileUiEvent.OpenVideo(video)) },
+            onOpenAlbum = { urls, index -> onEvent(ProfileUiEvent.OpenAlbum(urls, index)) },
+            onOpenPost = { onEvent(ProfileUiEvent.OpenPost(data.post.id)) },
+            onReport = { reason, details ->
+                onEvent(ProfileUiEvent.Report(data.post.id, reason, details))
+            },
+            onReportClosed = { onEvent(ProfileUiEvent.CloseReport) },
+            onDelete = if (data.isOwn) ({ onEvent(ProfileUiEvent.Delete(data.post.id)) }) else null,
         )
     }
 
@@ -917,9 +867,7 @@ private fun ProfileScreenPreview() {
             isRefreshing = false,
             failedAction = null,
             reportSend = ReportSendState.IDLE,
-            onRefresh = {},
-            onRetry = {},
-            actions = createActionsProxy(),
+            onEvent = {},
         )
     }
 }
@@ -933,9 +881,7 @@ private fun ProfileScreenOtherUserPreview() {
             isRefreshing = false,
             failedAction = null,
             reportSend = ReportSendState.IDLE,
-            onRefresh = {},
-            onRetry = {},
-            actions = createActionsProxy(),
+            onEvent = {},
         )
     }
 }

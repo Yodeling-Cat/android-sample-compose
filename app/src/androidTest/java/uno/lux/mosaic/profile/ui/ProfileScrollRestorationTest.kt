@@ -16,7 +16,6 @@ import org.junit.runner.RunWith
 import uno.lux.mosaic.R
 import uno.lux.mosaic.app.fixtures.SamplePosts
 import uno.lux.mosaic.app.fixtures.SampleUsers
-import uno.lux.mosaic.common.util.createActionsProxy
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.post.ui.ReportSendState
 import uno.lux.mosaic.profile.data.domain.Profile
@@ -39,10 +38,6 @@ class ProfileScrollRestorationTest {
     @get:Rule
     val composeRule = createComposeRule()
 
-    // Held rather than built in the composition, so the screen sees one instance across the swipe's
-    // recompositions — the proxy compares by identity, and a fresh one each pass would defeat that.
-    private val actions = createActionsProxy<ProfileActions>()
-
     @Test
     fun keepsTheHeaderCollapsedAcrossRecreation() {
         val restorationTester = StateRestorationTester(composeRule)
@@ -53,9 +48,7 @@ class ProfileScrollRestorationTest {
                     isRefreshing = false,
                     failedAction = null,
                     reportSend = ReportSendState.IDLE,
-                    onRefresh = {},
-                    onRetry = {},
-                    actions = actions,
+                    onEvent = {},
                 )
             }
         }
