@@ -28,23 +28,21 @@ class SettingsViewModel @Inject constructor(
             )
         }.stateInWhileSubscribed(viewModelScope, SettingsUiState.Loading)
 
-    fun onEvent(event: SettingsUiEvent) {
-        when (event) {
-            is SettingsUiEvent.SetThemeMode -> {
-                setThemeMode(event.mode)
-            }
+    fun onEvent(event: SettingsUiEvent): Unit = when (event) {
+        is SettingsUiEvent.SetThemeMode -> {
+            setThemeMode(event.mode)
+        }
 
-            is SettingsUiEvent.SetAutoPlayVideos -> {
-                setAutoPlayVideos(event.enabled)
-            }
+        is SettingsUiEvent.SetAutoPlayVideos -> {
+            setAutoPlayVideos(event.enabled)
+        }
 
-            is SettingsUiEvent.SetLanguage -> {
-                setLanguage(event.language)
-            }
+        is SettingsUiEvent.SetLanguage -> {
+            setLanguage(event.language)
+        }
 
-            SettingsUiEvent.GoBack -> {
-                navigator.goBack()
-            }
+        SettingsUiEvent.GoBack -> {
+            navigator.goBack()
         }
     }
 

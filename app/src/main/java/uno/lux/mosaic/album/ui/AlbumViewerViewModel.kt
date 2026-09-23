@@ -10,11 +10,9 @@ class AlbumViewerViewModel @Inject constructor(
     private val navigator: Navigator,
 ) : ViewModel() {
 
-    fun onEvent(event: AlbumViewerUiEvent) {
-        when (event) {
-            AlbumViewerUiEvent.GoBack -> {
-                navigator.goBack()
-            }
+    fun onEvent(event: AlbumViewerUiEvent): Unit = when (event) {
+        AlbumViewerUiEvent.GoBack -> {
+            navigator.goBack()
         }
     }
 }

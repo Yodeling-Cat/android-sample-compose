@@ -198,91 +198,89 @@ class ProfileViewModel @AssistedInject constructor(
         retry()
     }
 
-    fun onEvent(event: ProfileUiEvent) {
-        when (event) {
-            ProfileUiEvent.Refresh -> {
-                refresh()
-            }
+    fun onEvent(event: ProfileUiEvent): Unit = when (event) {
+        ProfileUiEvent.Refresh -> {
+            refresh()
+        }
 
-            ProfileUiEvent.Retry -> {
-                retry()
-            }
+        ProfileUiEvent.Retry -> {
+            retry()
+        }
 
-            is ProfileUiEvent.ToggleLike -> {
-                toggleLike(event.postId)
-            }
+        is ProfileUiEvent.ToggleLike -> {
+            toggleLike(event.postId)
+        }
 
-            is ProfileUiEvent.ToggleBookmark -> {
-                toggleBookmark(event.postId)
-            }
+        is ProfileUiEvent.ToggleBookmark -> {
+            toggleBookmark(event.postId)
+        }
 
-            is ProfileUiEvent.Delete -> {
-                delete(event.postId)
-            }
+        is ProfileUiEvent.Delete -> {
+            delete(event.postId)
+        }
 
-            is ProfileUiEvent.Report -> {
-                report(event.postId, event.reason, event.details)
-            }
+        is ProfileUiEvent.Report -> {
+            report(event.postId, event.reason, event.details)
+        }
 
-            ProfileUiEvent.CloseReport -> {
-                dropReport(::reportJob, ::setReportSend)
-            }
+        ProfileUiEvent.CloseReport -> {
+            dropReport(::reportJob, ::setReportSend)
+        }
 
-            ProfileUiEvent.ToggleFollow -> {
-                toggleFollow()
-            }
+        ProfileUiEvent.ToggleFollow -> {
+            toggleFollow()
+        }
 
-            ProfileUiEvent.FailedActionShown -> {
-                _failedAction.value = null
-            }
+        ProfileUiEvent.FailedActionShown -> {
+            _failedAction.value = null
+        }
 
-            ProfileUiEvent.LoadMorePosts -> {
-                loadMorePosts()
-            }
+        ProfileUiEvent.LoadMorePosts -> {
+            loadMorePosts()
+        }
 
-            ProfileUiEvent.SavedTabShown -> {
-                ensureSavedLoaded()
-            }
+        ProfileUiEvent.SavedTabShown -> {
+            ensureSavedLoaded()
+        }
 
-            ProfileUiEvent.LoadMoreBookmarks -> {
-                loadMoreBookmarks()
-            }
+        ProfileUiEvent.LoadMoreBookmarks -> {
+            loadMoreBookmarks()
+        }
 
-            ProfileUiEvent.LikesTabShown -> {
-                ensureLikesLoaded()
-            }
+        ProfileUiEvent.LikesTabShown -> {
+            ensureLikesLoaded()
+        }
 
-            ProfileUiEvent.LoadMoreLikes -> {
-                loadMoreLikes()
-            }
+        ProfileUiEvent.LoadMoreLikes -> {
+            loadMoreLikes()
+        }
 
-            ProfileUiEvent.GoBack -> {
-                navigator.goBack()
-            }
+        ProfileUiEvent.GoBack -> {
+            navigator.goBack()
+        }
 
-            ProfileUiEvent.OpenEditProfile -> {
-                navigator.goToSingleTop(Screen.EditProfile)
-            }
+        ProfileUiEvent.OpenEditProfile -> {
+            navigator.goToSingleTop(Screen.EditProfile)
+        }
 
-            is ProfileUiEvent.OpenPost -> {
-                navigator.goTo(Screen.PostDetail(event.postId))
-            }
+        is ProfileUiEvent.OpenPost -> {
+            navigator.goTo(Screen.PostDetail(event.postId))
+        }
 
-            is ProfileUiEvent.OpenProfile -> {
-                navigator.goTo(Screen.Profile(event.userId))
-            }
+        is ProfileUiEvent.OpenProfile -> {
+            navigator.goTo(Screen.Profile(event.userId))
+        }
 
-            is ProfileUiEvent.OpenVideo -> {
-                navigator.goTo(Screen.FullscreenVideo(event.video))
-            }
+        is ProfileUiEvent.OpenVideo -> {
+            navigator.goTo(Screen.FullscreenVideo(event.video))
+        }
 
-            is ProfileUiEvent.OpenAlbum -> {
-                navigator.goTo(Screen.AlbumViewer(event.imageUrls, event.initialIndex))
-            }
+        is ProfileUiEvent.OpenAlbum -> {
+            navigator.goTo(Screen.AlbumViewer(event.imageUrls, event.initialIndex))
+        }
 
-            is ProfileUiEvent.OpenAvatar -> {
-                navigator.goTo(Screen.AlbumViewer(listOf(event.avatarUrl), initialIndex = 0))
-            }
+        is ProfileUiEvent.OpenAvatar -> {
+            navigator.goTo(Screen.AlbumViewer(listOf(event.avatarUrl), initialIndex = 0))
         }
     }
 

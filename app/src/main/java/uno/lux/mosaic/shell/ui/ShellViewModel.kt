@@ -17,11 +17,9 @@ class ShellViewModel @Inject constructor(
     private val navigator: Navigator,
 ) : ViewModel() {
 
-    fun onEvent(event: ShellUiEvent) {
-        when (event) {
-            is ShellUiEvent.OpenDestination -> {
-                navigator.goToSingleTop(event.screen)
-            }
+    fun onEvent(event: ShellUiEvent): Unit = when (event) {
+        is ShellUiEvent.OpenDestination -> {
+            navigator.goToSingleTop(event.screen)
         }
     }
 }

@@ -107,67 +107,65 @@ class HomeViewModel @Inject constructor(
         retry()
     }
 
-    fun onEvent(event: HomeUiEvent) {
-        when (event) {
-            HomeUiEvent.Refresh -> {
-                refresh()
-            }
+    fun onEvent(event: HomeUiEvent): Unit = when (event) {
+        HomeUiEvent.Refresh -> {
+            refresh()
+        }
 
-            HomeUiEvent.Retry -> {
-                retry()
-            }
+        HomeUiEvent.Retry -> {
+            retry()
+        }
 
-            HomeUiEvent.RefreshErrorShown -> {
-                _loadError.value = null
-            }
+        HomeUiEvent.RefreshErrorShown -> {
+            _loadError.value = null
+        }
 
-            HomeUiEvent.FailedActionShown -> {
-                _failedAction.value = null
-            }
+        HomeUiEvent.FailedActionShown -> {
+            _failedAction.value = null
+        }
 
-            HomeUiEvent.LoadMore -> {
-                loadMore()
-            }
+        HomeUiEvent.LoadMore -> {
+            loadMore()
+        }
 
-            is HomeUiEvent.ToggleLike -> {
-                toggleLike(event.postId)
-            }
+        is HomeUiEvent.ToggleLike -> {
+            toggleLike(event.postId)
+        }
 
-            is HomeUiEvent.ToggleBookmark -> {
-                toggleBookmark(event.postId)
-            }
+        is HomeUiEvent.ToggleBookmark -> {
+            toggleBookmark(event.postId)
+        }
 
-            is HomeUiEvent.Delete -> {
-                delete(event.postId)
-            }
+        is HomeUiEvent.Delete -> {
+            delete(event.postId)
+        }
 
-            is HomeUiEvent.Report -> {
-                report(event.postId, event.reason, event.details)
-            }
+        is HomeUiEvent.Report -> {
+            report(event.postId, event.reason, event.details)
+        }
 
-            HomeUiEvent.CloseReport -> {
-                dropReport(::reportJob, ::setReportSend)
-            }
+        HomeUiEvent.CloseReport -> {
+            dropReport(::reportJob, ::setReportSend)
+        }
 
-            HomeUiEvent.OpenSettings -> {
-                navigator.goToSingleTop(Screen.Settings)
-            }
+        HomeUiEvent.OpenSettings -> {
+            navigator.goToSingleTop(Screen.Settings)
+        }
 
-            is HomeUiEvent.OpenProfile -> {
-                navigator.goTo(Screen.Profile(event.userId))
-            }
+        is HomeUiEvent.OpenProfile -> {
+            navigator.goTo(Screen.Profile(event.userId))
+        }
 
-            is HomeUiEvent.OpenPost -> {
-                navigator.goTo(Screen.PostDetail(event.postId))
-            }
+        is HomeUiEvent.OpenPost -> {
+            navigator.goTo(Screen.PostDetail(event.postId))
+        }
 
-            is HomeUiEvent.OpenVideo -> {
-                navigator.goTo(Screen.FullscreenVideo(event.video))
-            }
+        is HomeUiEvent.OpenVideo -> {
+            navigator.goTo(Screen.FullscreenVideo(event.video))
+        }
 
-            is HomeUiEvent.OpenAlbum -> {
-                navigator.goTo(Screen.AlbumViewer(event.imageUrls, event.initialIndex))
-            }
+        is HomeUiEvent.OpenAlbum -> {
+            navigator.goTo(Screen.AlbumViewer(event.imageUrls, event.initialIndex))
         }
     }
 

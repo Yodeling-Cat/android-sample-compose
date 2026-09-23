@@ -93,50 +93,48 @@ class EditProfileViewModel @Inject constructor(
         retry()
     }
 
-    fun onEvent(event: EditProfileUiEvent) {
-        when (event) {
-            is EditProfileUiEvent.NicknameChanged -> {
-                updateForm { it.copy(nickname = event.value) }
-            }
+    fun onEvent(event: EditProfileUiEvent): Unit = when (event) {
+        is EditProfileUiEvent.NicknameChanged -> {
+            updateForm { it.copy(nickname = event.value) }
+        }
 
-            is EditProfileUiEvent.AgeChanged -> {
-                updateForm { form ->
-                    form.copy(age = event.value.filter { it.isDigit() }.take(3))
-                }
+        is EditProfileUiEvent.AgeChanged -> {
+            updateForm { form ->
+                form.copy(age = event.value.filter { it.isDigit() }.take(3))
             }
+        }
 
-            is EditProfileUiEvent.GenderChanged -> {
-                updateForm { it.copy(gender = event.gender) }
-            }
+        is EditProfileUiEvent.GenderChanged -> {
+            updateForm { it.copy(gender = event.gender) }
+        }
 
-            is EditProfileUiEvent.BioChanged -> {
-                updateForm { it.copy(bio = event.value) }
-            }
+        is EditProfileUiEvent.BioChanged -> {
+            updateForm { it.copy(bio = event.value) }
+        }
 
-            is EditProfileUiEvent.AvatarPicked -> {
-                updateForm { it.copy(pickedAvatarUri = event.uri) }
-            }
+        is EditProfileUiEvent.AvatarPicked -> {
+            updateForm { it.copy(pickedAvatarUri = event.uri) }
+        }
 
-            EditProfileUiEvent.Save -> {
-                save()
-            }
+        EditProfileUiEvent.Save -> {
+            save()
+        }
 
-            EditProfileUiEvent.Retry -> {
-                retry()
-            }
+        EditProfileUiEvent.Retry -> {
+            retry()
+        }
 
-            EditProfileUiEvent.GoBack -> {
-                goBack()
-            }
+        EditProfileUiEvent.GoBack -> {
+            goBack()
+        }
 
-            EditProfileUiEvent.DismissDiscard -> {
-                _showDiscardConfirmation.value = false
-            }
+        EditProfileUiEvent.DismissDiscard -> {
+            _showDiscardConfirmation.value = false
+        }
 
-            EditProfileUiEvent.ConfirmDiscard -> {
-                _showDiscardConfirmation.value = false
-                navigator.goBack()
-            }
+        EditProfileUiEvent.ConfirmDiscard -> {
+            _showDiscardConfirmation.value = false
+            navigator.goBack()
         }
     }
 

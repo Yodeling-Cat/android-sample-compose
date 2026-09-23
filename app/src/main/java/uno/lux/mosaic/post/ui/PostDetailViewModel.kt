@@ -114,77 +114,75 @@ class PostDetailViewModel @AssistedInject constructor(
         retry()
     }
 
-    fun onEvent(event: PostDetailUiEvent) {
-        when (event) {
-            PostDetailUiEvent.GoBack -> {
-                navigator.goBack()
-            }
+    fun onEvent(event: PostDetailUiEvent): Unit = when (event) {
+        PostDetailUiEvent.GoBack -> {
+            navigator.goBack()
+        }
 
-            is PostDetailUiEvent.OpenProfile -> {
-                navigator.goTo(Screen.Profile(event.userId))
-            }
+        is PostDetailUiEvent.OpenProfile -> {
+            navigator.goTo(Screen.Profile(event.userId))
+        }
 
-            is PostDetailUiEvent.OpenVideo -> {
-                navigator.goTo(Screen.FullscreenVideo(event.video))
-            }
+        is PostDetailUiEvent.OpenVideo -> {
+            navigator.goTo(Screen.FullscreenVideo(event.video))
+        }
 
-            is PostDetailUiEvent.OpenAlbum -> {
-                navigator.goTo(
-                    Screen.AlbumViewer(event.imageUrls, event.initialIndex),
-                )
-            }
+        is PostDetailUiEvent.OpenAlbum -> {
+            navigator.goTo(
+                Screen.AlbumViewer(event.imageUrls, event.initialIndex),
+            )
+        }
 
-            PostDetailUiEvent.ToggleLike -> {
-                toggleLike()
-            }
+        PostDetailUiEvent.ToggleLike -> {
+            toggleLike()
+        }
 
-            PostDetailUiEvent.ToggleBookmark -> {
-                toggleBookmark()
-            }
+        PostDetailUiEvent.ToggleBookmark -> {
+            toggleBookmark()
+        }
 
-            PostDetailUiEvent.Delete -> {
-                delete()
-            }
+        PostDetailUiEvent.Delete -> {
+            delete()
+        }
 
-            is PostDetailUiEvent.Report -> {
-                report(event.reason, event.details)
-            }
+        is PostDetailUiEvent.Report -> {
+            report(event.reason, event.details)
+        }
 
-            PostDetailUiEvent.CloseReport -> {
-                dropReport(::reportJob, ::setReportSend)
-            }
+        PostDetailUiEvent.CloseReport -> {
+            dropReport(::reportJob, ::setReportSend)
+        }
 
-            PostDetailUiEvent.Retry -> {
-                retry()
-            }
+        PostDetailUiEvent.Retry -> {
+            retry()
+        }
 
-            is PostDetailUiEvent.AddComment -> {
-                addComment(event.text)
-            }
+        is PostDetailUiEvent.AddComment -> {
+            addComment(event.text)
+        }
 
-            is PostDetailUiEvent.ToggleCommentLike -> {
-                toggleCommentLike(event.commentId)
-            }
+        is PostDetailUiEvent.ToggleCommentLike -> {
+            toggleCommentLike(event.commentId)
+        }
 
-            PostDetailUiEvent.LoadMoreComments -> {
-                loadMoreComments()
-            }
+        PostDetailUiEvent.LoadMoreComments -> {
+            loadMoreComments()
+        }
 
-            PostDetailUiEvent.RetryComments -> {
-                retryComments()
-            }
+        PostDetailUiEvent.RetryComments -> {
+            retryComments()
+        }
 
-            PostDetailUiEvent.FailedActionShown -> {
-                _uiState.update { it.copy(failedAction = null) }
-            }
+        PostDetailUiEvent.FailedActionShown -> {
+            _uiState.update { it.copy(failedAction = null) }
+        }
 
-            PostDetailUiEvent.CommentSent -> {
-                setCommentSend(CommentSendState.IDLE)
-            }
+        PostDetailUiEvent.CommentSent -> {
+            setCommentSend(CommentSendState.IDLE)
+        }
 
-            PostDetailUiEvent.ScrolledToComment -> {
-                mutateCommentThread { it.copy(scrollTo = null) }
-            }
+        PostDetailUiEvent.ScrolledToComment -> {
+            mutateCommentThread { it.copy(scrollTo = null) }
         }
     }
 

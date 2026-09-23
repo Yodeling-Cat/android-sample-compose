@@ -16,11 +16,9 @@ class FullscreenVideoViewModel @Inject constructor(
     private val navigator: Navigator,
 ) : ViewModel() {
 
-    fun onEvent(event: FullscreenVideoUiEvent) {
-        when (event) {
-            FullscreenVideoUiEvent.GoBack -> {
-                navigator.goBack()
-            }
+    fun onEvent(event: FullscreenVideoUiEvent): Unit = when (event) {
+        FullscreenVideoUiEvent.GoBack -> {
+            navigator.goBack()
         }
     }
 }

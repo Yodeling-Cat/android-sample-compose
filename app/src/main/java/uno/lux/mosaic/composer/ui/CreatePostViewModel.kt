@@ -49,56 +49,54 @@ class CreatePostViewModel @Inject constructor(
         savedStateHandle.saveDraft(DRAFT_KEY) { _uiState.value.form }
     }
 
-    fun onEvent(event: CreatePostUiEvent) {
-        when (event) {
-            is CreatePostUiEvent.TitleChanged -> {
-                updateForm { it.copy(title = event.value.take(CREATE_POST_TITLE_MAX_LENGTH)) }
-            }
+    fun onEvent(event: CreatePostUiEvent): Unit = when (event) {
+        is CreatePostUiEvent.TitleChanged -> {
+            updateForm { it.copy(title = event.value.take(CREATE_POST_TITLE_MAX_LENGTH)) }
+        }
 
-            is CreatePostUiEvent.BodyChanged -> {
-                updateForm { it.copy(body = event.value.take(CREATE_POST_BODY_MAX_LENGTH)) }
-            }
+        is CreatePostUiEvent.BodyChanged -> {
+            updateForm { it.copy(body = event.value.take(CREATE_POST_BODY_MAX_LENGTH)) }
+        }
 
-            is CreatePostUiEvent.ImagesPicked -> {
-                addImages(event.uris)
-            }
+        is CreatePostUiEvent.ImagesPicked -> {
+            addImages(event.uris)
+        }
 
-            is CreatePostUiEvent.RemoveImage -> {
-                removeImage(event.uri)
-            }
+        is CreatePostUiEvent.RemoveImage -> {
+            removeImage(event.uri)
+        }
 
-            is CreatePostUiEvent.VideoPicked -> {
-                attachVideo(event.uri)
-            }
+        is CreatePostUiEvent.VideoPicked -> {
+            attachVideo(event.uri)
+        }
 
-            CreatePostUiEvent.RemoveVideo -> {
-                removeVideo()
-            }
+        CreatePostUiEvent.RemoveVideo -> {
+            removeVideo()
+        }
 
-            is CreatePostUiEvent.OpenImages -> {
-                navigator.goTo(Screen.AlbumViewer(event.media.uris, event.initialIndex))
-            }
+        is CreatePostUiEvent.OpenImages -> {
+            navigator.goTo(Screen.AlbumViewer(event.media.uris, event.initialIndex))
+        }
 
-            is CreatePostUiEvent.OpenVideo -> {
-                navigator.goTo(Screen.FullscreenVideo(event.media.uri))
-            }
+        is CreatePostUiEvent.OpenVideo -> {
+            navigator.goTo(Screen.FullscreenVideo(event.media.uri))
+        }
 
-            CreatePostUiEvent.Publish -> {
-                publish()
-            }
+        CreatePostUiEvent.Publish -> {
+            publish()
+        }
 
-            CreatePostUiEvent.GoBack -> {
-                goBack()
-            }
+        CreatePostUiEvent.GoBack -> {
+            goBack()
+        }
 
-            CreatePostUiEvent.DismissDiscard -> {
-                _uiState.update { it.copy(showDiscardConfirmation = false) }
-            }
+        CreatePostUiEvent.DismissDiscard -> {
+            _uiState.update { it.copy(showDiscardConfirmation = false) }
+        }
 
-            CreatePostUiEvent.ConfirmDiscard -> {
-                _uiState.update { it.copy(showDiscardConfirmation = false) }
-                navigator.goBack()
-            }
+        CreatePostUiEvent.ConfirmDiscard -> {
+            _uiState.update { it.copy(showDiscardConfirmation = false) }
+            navigator.goBack()
         }
     }
 
