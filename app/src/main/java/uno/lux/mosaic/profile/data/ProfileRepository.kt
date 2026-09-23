@@ -40,27 +40,16 @@ interface PostList {
 }
 
 /**
- * Source of truth for a user's profile metadata and the ordered IDs of their posts.
+ * Source of truth for a user's profile and the ordered IDs of their posts, saved posts and liked
+ * posts. Callers resolve the IDs through [PostRepository.entities].
  *
- * [profile] streams the counts; [postIds] the IDs of the posts that user authored, which callers
- * resolve through [PostRepository.entities], so likes and bookmarks are reflected with no
- * involvement from here. Post mutations go directly through [PostRepository]. [hasMorePosts]
- * signals whether another page exists; [loadMorePosts] appends it.
+ * Every page carries its posts' authors into [UserRepository], so a profile opened cold can draw
+ * its rows without waiting on `GET /users/:id`.
  *
- * Every page carries its posts' authors into [UserRepository], which is what lets a profile
- * opened cold draw its rows off the posts page alone, rather than waiting on `GET /users/:id`.
- *
- * [saved] and [liked] are the same arrangement for the posts a user saved and liked, each handed
- * out as a whole [PostList] rather than as a spread of per-tab methods. Unlike the Posts tab,
- * each is loaded on demand ([PostList.ensureLoaded]) rather than by [refresh], and emits `null`
- * until its first load lands.
- *
- * For the signed-in user those two lists are **derived from the flag, not echoed from the
- * fetch**, so membership moves both ways and from anywhere with no re-fetch. Another user's
- * Likes tab is echoed exactly as fetched, because `isLiked`/`isBookmarked` are viewer-scoped —
- * on their profile the flags describe you, not them. Hence [currentUserId].
- *
- * Where the data comes from is decided by [ProfileDataSource].
+ * For [currentUserId], [saved] and [liked] are derived from each post's flag rather than echoed
+ * from the fetch, so membership follows a like or bookmark made anywhere. Another user's lists are
+ * echoed as fetched, because `isLiked` and `isBookmarked` describe the viewer, not the profile's
+ * owner.
  */
 class ProfileRepository(
     private val dataSource: ProfileDataSource,

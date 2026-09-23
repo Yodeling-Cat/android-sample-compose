@@ -43,22 +43,15 @@ data class CommentThread(
 )
 
 /**
- * The whole of what the detail page draws, as one value.
+ * Everything the detail page draws, as one value.
  *
- * [content] is the page's one genuinely exclusive axis: it is either waiting for the post,
- * showing it, or explaining why it cannot. Everything beside it is *orthogonal* to that, and so
- * is a field rather than a state of its own — a thread can be loading under a post that is
- * already up. Modelling those as further [Content] cases would multiply out into a case per
- * combination.
+ * [content] is the one exclusive axis: waiting for the post, showing it, or explaining why it
+ * cannot. Everything else is orthogonal to it, so it is a field rather than a further [Content]
+ * case. The thread sits outside [Content.Loaded] because on a cold start its first page can land
+ * before the post does.
  *
- * The thread is deliberately not inside [Content.Loaded], although that is where it is drawn.
- * The two are fetched in parallel on a cold start, so a first page can land while the post has
- * not; with nowhere else to put it, that page would be dropped.
- *
- * [failedAction], [scrollTo][CommentThread.scrollTo] and [commentSend] are signals rather than
- * descriptions, spent by sending [PostDetailUiEvent.FailedActionShown],
- * [PostDetailUiEvent.ScrolledToComment] and [PostDetailUiEvent.CommentSent] back once done.
- * State with a spend, which a rotation cannot replay and a test can assert on directly.
+ * [failedAction], [CommentThread.scrollTo] and [commentSend] are one-shot signals. The screen
+ * spends each by sending its matching [PostDetailUiEvent] back, so a rotation cannot replay it.
  */
 data class PostDetailUiState(
     val content: Content,

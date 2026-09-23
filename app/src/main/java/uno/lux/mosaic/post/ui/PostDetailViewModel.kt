@@ -36,25 +36,14 @@ import uno.lux.mosaic.post.ui.PostDetailUiEvent as UiEvent
 import uno.lux.mosaic.post.ui.PostDetailUiState as UiState
 
 /**
- * Holds the state for a single post's detail view.
+ * Holds a single post's detail page as one [UiState] value that it owns and edits.
  *
- * The state is **one value the ViewModel owns and edits**, not a projection assembled from a flow
- * per moving part. Everything this page discovers for itself is a field of [UiState].
- * What comes from outside enters through exactly one collector, [observeStores]: [PostRepository]
- * holds the post in a store shared with the feed and every profile, so a like toggled underneath,
- * or a delete performed on another screen, has to reach this page without it asking.
+ * The post lives in [PostRepository]'s shared store, so a like or delete made on another screen
+ * reaches this page through [observeStores], the one collector. Comments belong to this
+ * ViewModel alone and are discarded with it.
  *
- * Comments, by contrast, are this ViewModel's own, and are discarded when it is cleared. This
- * avoids the cross-post keying and memory-retention problems a shared comment store would bring.
- *
- * The entity store normally already holds the post. It does not when the page is restored after
- * **process death**, so [loadPost] fetches the post it was given the ID for. That fetch is why an
- * absent post can't simply mean [Content.NotFound]: "not asked yet", "the server says it's gone"
- * and "the request failed" are three different screens, and [PostFetch] tells them apart.
- *
- * Intent arrives as one [UiEvent] through [onEvent]. [postId] is a runtime argument
- * wired through [Factory] / assisted injection, so every opened post gets its own ViewModel,
- * scoped to its back-stack entry.
+ * After process death the store is empty, so [loadPost] fetches the post, and [PostFetch] keeps
+ * "not loaded yet", "gone" and "failed" apart instead of reading absence as [Content.NotFound].
  */
 @HiltViewModel(assistedFactory = PostDetailViewModel.Factory::class)
 class PostDetailViewModel @AssistedInject constructor(

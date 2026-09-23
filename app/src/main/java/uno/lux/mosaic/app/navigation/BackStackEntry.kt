@@ -12,21 +12,10 @@ import kotlinx.serialization.Serializable
  * One position on the back stack: the [screen] to render, plus the [id] that gives that position
  * its own state.
  *
- * Navigation 3 scopes everything per-entry — the `rememberSaveable` state holder, the
- * `ViewModelStore`, the scene identity — by `NavEntry.contentKey`, which is a function of the
- * back-stack key *alone*: an entry provider is handed the key and nothing else, so nothing outside
- * the key can tell two identical entries apart. With a bare `Screen` as the key that made
- * identity a property of the *page*, and opening the same post twice handed the second page the
- * first one's ViewModel and its half-typed comment. Carrying [id] here moves identity onto the
- * position instead, where it belongs.
- *
- * [Navigator] is the only thing that mints an [id] — see [Navigator.entryFor] — so a new [Screen]
- * cannot forget to take part. Keeping identity out of [Screen] is also what preserves `Screen`
- * equality as a statement about *pages*, which is what [Navigator.goToSingleTop] asks about.
- *
- * The whole entry is `@Serializable`, so the stack survives process death exactly as before; the
- * polymorphism now sits on the sealed [Screen] field, resolved by the compiler rather than by
- * `NavKeySerializer`'s reflection.
+ * Navigation 3 scopes saveable state and the `ViewModelStore` by a function of the key alone, so
+ * with a bare [Screen] as the key, two pushes of the same page would share one ViewModel. [id]
+ * makes each push its own page. Only [Navigator.entryFor] mints one, and keeping it out of
+ * [Screen] leaves `Screen` equality meaning "same page", which [Navigator.goToSingleTop] relies on.
  */
 @Serializable
 data class BackStackEntry(

@@ -13,30 +13,16 @@ import coil3.size.Scale
 import coil3.size.Size
 
 /**
- * Warms Coil's cache with the image *after* the one at [lastVisibleIndex], so scrolling or swiping
- * onto it lands on a decoded bitmap instead of an empty frame. An [ImageRequest] with no target
- * still runs through the singleton `ImageLoader` — the same one
- * [uno.lux.mosaic.app.MosaicApplication] gives `AsyncImage` — so what this stores is what the image
- * later reads.
+ * Warms Coil's cache with the image after the one at [lastVisibleIndex], so scrolling onto it
+ * shows a decoded bitmap instead of an empty frame.
  *
- * **[size] and [contentScale] must be what the image is actually drawn with, and getting this wrong
- * is worse than not prefetching at all.** Coil's memory-cache key is the URL alone (size joins it
- * only for a transformed request), so a prefetch and its `AsyncImage` share *one* entry, and whether
- * the stored bitmap is accepted is decided at lookup: `MemoryCacheService` compares its dimensions
- * against the request's, picking the ratio by [Scale] and the threshold by `Precision`. A prefetch
- * decoding under a different [Scale] therefore stores a bitmap the image rejects — which reloads and
- * overwrites the entry, which the next prefetch overwrites back, so every image reloads forever.
- * Compose resolves `ContentScale.Crop` to [Scale.FILL] and `Fit`/`Inside` to [Scale.FIT], the
- * mapping [asCoilScale] mirrors; taking a [ContentScale] rather than a [Scale] is what lets a call
- * site pass the very value it hands `AsyncImage`.
+ * **[size] and [contentScale] must match what the image is drawn with.** The prefetch and its
+ * `AsyncImage` share one memory-cache entry keyed by URL, and Coil rejects a cached bitmap decoded
+ * under a different [Scale]. On a mismatch the two overwrite each other and every image reloads
+ * forever. [size] is more forgiving: a bitmap at or above the drawn size is reused.
  *
- * [size] is the more forgiving of the two: `AsyncImage` requests `Precision.INEXACT` (it scales at
- * draw time), so a stored bitmap at *or above* the drawn size is reused.
- *
- * [lastVisibleIndex] is read inside a `snapshotFlow`, so it may read snapshot state directly — pass
- * `{ pagerState.currentPage }` for a pager, or the last entry of a lazy list's `layoutInfo`. Neither
- * it nor [urls] restarts the effect when it changes, so a list that is re-emitted on every like
- * toggle costs nothing.
+ * [lastVisibleIndex] is read in a `snapshotFlow`, so it may read snapshot state directly. A change
+ * to it or to [urls] does not restart the effect.
  */
 @Composable
 fun PrefetchNextImage(

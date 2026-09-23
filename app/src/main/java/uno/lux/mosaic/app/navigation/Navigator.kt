@@ -3,27 +3,15 @@ package uno.lux.mosaic.app.navigation
 import java.util.UUID
 
 /**
- * The navigation seam between ViewModels and the Navigation 3 back stack. ViewModels take a
- * [Navigator] as a constructor dependency and express navigation as intent — [goTo] pushes a
- * [Screen], [goBack] pops, [replaceTop] swaps — instead of screens receiving navigation lambdas
- * from the host.
+ * Lets ViewModels navigate by intent ([goTo], [goBack], [replaceTop]) instead of screens taking
+ * navigation lambdas from the host.
  *
- * The back stack itself stays owned by the composition ([rememberBackStack] in `MosaicApp`),
- * which is what keeps it saveable across configuration changes and process death; the UI [attach]es
- * it here so ViewModels can mutate it. Before a stack is attached (or after [detach]) navigation
- * calls are dropped — there is no UI to navigate.
+ * The composition owns the back stack, so it survives process death, and [attach]es it here.
+ * Calls made while no stack is attached are dropped.
  *
- * Pushing is also where a page's *identity* is decided, in [entryFor]: this is the only place a
- * [BackStackEntry] is built, so every new position on the stack gets its own state without any
- * [Screen] having to opt in. [nextId] is a constructor parameter rather than an ambient call for
- * the same reason `now` is passed to the formatters — it lets a test assert on exact identities.
- * Note that it must not be a counter: this class is `@ActivityRetainedScoped`, so after a process
- * death a fresh instance would restart the count while the restored stack still holds identities
- * minted by the old process, and the collision would silently reintroduce shared state.
- *
- * The class is deliberately free of DI annotations (provided in `NavigationModule`, retained
- * across configuration changes) and of framework types, so unit tests drive the real
- * implementation by attaching a stack from `testing/BackStacks.kt`'s `backStackOf(…)`.
+ * @param nextId mints each entry's identity. It must not be a counter: this class is
+ *   `@ActivityRetainedScoped`, so after process death a fresh instance would restart the count
+ *   while the restored stack still holds the old ids.
  */
 class Navigator(
     private val nextId: () -> String = { UUID.randomUUID().toString() },

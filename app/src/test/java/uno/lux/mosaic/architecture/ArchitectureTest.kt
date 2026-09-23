@@ -6,36 +6,12 @@ import com.lemonappdev.konsist.api.verify.assertTrue
 import org.junit.Test
 
 /**
- * The package convention from AGENTS.md, asserted against the real source tree.
+ * Asserts the package convention in AGENTS.md against the real source tree.
  *
- * Kotlin has no package-private and `internal` is module-scoped, so a single-module project gets
- * no compiler enforcement of its own layering — a package layout is a convention until something
- * checks it. These are that something.
- *
- * **Every rule here is derived from the path, never from a list of names.** The concerns are
- * discovered by reading the top-level packages that exist, and each rule then keys off the shape
- * the convention gives them:
- *
- * ```
- * <concern>/data/            the repository and its DataSource interface
- * <concern>/data/domain/     the models — pure Kotlin, no platform and no wire
- * <concern>/data/network/    the service, DTOs, mappers — the only place HTTP appears
- * <concern>/ui/              composables and ViewModels
- * app/                       the machine; wires the concerns, so it may know every one of them
- * designsystem/              what the app is drawn with     (:core:design-system)
- * common/                    what concerns share, utilities included  (:core:common)
- * ```
- *
- * The last two are Gradle modules now, so *their* dependencies are a compile error rather than a
- * rule here. What these rules still add is the other direction: nothing stops a concern from being
- * dragged into one of them, and `internal` cannot express "knows no concern".
- *
- * That is what `every concern package follows the convention` protects, and it is why it matters
- * most: the other rules select files by matching those suffixes, so a file in some invented
- * package would be checked by *none* of them. Enforcing the shape first is what stops a rename
- * from quietly emptying a rule instead of failing it — the previous version of this file hardcoded
- * `uno.lux.sample.app.common..`, and when `common` moved to the top level the rule went on passing
- * while matching nothing at all.
+ * Every rule derives from the file path, never from a list of names, so a new concern is checked
+ * with no edit here. `every concern package follows the convention` is what keeps the other rules
+ * honest: they select files by layer suffix, so a file in an invented package would match none of
+ * them.
  */
 class ArchitectureTest {
 

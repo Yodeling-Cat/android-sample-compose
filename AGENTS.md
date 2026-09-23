@@ -479,6 +479,14 @@ A file that feels like it needs banners is telling you something. **Split it, or
 
 This does not ban ordinary comments. `//` on a line that explains *why* is still welcome. The rule is about the decoration.
 
+**A KDoc says what the code cannot.** State the contract, the non-obvious constraint, or the reason a simpler design would break. Then stop. If a reader of the signature and the body would learn nothing from a sentence, delete it. Aim for under ten lines; a class KDoc that runs longer is usually doing one of these:
+
+- **Restating AGENTS.md.** This file is the place for architecture. A KDoc links to the rule's consequence at that spot, not a copy of the section.
+- **Touring the members.** A note about one property or parameter goes on that declaration, or in `@param`, where the IDE shows it. The class KDoc covers the class.
+- **Telling history.** "The previous version…", "now", "as before", and the story of a past bug belong in the commit message. A KDoc describes the code as it is. Describe the failure a design prevents as a hypothetical, not as an event.
+- **Narrating the obvious.** Do not paraphrase the code, the type, or what a well-known library does. Name a library internal only when the constraint depends on it.
+- **Repeating another KDoc.** When two declarations share a reason, state it once, on the one that enforces it, and link there.
+
 ## Localization
 
 All user-facing text lives in a `res/values/strings.xml` and is read with `stringResource(...)`. **Never hardcode a display string in Kotlin.** Exception: a string with no words at all, for example `"$page / $total"`, is fine as plain interpolation.

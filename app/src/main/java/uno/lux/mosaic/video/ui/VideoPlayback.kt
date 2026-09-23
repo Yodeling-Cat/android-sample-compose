@@ -24,35 +24,23 @@ import uno.lux.mosaic.common.util.findActivity
 import javax.inject.Inject
 
 /**
- * Owns the app's single video [ExoPlayer]. The instance is built once and **reused** for every
- * video: moving between clips is a [setMediaItem][ExoPlayer.setMediaItem] + [prepare][ExoPlayer.prepare]
- * on the same player, never a rebuild. That keeps the renderer threads and codec pipeline warm, so
- * a new clip starts fast instead of paying to allocate a fresh player — which is what a feed scroll
- * past a run of videos would otherwise cost on every item. It is torn down only in [release], when
- * playback is done for good. The same reuse lets one playback move between an inline post and the
- * full-screen page without being recreated — the position lives in the player, so keeping the
- * instance is what preserves it.
+ * Owns the app's single [ExoPlayer], reused for every clip so the codec pipeline stays warm and a
+ * playback can move between an inline post and the full-screen page without losing its position.
+ * Only [release] tears it down.
  *
- * Exactly one video plays at a time. [activeVideoUrl], [isFullscreen] and [player] are Compose
- * state, so the inline player and the full-screen page recompose as playback moves between them.
- * The player instance outlives any single clip, so [activeVideoUrl] — not `player != null` — is
- * what says whether something is on screen: [stopPlayback] clears it (reverting inline views to
- * their thumbnail) while keeping the warm player around for the next clip. [ownedByInline] records
- * whether an inline post started the playback: if so, leaving full screen returns to that post and
- * keeps playing; if a profile thumbnail opened it straight into full screen, leaving stops it. The
- * URL is the player's identity — every uploaded video has its own, and a clip picked in the composer
- * brings a content URI — so one keying serves posts and local previews alike, with no id a local
- * file wouldn't have.
+ * A video is keyed by its URL, so posts and composer previews (content URIs) are handled alike.
  *
- * The player is an Android component with no logic to unit test, so this is a plain holder built
- * on [Context] rather than a constructor-injected, JVM-testable unit.
+ * Built on [Context] rather than as a JVM-testable unit, because the player has no logic to test.
  */
 @Stable
 class VideoPlaybackController(
     private val appContext: Context,
 ) {
 
-    /** The video currently loaded into [player], or null when nothing is playing. */
+    /**
+     * The video on screen, or null when nothing is. [player] outlives any one clip, so this, not
+     * `player != null`, is what says whether a video is showing.
+     */
     var activeVideoUrl by mutableStateOf<String?>(null)
         private set
 
@@ -64,6 +52,11 @@ class VideoPlaybackController(
     var player by mutableStateOf<ExoPlayer?>(null)
         private set
 
+    /**
+     * Whether an inline post started this playback. If one did, leaving full screen returns to it
+     * still playing; if a profile thumbnail opened the video straight into full screen, leaving
+     * stops it.
+     */
     private var ownedByInline = false
 
     /** Starts (or resumes) inline playback of [url], the feed/profile-post entry point. */

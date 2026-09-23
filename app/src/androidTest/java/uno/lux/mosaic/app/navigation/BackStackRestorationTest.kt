@@ -26,22 +26,14 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * Pins the guarantee the whole navigation design rests on: **the back stack survives process
- * death**. An app killed in the background comes back on the page it was killed on, because the
- * [BackStackEntry] keys are `@Serializable` and [rememberBackStack] saves them into the instance
- * state. It also pins the other half of an entry's identity — that two pushes of the same [Screen]
- * are two pages, each with its own state, on both sides of that restart.
+ * Pins that the back stack survives process death, and that two pushes of the same [Screen] stay
+ * two pages, each with its own state, across the restore.
  *
- * [StateRestorationTester.emulateSavedInstanceStateRestore] is what makes that testable without a
- * device kill: it saves the registry, throws the composition away, and rebuilds it from the saved
- * state — the same round trip the platform performs when it restarts a killed app. What it cannot
- * emulate is the *other* half of a real restart, that every in-memory store comes back empty; the
- * screens' own cold-start loading is covered by their ViewModel tests.
+ * [StateRestorationTester] does the save-and-rebuild of a real restart, but not the empty
+ * in-memory stores that come with it; the ViewModel tests cover cold-start loading.
  *
- * The host below mirrors `MosaicApp`'s wiring — a [rememberBackStack] owned by the composition,
- * attached to a [Navigator], rendered through the same [backStackEntryProvider] — rather than
- * using it directly, which would drag in Hilt and the network for a question that is purely about
- * the keys.
+ * The host mirrors `MosaicApp`'s wiring rather than using it, which would pull in Hilt and the
+ * network.
  */
 @RunWith(AndroidJUnit4::class)
 class BackStackRestorationTest {
