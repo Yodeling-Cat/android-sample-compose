@@ -5,6 +5,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import uno.lux.mosaic.app.navigation.Navigator
 import uno.lux.mosaic.app.navigation.Screen
 import javax.inject.Inject
+import uno.lux.mosaic.shell.ui.ShellUiEvent as UiEvent
 
 /**
  * Backs the tabbed shell itself. The shell holds no content state — which tab is selected is
@@ -17,8 +18,8 @@ class ShellViewModel @Inject constructor(
     private val navigator: Navigator,
 ) : ViewModel() {
 
-    fun onEvent(event: ShellUiEvent): Unit = when (event) {
-        is ShellUiEvent.OpenDestination -> {
+    fun onEvent(event: UiEvent): Unit = when (event) {
+        is UiEvent.OpenDestination -> {
             navigator.goToSingleTop(event.screen)
         }
     }

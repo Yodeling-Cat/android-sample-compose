@@ -67,6 +67,8 @@ import uno.lux.mosaic.designsystem.theme.accentBarColors
 import uno.lux.mosaic.designsystem.theme.rememberAccentWash
 import uno.lux.mosaic.user.data.domain.UserId
 import uno.lux.mosaic.common.R as CommonR
+import uno.lux.mosaic.user.ui.EditProfileUiEvent as UiEvent
+import uno.lux.mosaic.user.ui.EditProfileUiState as UiState
 
 @Composable
 fun EditProfileScreen(
@@ -80,11 +82,11 @@ fun EditProfileScreen(
     ) { uri ->
         // The picker's session-scoped read grant is enough — the image bytes are read and
         // uploaded on save, so no persistable permission is needed.
-        if (uri != null) viewModel.onEvent(EditProfileUiEvent.AvatarPicked(uri.toString()))
+        if (uri != null) viewModel.onEvent(UiEvent.AvatarPicked(uri.toString()))
     }
 
     BackHandler {
-        viewModel.onEvent(EditProfileUiEvent.GoBack)
+        viewModel.onEvent(UiEvent.GoBack)
     }
 
     EditProfileScreen(
@@ -98,12 +100,12 @@ fun EditProfileScreen(
         modifier = modifier,
     )
 
-    if (uiState is EditProfileUiState.Editing &&
-        (uiState as EditProfileUiState.Editing).showDiscardConfirmation
+    if (uiState is UiState.Editing &&
+        (uiState as UiState.Editing).showDiscardConfirmation
     ) {
         DiscardChangesDialog(
-            onConfirm = { viewModel.onEvent(EditProfileUiEvent.ConfirmDiscard) },
-            onDismiss = { viewModel.onEvent(EditProfileUiEvent.DismissDiscard) },
+            onConfirm = { viewModel.onEvent(UiEvent.ConfirmDiscard) },
+            onDismiss = { viewModel.onEvent(UiEvent.DismissDiscard) },
         )
     }
 }
@@ -111,13 +113,13 @@ fun EditProfileScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun EditProfileScreen(
-    uiState: EditProfileUiState,
-    onEvent: (EditProfileUiEvent) -> Unit,
+    uiState: UiState,
+    onEvent: (UiEvent) -> Unit,
     onPickAvatar: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val saveErrorMessage = (uiState as? EditProfileUiState.Editing)?.saveError?.asText()
+    val saveErrorMessage = (uiState as? UiState.Editing)?.saveError?.asText()
 
     LaunchedEffect(saveErrorMessage) {
         if (saveErrorMessage != null) snackbarHostState.showSnackbar(saveErrorMessage)
@@ -145,16 +147,16 @@ internal fun EditProfileScreen(
                 navigationIcon = {
                     AppBarAction(
                         icon = CommonR.drawable.ic_arrow_back,
-                        onClick = { onEvent(EditProfileUiEvent.GoBack) },
+                        onClick = { onEvent(UiEvent.GoBack) },
                         contentDescription = stringResource(CommonR.string.navigate_back),
                     )
                 },
                 actions = {
-                    (uiState as? EditProfileUiState.Editing)?.let { editing ->
+                    (uiState as? UiState.Editing)?.let { editing ->
                         SaveAction(
                             isSaving = editing.isSaving,
                             enabled = editing.isDirty && editing.form.canSave,
-                            onSave = { onEvent(EditProfileUiEvent.Save) },
+                            onSave = { onEvent(UiEvent.Save) },
                         )
                     }
                 },
@@ -162,19 +164,19 @@ internal fun EditProfileScreen(
         },
     ) { contentPadding ->
         when (uiState) {
-            EditProfileUiState.Loading -> FullScreenProgress(
+            UiState.Loading -> FullScreenProgress(
                 modifier = Modifier.padding(contentPadding),
             )
 
-            is EditProfileUiState.Error -> FullScreenError(
+            is UiState.Error -> FullScreenError(
                 message = uiState.error.asText(),
-                onRetry = { onEvent(EditProfileUiEvent.Retry) },
+                onRetry = { onEvent(UiEvent.Retry) },
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(contentPadding),
             )
 
-            is EditProfileUiState.Editing -> EditProfileContent(
+            is UiState.Editing -> EditProfileContent(
                 form = uiState.form,
                 isSaving = uiState.isSaving,
                 onEvent = onEvent,
@@ -216,7 +218,7 @@ private fun SaveAction(
 private fun EditProfileContent(
     form: EditProfileForm,
     isSaving: Boolean,
-    onEvent: (EditProfileUiEvent) -> Unit,
+    onEvent: (UiEvent) -> Unit,
     onPickAvatar: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -242,7 +244,7 @@ private fun EditProfileContent(
             FormCard {
                 OutlinedTextField(
                     value = form.nickname,
-                    onValueChange = { onEvent(EditProfileUiEvent.NicknameChanged(it)) },
+                    onValueChange = { onEvent(UiEvent.NicknameChanged(it)) },
                     label = { Text(stringResource(R.string.edit_profile_name_label)) },
                     singleLine = true,
                     enabled = !isSaving,
@@ -252,7 +254,7 @@ private fun EditProfileContent(
 
                 OutlinedTextField(
                     value = form.age,
-                    onValueChange = { onEvent(EditProfileUiEvent.AgeChanged(it)) },
+                    onValueChange = { onEvent(UiEvent.AgeChanged(it)) },
                     label = { Text(stringResource(R.string.edit_profile_age_label)) },
                     singleLine = true,
                     enabled = !isSaving,
@@ -269,7 +271,7 @@ private fun EditProfileContent(
 
                 GenderSelector(
                     selected = form.gender,
-                    onSelected = { onEvent(EditProfileUiEvent.GenderChanged(it)) },
+                    onSelected = { onEvent(UiEvent.GenderChanged(it)) },
                     enabled = !isSaving,
                 )
             }
@@ -279,7 +281,7 @@ private fun EditProfileContent(
             FormCard {
                 OutlinedTextField(
                     value = form.bio,
-                    onValueChange = { onEvent(EditProfileUiEvent.BioChanged(it)) },
+                    onValueChange = { onEvent(UiEvent.BioChanged(it)) },
                     label = { Text(stringResource(R.string.edit_profile_bio_label)) },
                     minLines = 4,
                     enabled = !isSaving,
@@ -369,7 +371,7 @@ private fun GenderSelector(
 private fun EditProfileScreenPreview() {
     MosaicTheme {
         EditProfileScreen(
-            uiState = EditProfileUiState.Editing(
+            uiState = UiState.Editing(
                 form = EditProfileForm.from(SampleUsers.first()),
                 isDirty = true,
                 isSaving = false,

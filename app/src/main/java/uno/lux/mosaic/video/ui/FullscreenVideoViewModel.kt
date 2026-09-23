@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import uno.lux.mosaic.app.navigation.Navigator
 import javax.inject.Inject
+import uno.lux.mosaic.video.ui.FullscreenVideoUiEvent as UiEvent
 
 /**
  * The full-screen video page reuses the shared player from `LocalVideoPlayback` and takes its
@@ -16,8 +17,8 @@ class FullscreenVideoViewModel @Inject constructor(
     private val navigator: Navigator,
 ) : ViewModel() {
 
-    fun onEvent(event: FullscreenVideoUiEvent): Unit = when (event) {
-        FullscreenVideoUiEvent.GoBack -> {
+    fun onEvent(event: UiEvent): Unit = when (event) {
+        UiEvent.GoBack -> {
             navigator.goBack()
         }
     }

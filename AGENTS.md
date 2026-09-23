@@ -451,6 +451,8 @@ private fun setAge(value: String) = updateForm { form ->
 
 **`onEvent` is a block of work too**, so its `when` opens on the declaration line: `fun onEvent(event: HomeUiEvent): Unit = when (event) {`, with each branch one indent in. **The declared `Unit` is load-bearing.** Without it, the return type is inferred from the branches, and one branch that returns a value would widen the public `onEvent` to `Any` with no warning. With it, that branch fails to compile.
 
+**A screen's ViewModel and Screen files import its event and state types under a generic alias**: `import uno.lux.mosaic.home.ui.HomeUiEvent as UiEvent`, and `HomeUiState as UiState`. Every screen then reads the same way — `fun onEvent(event: UiEvent): Unit = when (event) {`, `onEvent: (UiEvent) -> Unit` — and the file name already says which screen it is. Every other file, tests included, keeps the full name, because it has no single screen for the alias to stand for.
+
 **Both rules are about function bodies.** A property initializer is not one, and stays inline: `val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()`.
 
 **Use named arguments when the value does not self-document its role**: bare literals, arguments of the same type, or anything opaque without context. Two cases always call for named arguments:

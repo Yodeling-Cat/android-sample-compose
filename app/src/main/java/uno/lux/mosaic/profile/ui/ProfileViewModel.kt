@@ -39,6 +39,8 @@ import uno.lux.mosaic.profile.data.PostList
 import uno.lux.mosaic.profile.data.ProfileRepository
 import uno.lux.mosaic.user.data.UserRepository
 import uno.lux.mosaic.user.data.domain.UserId
+import uno.lux.mosaic.profile.ui.ProfileUiEvent as UiEvent
+import uno.lux.mosaic.profile.ui.ProfileUiState as UiState
 
 /**
  * Holds the profile state for one [userId]. Combines [UserRepository], [ProfileRepository]
@@ -48,10 +50,9 @@ import uno.lux.mosaic.user.data.domain.UserId
  * observers. Navigation intents (opening a post, profile, viewer or the editor, going back) are
  * pushes and pops on the injected [Navigator]. [userId] is a runtime arg wired through [Factory].
  *
- * The Saved and Likes tabs are loaded lazily, on [ProfileUiEvent.SavedTabShown] /
- * [ProfileUiEvent.LikesTabShown]. Saved is
- * private: the screen offers that tab only on the signed-in user's own profile, and the server
- * refuses the list to anyone else regardless. Likes are public, and load the same way only
+ * The Saved and Likes tabs are loaded lazily, on [UiEvent.SavedTabShown] / [UiEvent.LikesTabShown].
+ * Saved is private: the screen offers that tab only on the signed-in user's own profile, and the
+ * server refuses the list to anyone else regardless. Likes are public, and load the same way only
  * because a tab nobody opened should cost no request.
  */
 @HiltViewModel(assistedFactory = ProfileViewModel.Factory::class)
@@ -129,7 +130,7 @@ class ProfileViewModel @AssistedInject constructor(
         _loadFailures,
     ) { savedPosts, likedPosts, failures -> LazyTabs(savedPosts, likedPosts, failures) }
 
-    val uiState: StateFlow<ProfileUiState> = combine(
+    val uiState: StateFlow<UiState> = combine(
         combine(
             userRepository.user(userId),
             profileRepository.profile(userId),
@@ -142,7 +143,7 @@ class ProfileViewModel @AssistedInject constructor(
             if (user == null) {
                 null
             } else {
-                ProfileUiState.Loaded(
+                UiState.Loaded(
                     data = ProfileScreenData(
                         user = user,
                         profile = profile,
@@ -164,16 +165,16 @@ class ProfileViewModel @AssistedInject constructor(
         when {
             state != null -> state
 
-            loadError != null -> ProfileUiState.Error(loadError)
+            loadError != null -> UiState.Error(loadError)
 
             // Absent from the stores means "no such user" only once a fetch has actually run.
             // Before that it means nothing has asked yet — which is every cold start, since a
             // profile restored after process death begins with empty stores.
-            hasLoaded -> ProfileUiState.NotFound
+            hasLoaded -> UiState.NotFound
 
-            else -> ProfileUiState.Loading
+            else -> UiState.Loading
         }
-    }.stateInWhileSubscribed(viewModelScope, ProfileUiState.Loading)
+    }.stateInWhileSubscribed(viewModelScope, UiState.Loading)
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
@@ -198,88 +199,88 @@ class ProfileViewModel @AssistedInject constructor(
         retry()
     }
 
-    fun onEvent(event: ProfileUiEvent): Unit = when (event) {
-        ProfileUiEvent.Refresh -> {
+    fun onEvent(event: UiEvent): Unit = when (event) {
+        UiEvent.Refresh -> {
             refresh()
         }
 
-        ProfileUiEvent.Retry -> {
+        UiEvent.Retry -> {
             retry()
         }
 
-        is ProfileUiEvent.ToggleLike -> {
+        is UiEvent.ToggleLike -> {
             toggleLike(event.postId)
         }
 
-        is ProfileUiEvent.ToggleBookmark -> {
+        is UiEvent.ToggleBookmark -> {
             toggleBookmark(event.postId)
         }
 
-        is ProfileUiEvent.Delete -> {
+        is UiEvent.Delete -> {
             delete(event.postId)
         }
 
-        is ProfileUiEvent.Report -> {
+        is UiEvent.Report -> {
             report(event.postId, event.reason, event.details)
         }
 
-        ProfileUiEvent.CloseReport -> {
+        UiEvent.CloseReport -> {
             dropReport(::reportJob, ::setReportSend)
         }
 
-        ProfileUiEvent.ToggleFollow -> {
+        UiEvent.ToggleFollow -> {
             toggleFollow()
         }
 
-        ProfileUiEvent.FailedActionShown -> {
+        UiEvent.FailedActionShown -> {
             _failedAction.value = null
         }
 
-        ProfileUiEvent.LoadMorePosts -> {
+        UiEvent.LoadMorePosts -> {
             loadMorePosts()
         }
 
-        ProfileUiEvent.SavedTabShown -> {
+        UiEvent.SavedTabShown -> {
             ensureSavedLoaded()
         }
 
-        ProfileUiEvent.LoadMoreBookmarks -> {
+        UiEvent.LoadMoreBookmarks -> {
             loadMoreBookmarks()
         }
 
-        ProfileUiEvent.LikesTabShown -> {
+        UiEvent.LikesTabShown -> {
             ensureLikesLoaded()
         }
 
-        ProfileUiEvent.LoadMoreLikes -> {
+        UiEvent.LoadMoreLikes -> {
             loadMoreLikes()
         }
 
-        ProfileUiEvent.GoBack -> {
+        UiEvent.GoBack -> {
             navigator.goBack()
         }
 
-        ProfileUiEvent.OpenEditProfile -> {
+        UiEvent.OpenEditProfile -> {
             navigator.goToSingleTop(Screen.EditProfile)
         }
 
-        is ProfileUiEvent.OpenPost -> {
+        is UiEvent.OpenPost -> {
             navigator.goTo(Screen.PostDetail(event.postId))
         }
 
-        is ProfileUiEvent.OpenProfile -> {
+        is UiEvent.OpenProfile -> {
             navigator.goTo(Screen.Profile(event.userId))
         }
 
-        is ProfileUiEvent.OpenVideo -> {
+        is UiEvent.OpenVideo -> {
             navigator.goTo(Screen.FullscreenVideo(event.video))
         }
 
-        is ProfileUiEvent.OpenAlbum -> {
+        is UiEvent.OpenAlbum -> {
             navigator.goTo(Screen.AlbumViewer(event.imageUrls, event.initialIndex))
         }
 
-        is ProfileUiEvent.OpenAvatar -> {
+        is UiEvent.OpenAvatar -> {
             navigator.goTo(Screen.AlbumViewer(listOf(event.avatarUrl), initialIndex = 0))
         }
     }

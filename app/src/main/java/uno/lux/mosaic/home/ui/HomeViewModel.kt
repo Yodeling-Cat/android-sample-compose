@@ -34,6 +34,8 @@ import uno.lux.mosaic.settings.data.domain.DEFAULT_AUTO_PLAY_VIDEOS
 import uno.lux.mosaic.user.data.UserRepository
 import uno.lux.mosaic.user.data.domain.UserId
 import javax.inject.Inject
+import uno.lux.mosaic.home.ui.HomeUiEvent as UiEvent
+import uno.lux.mosaic.home.ui.HomeUiState as UiState
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -48,7 +50,7 @@ class HomeViewModel @Inject constructor(
     private val _loadError = MutableStateFlow<AppError?>(null)
     private val _loadMoreFailed = MutableStateFlow(false)
 
-    val uiState: StateFlow<HomeUiState> = combine(
+    val uiState: StateFlow<UiState> = combine(
         feedRepository.feedState,
         postRepository.entities,
         userRepository.users,
@@ -57,7 +59,7 @@ class HomeViewModel @Inject constructor(
     ) { feedState, entities, users, loadError, loadMoreFailed ->
         when (feedState) {
             FeedState.NotLoaded -> {
-                if (loadError != null) HomeUiState.Error(loadError) else HomeUiState.Loading
+                if (loadError != null) UiState.Error(loadError) else UiState.Loading
             }
 
             is FeedState.Loaded -> {
@@ -70,7 +72,7 @@ class HomeViewModel @Inject constructor(
                         isOwn = post.authorId == currentUserId,
                     )
                 }
-                HomeUiState.Feed(
+                UiState.Feed(
                     posts = cards,
                     endReached = !feedState.hasMore,
                     refreshError = loadError,
@@ -78,7 +80,7 @@ class HomeViewModel @Inject constructor(
                 )
             }
         }
-    }.stateInWhileSubscribed(viewModelScope, HomeUiState.Loading)
+    }.stateInWhileSubscribed(viewModelScope, UiState.Loading)
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
@@ -107,64 +109,64 @@ class HomeViewModel @Inject constructor(
         retry()
     }
 
-    fun onEvent(event: HomeUiEvent): Unit = when (event) {
-        HomeUiEvent.Refresh -> {
+    fun onEvent(event: UiEvent): Unit = when (event) {
+        UiEvent.Refresh -> {
             refresh()
         }
 
-        HomeUiEvent.Retry -> {
+        UiEvent.Retry -> {
             retry()
         }
 
-        HomeUiEvent.RefreshErrorShown -> {
+        UiEvent.RefreshErrorShown -> {
             _loadError.value = null
         }
 
-        HomeUiEvent.FailedActionShown -> {
+        UiEvent.FailedActionShown -> {
             _failedAction.value = null
         }
 
-        HomeUiEvent.LoadMore -> {
+        UiEvent.LoadMore -> {
             loadMore()
         }
 
-        is HomeUiEvent.ToggleLike -> {
+        is UiEvent.ToggleLike -> {
             toggleLike(event.postId)
         }
 
-        is HomeUiEvent.ToggleBookmark -> {
+        is UiEvent.ToggleBookmark -> {
             toggleBookmark(event.postId)
         }
 
-        is HomeUiEvent.Delete -> {
+        is UiEvent.Delete -> {
             delete(event.postId)
         }
 
-        is HomeUiEvent.Report -> {
+        is UiEvent.Report -> {
             report(event.postId, event.reason, event.details)
         }
 
-        HomeUiEvent.CloseReport -> {
+        UiEvent.CloseReport -> {
             dropReport(::reportJob, ::setReportSend)
         }
 
-        HomeUiEvent.OpenSettings -> {
+        UiEvent.OpenSettings -> {
             navigator.goToSingleTop(Screen.Settings)
         }
 
-        is HomeUiEvent.OpenProfile -> {
+        is UiEvent.OpenProfile -> {
             navigator.goTo(Screen.Profile(event.userId))
         }
 
-        is HomeUiEvent.OpenPost -> {
+        is UiEvent.OpenPost -> {
             navigator.goTo(Screen.PostDetail(event.postId))
         }
 
-        is HomeUiEvent.OpenVideo -> {
+        is UiEvent.OpenVideo -> {
             navigator.goTo(Screen.FullscreenVideo(event.video))
         }
 
-        is HomeUiEvent.OpenAlbum -> {
+        is UiEvent.OpenAlbum -> {
             navigator.goTo(Screen.AlbumViewer(event.imageUrls, event.initialIndex))
         }
     }

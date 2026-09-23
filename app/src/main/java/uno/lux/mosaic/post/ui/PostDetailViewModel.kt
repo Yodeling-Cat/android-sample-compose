@@ -33,12 +33,14 @@ import uno.lux.mosaic.post.data.domain.PostId
 import uno.lux.mosaic.post.ui.PostDetailUiState.Content
 import uno.lux.mosaic.user.data.UserRepository
 import uno.lux.mosaic.user.data.domain.User
+import uno.lux.mosaic.post.ui.PostDetailUiEvent as UiEvent
+import uno.lux.mosaic.post.ui.PostDetailUiState as UiState
 
 /**
  * Holds the state for a single post's detail view.
  *
  * The state is **one value the ViewModel owns and edits**, not a projection assembled from a flow
- * per moving part. Everything this page discovers for itself is a field of [PostDetailUiState].
+ * per moving part. Everything this page discovers for itself is a field of [UiState].
  * What comes from outside enters through exactly one collector, [observeStores]: [PostRepository]
  * holds the post in a store shared with the feed and every profile, so a like toggled underneath,
  * or a delete performed on another screen, has to reach this page without it asking.
@@ -51,7 +53,7 @@ import uno.lux.mosaic.user.data.domain.User
  * absent post can't simply mean [Content.NotFound]: "not asked yet", "the server says it's gone"
  * and "the request failed" are three different screens, and [PostFetch] tells them apart.
  *
- * Intent arrives as one [PostDetailUiEvent] through [onEvent]. [postId] is a runtime argument
+ * Intent arrives as one [UiEvent] through [onEvent]. [postId] is a runtime argument
  * wired through [Factory] / assisted injection, so every opened post gets its own ViewModel,
  * scoped to its back-stack entry.
  */
@@ -96,13 +98,13 @@ class PostDetailViewModel @AssistedInject constructor(
      * frame, with no spinner flashed for a post that was never missing.
      */
     private val _uiState = MutableStateFlow(
-        PostDetailUiState(
+        UiState(
             content = content(),
             composerUser = currentUser,
         ),
     )
 
-    val uiState: StateFlow<PostDetailUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     private var loadJob: Job? = null
     private var commentsJob: Job? = null
@@ -114,74 +116,74 @@ class PostDetailViewModel @AssistedInject constructor(
         retry()
     }
 
-    fun onEvent(event: PostDetailUiEvent): Unit = when (event) {
-        PostDetailUiEvent.GoBack -> {
+    fun onEvent(event: UiEvent): Unit = when (event) {
+        UiEvent.GoBack -> {
             navigator.goBack()
         }
 
-        is PostDetailUiEvent.OpenProfile -> {
+        is UiEvent.OpenProfile -> {
             navigator.goTo(Screen.Profile(event.userId))
         }
 
-        is PostDetailUiEvent.OpenVideo -> {
+        is UiEvent.OpenVideo -> {
             navigator.goTo(Screen.FullscreenVideo(event.video))
         }
 
-        is PostDetailUiEvent.OpenAlbum -> {
+        is UiEvent.OpenAlbum -> {
             navigator.goTo(
                 Screen.AlbumViewer(event.imageUrls, event.initialIndex),
             )
         }
 
-        PostDetailUiEvent.ToggleLike -> {
+        UiEvent.ToggleLike -> {
             toggleLike()
         }
 
-        PostDetailUiEvent.ToggleBookmark -> {
+        UiEvent.ToggleBookmark -> {
             toggleBookmark()
         }
 
-        PostDetailUiEvent.Delete -> {
+        UiEvent.Delete -> {
             delete()
         }
 
-        is PostDetailUiEvent.Report -> {
+        is UiEvent.Report -> {
             report(event.reason, event.details)
         }
 
-        PostDetailUiEvent.CloseReport -> {
+        UiEvent.CloseReport -> {
             dropReport(::reportJob, ::setReportSend)
         }
 
-        PostDetailUiEvent.Retry -> {
+        UiEvent.Retry -> {
             retry()
         }
 
-        is PostDetailUiEvent.AddComment -> {
+        is UiEvent.AddComment -> {
             addComment(event.text)
         }
 
-        is PostDetailUiEvent.ToggleCommentLike -> {
+        is UiEvent.ToggleCommentLike -> {
             toggleCommentLike(event.commentId)
         }
 
-        PostDetailUiEvent.LoadMoreComments -> {
+        UiEvent.LoadMoreComments -> {
             loadMoreComments()
         }
 
-        PostDetailUiEvent.RetryComments -> {
+        UiEvent.RetryComments -> {
             retryComments()
         }
 
-        PostDetailUiEvent.FailedActionShown -> {
+        UiEvent.FailedActionShown -> {
             _uiState.update { it.copy(failedAction = null) }
         }
 
-        PostDetailUiEvent.CommentSent -> {
+        UiEvent.CommentSent -> {
             setCommentSend(CommentSendState.IDLE)
         }
 
-        PostDetailUiEvent.ScrolledToComment -> {
+        UiEvent.ScrolledToComment -> {
             mutateCommentThread { it.copy(scrollTo = null) }
         }
     }
@@ -288,7 +290,7 @@ class PostDetailViewModel @AssistedInject constructor(
 
     /**
      * Reports the post. Unlike [delete] the page stays where it is, and the dialog with it, which
-     * is why the outcome goes to [PostDetailUiState.reportSend] and not to a covered snackbar.
+     * is why the outcome goes to [UiState.reportSend] and not to a covered snackbar.
      */
     private fun report(reason: ReportReason, details: String) =
         launchReport(::reportJob, ::setReportSend) {

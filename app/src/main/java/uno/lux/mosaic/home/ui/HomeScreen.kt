@@ -60,6 +60,8 @@ import uno.lux.mosaic.post.ui.ReportSendState
 import uno.lux.mosaic.video.data.domain.Video
 import uno.lux.mosaic.video.ui.LocalVideoPlayback
 import uno.lux.mosaic.common.R as CommonR
+import uno.lux.mosaic.home.ui.HomeUiEvent as UiEvent
+import uno.lux.mosaic.home.ui.HomeUiState as UiState
 
 @Composable
 fun HomeScreen(
@@ -84,18 +86,18 @@ fun HomeScreen(
 }
 
 /**
- * Stateless feed screen — renders [uiState] and reports every interaction as a [HomeUiEvent]
+ * Stateless feed screen — renders [uiState] and reports every interaction as a [UiEvent]
  * through [onEvent]. Holding no ViewModel makes it directly previewable and testable.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun HomeScreen(
-    uiState: HomeUiState,
+    uiState: UiState,
     isRefreshing: Boolean,
     autoPlayVideos: Boolean,
     failedAction: FailedAction?,
     reportSend: ReportSendState,
-    onEvent: (HomeUiEvent) -> Unit,
+    onEvent: (UiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
@@ -107,7 +109,7 @@ internal fun HomeScreen(
     // away. The duration is stated because Material's default is Indefinite whenever an action
     // label is given: right for a decision the user must make, wrong for a feed that is still
     // perfectly readable behind it.
-    val refreshErrorMessage = (uiState as? HomeUiState.Feed)?.refreshError?.asText()
+    val refreshErrorMessage = (uiState as? UiState.Feed)?.refreshError?.asText()
     val retryLabel = stringResource(CommonR.string.error_retry)
 
     LaunchedEffect(refreshErrorMessage) {
@@ -120,12 +122,12 @@ internal fun HomeScreen(
         )
         // Spent, whether it was acted on or waited out — neither the message nor a rotation
         // rebuilding this composition should say it twice.
-        onEvent(HomeUiEvent.RefreshErrorShown)
-        if (result == SnackbarResult.ActionPerformed) onEvent(HomeUiEvent.Refresh)
+        onEvent(UiEvent.RefreshErrorShown)
+        if (result == SnackbarResult.ActionPerformed) onEvent(UiEvent.Refresh)
     }
 
     // A delete whose request failed after its dialog already closed.
-    FailedActionEffect(failedAction, snackbarHostState) { onEvent(HomeUiEvent.FailedActionShown) }
+    FailedActionEffect(failedAction, snackbarHostState) { onEvent(UiEvent.FailedActionShown) }
 
     Scaffold(
         modifier = modifier,
@@ -133,30 +135,30 @@ internal fun HomeScreen(
         topBar = {
             FeedTopBar(
                 elevated = true,
-                onOpenSettings = { onEvent(HomeUiEvent.OpenSettings) },
+                onOpenSettings = { onEvent(UiEvent.OpenSettings) },
             )
         },
     ) { contentPadding ->
         PullToRefreshBox(
             isRefreshing = isRefreshing,
-            onRefresh = { onEvent(HomeUiEvent.Refresh) },
+            onRefresh = { onEvent(UiEvent.Refresh) },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(contentPadding),
         ) {
             when (uiState) {
-                HomeUiState.Loading -> {
+                UiState.Loading -> {
                     FullScreenProgress()
                 }
 
-                is HomeUiState.Error -> {
+                is UiState.Error -> {
                     FullScreenError(
                         message = uiState.error.asText(),
-                        onRetry = { onEvent(HomeUiEvent.Retry) },
+                        onRetry = { onEvent(UiEvent.Retry) },
                     )
                 }
 
-                is HomeUiState.Feed -> {
+                is UiState.Feed -> {
                     if (uiState.posts.isEmpty()) {
                         EmptyState()
                     } else {
@@ -222,7 +224,7 @@ private fun FeedList(
     autoPlayVideos: Boolean,
     reportSend: ReportSendState,
     listState: LazyListState,
-    onEvent: (HomeUiEvent) -> Unit,
+    onEvent: (UiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val playback = LocalVideoPlayback.current
@@ -255,7 +257,7 @@ private fun FeedList(
         listState = listState,
         endReached = endReached,
         loadMoreFailed = loadMoreFailed,
-        onLoadMore = { onEvent(HomeUiEvent.LoadMore) },
+        onLoadMore = { onEvent(UiEvent.LoadMore) },
     )
 
     LazyColumn(state = listState, modifier = modifier.fillMaxSize()) {
@@ -264,19 +266,19 @@ private fun FeedList(
                 post = data.post,
                 author = data.author,
                 reportSend = reportSend,
-                onToggleLike = { onEvent(HomeUiEvent.ToggleLike(data.post.id)) },
-                onToggleBookmark = { onEvent(HomeUiEvent.ToggleBookmark(data.post.id)) },
-                onOpenProfile = { onEvent(HomeUiEvent.OpenProfile(data.author.id)) },
-                onOpenVideo = { video -> onEvent(HomeUiEvent.OpenVideo(video)) },
+                onToggleLike = { onEvent(UiEvent.ToggleLike(data.post.id)) },
+                onToggleBookmark = { onEvent(UiEvent.ToggleBookmark(data.post.id)) },
+                onOpenProfile = { onEvent(UiEvent.OpenProfile(data.author.id)) },
+                onOpenVideo = { video -> onEvent(UiEvent.OpenVideo(video)) },
                 onOpenAlbum = { urls, index ->
-                    onEvent(HomeUiEvent.OpenAlbum(urls, index))
+                    onEvent(UiEvent.OpenAlbum(urls, index))
                 },
-                onOpenPost = { onEvent(HomeUiEvent.OpenPost(data.post.id)) },
+                onOpenPost = { onEvent(UiEvent.OpenPost(data.post.id)) },
                 onReport = { reason, details ->
-                    onEvent(HomeUiEvent.Report(data.post.id, reason, details))
+                    onEvent(UiEvent.Report(data.post.id, reason, details))
                 },
-                onReportClosed = { onEvent(HomeUiEvent.CloseReport) },
-                onDelete = if (data.isOwn) ({ onEvent(HomeUiEvent.Delete(data.post.id)) }) else null,
+                onReportClosed = { onEvent(UiEvent.CloseReport) },
+                onDelete = if (data.isOwn) ({ onEvent(UiEvent.Delete(data.post.id)) }) else null,
             )
         }
         if (endReached) {
@@ -285,7 +287,7 @@ private fun FeedList(
             }
         } else {
             item(key = "loading_more") {
-                LoadMoreFooter(failed = loadMoreFailed, onRetry = { onEvent(HomeUiEvent.LoadMore) })
+                LoadMoreFooter(failed = loadMoreFailed, onRetry = { onEvent(UiEvent.LoadMore) })
             }
         }
     }
@@ -374,7 +376,7 @@ private fun HomeFeedPreview() {
 
     MosaicTheme {
         HomeScreen(
-            uiState = HomeUiState.Feed(feed, endReached = true),
+            uiState = UiState.Feed(feed, endReached = true),
             isRefreshing = false,
             autoPlayVideos = true,
             failedAction = null,
@@ -389,7 +391,7 @@ private fun HomeFeedPreview() {
 private fun HomeEmptyPreview() {
     MosaicTheme {
         HomeScreen(
-            uiState = HomeUiState.Feed(posts = emptyList(), endReached = true),
+            uiState = UiState.Feed(posts = emptyList(), endReached = true),
             isRefreshing = false,
             autoPlayVideos = true,
             failedAction = null,

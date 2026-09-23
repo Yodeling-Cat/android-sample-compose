@@ -101,6 +101,8 @@ import uno.lux.mosaic.user.data.domain.UserId
 import uno.lux.mosaic.user.ui.Avatar
 import kotlin.math.roundToInt
 import uno.lux.mosaic.common.R as CommonR
+import uno.lux.mosaic.profile.ui.ProfileUiEvent as UiEvent
+import uno.lux.mosaic.profile.ui.ProfileUiState as UiState
 
 @Composable
 fun ProfileScreen(
@@ -130,18 +132,18 @@ fun ProfileScreen(
 
 @Composable
 internal fun ProfileScreen(
-    uiState: ProfileUiState,
+    uiState: UiState,
     isRefreshing: Boolean,
     failedAction: FailedAction?,
     reportSend: ReportSendState,
-    onEvent: (ProfileUiEvent) -> Unit,
+    onEvent: (UiEvent) -> Unit,
     modifier: Modifier = Modifier,
     showBackButton: Boolean = false,
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val onBack: (() -> Unit)? = if (showBackButton) ({ onEvent(ProfileUiEvent.GoBack) }) else null
+    val onBack: (() -> Unit)? = if (showBackButton) ({ onEvent(UiEvent.GoBack) }) else null
 
-    FailedActionEffect(failedAction, snackbarHostState) { onEvent(ProfileUiEvent.FailedActionShown) }
+    FailedActionEffect(failedAction, snackbarHostState) { onEvent(UiEvent.FailedActionShown) }
 
     Box(
         modifier = modifier
@@ -149,26 +151,26 @@ internal fun ProfileScreen(
             .background(MaterialTheme.colorScheme.background),
     ) {
         when (uiState) {
-            ProfileUiState.Loading -> {
+            UiState.Loading -> {
                 FullScreenProgress()
                 if (onBack != null) PlainBackButton(onBack, Modifier.align(Alignment.TopStart))
             }
 
-            is ProfileUiState.Error -> {
+            is UiState.Error -> {
                 FullScreenError(
                     message = uiState.error.asText(),
-                    onRetry = { onEvent(ProfileUiEvent.Retry) },
+                    onRetry = { onEvent(UiEvent.Retry) },
                 )
                 if (onBack != null) PlainBackButton(onBack, Modifier.align(Alignment.TopStart))
             }
 
-            ProfileUiState.NotFound -> {
+            UiState.NotFound -> {
                 CenteredMessage(stringResource(R.string.profile_not_found))
                 if (onBack != null) PlainBackButton(onBack, Modifier.align(Alignment.TopStart))
             }
 
             // Draws its own TopAppBar over the cover, so it needs no PlainBackButton.
-            is ProfileUiState.Loaded -> {
+            is UiState.Loaded -> {
                 ProfileContent(
                     data = uiState.data,
                     isCurrentUser = uiState.isCurrentUser,
@@ -208,7 +210,7 @@ private fun ProfileContent(
     isCurrentUser: Boolean,
     isRefreshing: Boolean,
     reportSend: ReportSendState,
-    onEvent: (ProfileUiEvent) -> Unit,
+    onEvent: (UiEvent) -> Unit,
     onBack: (() -> Unit)?,
 ) {
     // Saved is the signed-in user's own private list, so it is hidden on anyone else's profile.
@@ -264,23 +266,23 @@ private fun ProfileContent(
             listState = listState,
             endReached = data.postsEndReached,
             loadMoreFailed = data.postsLoadMoreFailed,
-            onLoadMore = { onEvent(ProfileUiEvent.LoadMorePosts) },
+            onLoadMore = { onEvent(UiEvent.LoadMorePosts) },
         )
 
         ProfileTab.LIKES -> OnDemandTabEffects(
             listState = listState,
             list = data.likes,
             loadFailed = data.likesLoadFailed,
-            onShown = { onEvent(ProfileUiEvent.LikesTabShown) },
-            onLoadMore = { onEvent(ProfileUiEvent.LoadMoreLikes) },
+            onShown = { onEvent(UiEvent.LikesTabShown) },
+            onLoadMore = { onEvent(UiEvent.LoadMoreLikes) },
         )
 
         ProfileTab.SAVED -> OnDemandTabEffects(
             listState = listState,
             list = data.bookmarks,
             loadFailed = data.bookmarksLoadFailed,
-            onShown = { onEvent(ProfileUiEvent.SavedTabShown) },
-            onLoadMore = { onEvent(ProfileUiEvent.LoadMoreBookmarks) },
+            onShown = { onEvent(UiEvent.SavedTabShown) },
+            onLoadMore = { onEvent(UiEvent.LoadMoreBookmarks) },
         )
     }
 
@@ -288,7 +290,7 @@ private fun ProfileContent(
     // downward drag re-expands the header before the refresh gesture gets the leftover.
     PullToRefreshBox(
         isRefreshing = isRefreshing,
-        onRefresh = { onEvent(ProfileUiEvent.Refresh) },
+        onRefresh = { onEvent(UiEvent.Refresh) },
         modifier = Modifier.fillMaxSize(),
     ) {
         Box(
@@ -300,9 +302,9 @@ private fun ProfileContent(
                 ProfileHeader(
                     user = data.user,
                     isCurrentUser = isCurrentUser,
-                    onEditProfile = { onEvent(ProfileUiEvent.OpenEditProfile) },
-                    onToggleFollow = { onEvent(ProfileUiEvent.ToggleFollow) },
-                    onOpenAvatar = { url -> onEvent(ProfileUiEvent.OpenAvatar(url)) },
+                    onEditProfile = { onEvent(UiEvent.OpenEditProfile) },
+                    onToggleFollow = { onEvent(UiEvent.ToggleFollow) },
+                    onOpenAvatar = { url -> onEvent(UiEvent.OpenAvatar(url)) },
                     // Reserve `collapse` less height and draw the header shifted up by that much,
                     // so it slides behind the bar with no gap left below. Read in the layout pass,
                     // so a scroll reflows the header without recomposing this screen.
@@ -338,8 +340,8 @@ private fun ProfileContent(
                         ProfileTab.LIKES -> onDemandTabItems(
                             list = data.likes,
                             loadFailed = data.likesLoadFailed,
-                            onFirstLoad = { onEvent(ProfileUiEvent.LikesTabShown) },
-                            onLoadMore = { onEvent(ProfileUiEvent.LoadMoreLikes) },
+                            onFirstLoad = { onEvent(UiEvent.LikesTabShown) },
+                            onLoadMore = { onEvent(UiEvent.LoadMoreLikes) },
                             reportSend = reportSend,
                             onEvent = onEvent,
                             keyPrefix = "likes",
@@ -349,8 +351,8 @@ private fun ProfileContent(
                         ProfileTab.SAVED -> onDemandTabItems(
                             list = data.bookmarks,
                             loadFailed = data.bookmarksLoadFailed,
-                            onFirstLoad = { onEvent(ProfileUiEvent.SavedTabShown) },
-                            onLoadMore = { onEvent(ProfileUiEvent.LoadMoreBookmarks) },
+                            onFirstLoad = { onEvent(UiEvent.SavedTabShown) },
+                            onLoadMore = { onEvent(UiEvent.LoadMoreBookmarks) },
                             reportSend = reportSend,
                             onEvent = onEvent,
                             keyPrefix = "saved",
@@ -626,7 +628,7 @@ private fun ProfileTabs(
 private fun LazyListScope.postItems(
     screenData: ProfileScreenData,
     reportSend: ReportSendState,
-    onEvent: (ProfileUiEvent) -> Unit,
+    onEvent: (UiEvent) -> Unit,
     isCurrentUser: Boolean,
 ) {
     val posts = screenData.posts
@@ -641,24 +643,24 @@ private fun LazyListScope.postItems(
             post = post,
             author = author,
             reportSend = reportSend,
-            onToggleLike = { onEvent(ProfileUiEvent.ToggleLike(post.id)) },
-            onToggleBookmark = { onEvent(ProfileUiEvent.ToggleBookmark(post.id)) },
+            onToggleLike = { onEvent(UiEvent.ToggleLike(post.id)) },
+            onToggleBookmark = { onEvent(UiEvent.ToggleBookmark(post.id)) },
             // Already on this author's profile — tapping the header again is a no-op.
             onOpenProfile = {},
-            onOpenVideo = { video -> onEvent(ProfileUiEvent.OpenVideo(video)) },
-            onOpenAlbum = { urls, index -> onEvent(ProfileUiEvent.OpenAlbum(urls, index)) },
-            onOpenPost = { onEvent(ProfileUiEvent.OpenPost(post.id)) },
-            onReport = { reason, details -> onEvent(ProfileUiEvent.Report(post.id, reason, details)) },
-            onReportClosed = { onEvent(ProfileUiEvent.CloseReport) },
+            onOpenVideo = { video -> onEvent(UiEvent.OpenVideo(video)) },
+            onOpenAlbum = { urls, index -> onEvent(UiEvent.OpenAlbum(urls, index)) },
+            onOpenPost = { onEvent(UiEvent.OpenPost(post.id)) },
+            onReport = { reason, details -> onEvent(UiEvent.Report(post.id, reason, details)) },
+            onReportClosed = { onEvent(UiEvent.CloseReport) },
             // Every post here is by the profile's user, so "own post" is whose profile this is.
-            onDelete = if (isCurrentUser) ({ onEvent(ProfileUiEvent.Delete(post.id)) }) else null,
+            onDelete = if (isCurrentUser) ({ onEvent(UiEvent.Delete(post.id)) }) else null,
         )
     }
     if (!screenData.postsEndReached) {
         item(key = "posts-loading-more") {
             LoadMoreFooter(
                 failed = screenData.postsLoadMoreFailed,
-                onRetry = { onEvent(ProfileUiEvent.LoadMorePosts) },
+                onRetry = { onEvent(UiEvent.LoadMorePosts) },
             )
         }
     }
@@ -694,7 +696,7 @@ private fun LazyListScope.onDemandTabItems(
     onFirstLoad: () -> Unit,
     onLoadMore: () -> Unit,
     reportSend: ReportSendState,
-    onEvent: (ProfileUiEvent) -> Unit,
+    onEvent: (UiEvent) -> Unit,
     keyPrefix: String,
     @StringRes emptyMessageRes: Int,
 ) {
@@ -713,18 +715,18 @@ private fun LazyListScope.onDemandTabItems(
             post = data.post,
             author = data.author,
             reportSend = reportSend,
-            onToggleLike = { onEvent(ProfileUiEvent.ToggleLike(data.post.id)) },
-            onToggleBookmark = { onEvent(ProfileUiEvent.ToggleBookmark(data.post.id)) },
+            onToggleLike = { onEvent(UiEvent.ToggleLike(data.post.id)) },
+            onToggleBookmark = { onEvent(UiEvent.ToggleBookmark(data.post.id)) },
             // A saved or liked post can be by anyone, so its header opens that author's profile.
-            onOpenProfile = { onEvent(ProfileUiEvent.OpenProfile(data.author.id)) },
-            onOpenVideo = { video -> onEvent(ProfileUiEvent.OpenVideo(video)) },
-            onOpenAlbum = { urls, index -> onEvent(ProfileUiEvent.OpenAlbum(urls, index)) },
-            onOpenPost = { onEvent(ProfileUiEvent.OpenPost(data.post.id)) },
+            onOpenProfile = { onEvent(UiEvent.OpenProfile(data.author.id)) },
+            onOpenVideo = { video -> onEvent(UiEvent.OpenVideo(video)) },
+            onOpenAlbum = { urls, index -> onEvent(UiEvent.OpenAlbum(urls, index)) },
+            onOpenPost = { onEvent(UiEvent.OpenPost(data.post.id)) },
             onReport = { reason, details ->
-                onEvent(ProfileUiEvent.Report(data.post.id, reason, details))
+                onEvent(UiEvent.Report(data.post.id, reason, details))
             },
-            onReportClosed = { onEvent(ProfileUiEvent.CloseReport) },
-            onDelete = if (data.isOwn) ({ onEvent(ProfileUiEvent.Delete(data.post.id)) }) else null,
+            onReportClosed = { onEvent(UiEvent.CloseReport) },
+            onDelete = if (data.isOwn) ({ onEvent(UiEvent.Delete(data.post.id)) }) else null,
         )
     }
 
@@ -863,7 +865,7 @@ private fun sampleProfileData(): ProfileScreenData {
 private fun ProfileScreenPreview() {
     MosaicTheme {
         ProfileScreen(
-            uiState = ProfileUiState.Loaded(sampleProfileData(), isCurrentUser = true),
+            uiState = UiState.Loaded(sampleProfileData(), isCurrentUser = true),
             isRefreshing = false,
             failedAction = null,
             reportSend = ReportSendState.IDLE,
@@ -877,7 +879,7 @@ private fun ProfileScreenPreview() {
 private fun ProfileScreenOtherUserPreview() {
     MosaicTheme {
         ProfileScreen(
-            uiState = ProfileUiState.Loaded(sampleProfileData(), isCurrentUser = false),
+            uiState = UiState.Loaded(sampleProfileData(), isCurrentUser = false),
             isRefreshing = false,
             failedAction = null,
             reportSend = ReportSendState.IDLE,

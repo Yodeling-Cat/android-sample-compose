@@ -20,6 +20,8 @@ import uno.lux.mosaic.common.util.saveDraft
 import uno.lux.mosaic.feed.data.FeedRepository
 import uno.lux.mosaic.post.data.domain.NewPostMedia
 import javax.inject.Inject
+import uno.lux.mosaic.composer.ui.CreatePostUiEvent as UiEvent
+import uno.lux.mosaic.composer.ui.CreatePostUiState as UiState
 
 /**
  * Drives the post composer. Publishing goes through [FeedRepository].
@@ -38,9 +40,9 @@ class CreatePostViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
-        CreatePostUiState(form = savedStateHandle.restoreDraft(DRAFT_KEY) ?: CreatePostForm()),
+        UiState(form = savedStateHandle.restoreDraft(DRAFT_KEY) ?: CreatePostForm()),
     )
-    val uiState: StateFlow<CreatePostUiState> = _uiState.asStateFlow()
+    val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     private var publishJob: Job? = null
     private var pickVideoJob: Job? = null
@@ -49,52 +51,52 @@ class CreatePostViewModel @Inject constructor(
         savedStateHandle.saveDraft(DRAFT_KEY) { _uiState.value.form }
     }
 
-    fun onEvent(event: CreatePostUiEvent): Unit = when (event) {
-        is CreatePostUiEvent.TitleChanged -> {
+    fun onEvent(event: UiEvent): Unit = when (event) {
+        is UiEvent.TitleChanged -> {
             updateForm { it.copy(title = event.value.take(CREATE_POST_TITLE_MAX_LENGTH)) }
         }
 
-        is CreatePostUiEvent.BodyChanged -> {
+        is UiEvent.BodyChanged -> {
             updateForm { it.copy(body = event.value.take(CREATE_POST_BODY_MAX_LENGTH)) }
         }
 
-        is CreatePostUiEvent.ImagesPicked -> {
+        is UiEvent.ImagesPicked -> {
             addImages(event.uris)
         }
 
-        is CreatePostUiEvent.RemoveImage -> {
+        is UiEvent.RemoveImage -> {
             removeImage(event.uri)
         }
 
-        is CreatePostUiEvent.VideoPicked -> {
+        is UiEvent.VideoPicked -> {
             attachVideo(event.uri)
         }
 
-        CreatePostUiEvent.RemoveVideo -> {
+        UiEvent.RemoveVideo -> {
             removeVideo()
         }
 
-        is CreatePostUiEvent.OpenImages -> {
+        is UiEvent.OpenImages -> {
             navigator.goTo(Screen.AlbumViewer(event.media.uris, event.initialIndex))
         }
 
-        is CreatePostUiEvent.OpenVideo -> {
+        is UiEvent.OpenVideo -> {
             navigator.goTo(Screen.FullscreenVideo(event.media.uri))
         }
 
-        CreatePostUiEvent.Publish -> {
+        UiEvent.Publish -> {
             publish()
         }
 
-        CreatePostUiEvent.GoBack -> {
+        UiEvent.GoBack -> {
             goBack()
         }
 
-        CreatePostUiEvent.DismissDiscard -> {
+        UiEvent.DismissDiscard -> {
             _uiState.update { it.copy(showDiscardConfirmation = false) }
         }
 
-        CreatePostUiEvent.ConfirmDiscard -> {
+        UiEvent.ConfirmDiscard -> {
             _uiState.update { it.copy(showDiscardConfirmation = false) }
             navigator.goBack()
         }
@@ -181,7 +183,7 @@ class CreatePostViewModel @Inject constructor(
                 val draft = form.toNewPost(media = loadMedia(form.media))
 
                 val postId = feedRepository.publish(draft)
-                _uiState.value = CreatePostUiState()
+                _uiState.value = UiState()
                 navigator.replaceTop(Screen.PostDetail(postId))
             }
         }

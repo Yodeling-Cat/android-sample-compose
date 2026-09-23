@@ -42,6 +42,7 @@ import uno.lux.mosaic.common.ui.OverlayBackButton
 import uno.lux.mosaic.common.util.ImmersiveSystemBars
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import kotlin.math.min
+import uno.lux.mosaic.album.ui.AlbumViewerUiEvent as UiEvent
 
 @Composable
 fun AlbumViewerScreen(
@@ -53,7 +54,7 @@ fun AlbumViewerScreen(
     AlbumViewerScreen(
         imageUrls = imageUrls,
         initialIndex = initialIndex,
-        onBack = { viewModel.onEvent(AlbumViewerUiEvent.GoBack) },
+        onBack = { viewModel.onEvent(UiEvent.GoBack) },
         modifier = modifier,
     )
 }

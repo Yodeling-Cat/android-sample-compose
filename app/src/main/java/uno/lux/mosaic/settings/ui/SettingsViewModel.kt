@@ -12,6 +12,8 @@ import uno.lux.mosaic.settings.data.SettingsRepository
 import uno.lux.mosaic.settings.data.domain.AppLanguage
 import uno.lux.mosaic.settings.data.domain.ThemeMode
 import javax.inject.Inject
+import uno.lux.mosaic.settings.ui.SettingsUiEvent as UiEvent
+import uno.lux.mosaic.settings.ui.SettingsUiState as UiState
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -19,29 +21,29 @@ class SettingsViewModel @Inject constructor(
     private val navigator: Navigator,
 ) : ViewModel() {
 
-    val uiState: StateFlow<SettingsUiState> = settingsRepository.settings
+    val uiState: StateFlow<UiState> = settingsRepository.settings
         .map { settings ->
-            SettingsUiState.Content(
+            UiState.Content(
                 themeMode = settings.themeMode,
                 autoPlayVideos = settings.autoPlayVideos,
                 language = settings.language ?: AppLanguage.Default,
             )
-        }.stateInWhileSubscribed(viewModelScope, SettingsUiState.Loading)
+        }.stateInWhileSubscribed(viewModelScope, UiState.Loading)
 
-    fun onEvent(event: SettingsUiEvent): Unit = when (event) {
-        is SettingsUiEvent.SetThemeMode -> {
+    fun onEvent(event: UiEvent): Unit = when (event) {
+        is UiEvent.SetThemeMode -> {
             setThemeMode(event.mode)
         }
 
-        is SettingsUiEvent.SetAutoPlayVideos -> {
+        is UiEvent.SetAutoPlayVideos -> {
             setAutoPlayVideos(event.enabled)
         }
 
-        is SettingsUiEvent.SetLanguage -> {
+        is UiEvent.SetLanguage -> {
             setLanguage(event.language)
         }
 
-        SettingsUiEvent.GoBack -> {
+        UiEvent.GoBack -> {
             navigator.goBack()
         }
     }

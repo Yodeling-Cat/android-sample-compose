@@ -41,6 +41,8 @@ import uno.lux.mosaic.designsystem.theme.accentBarColors
 import uno.lux.mosaic.settings.data.domain.AppLanguage
 import uno.lux.mosaic.settings.data.domain.ThemeMode
 import uno.lux.mosaic.common.R as CommonR
+import uno.lux.mosaic.settings.ui.SettingsUiEvent as UiEvent
+import uno.lux.mosaic.settings.ui.SettingsUiState as UiState
 
 @Composable
 fun SettingsScreen(
@@ -59,8 +61,8 @@ fun SettingsScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SettingsScreen(
-    uiState: SettingsUiState,
-    onEvent: (SettingsUiEvent) -> Unit,
+    uiState: UiState,
+    onEvent: (UiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LightStatusBarIcons()
@@ -75,7 +77,7 @@ internal fun SettingsScreen(
                 navigationIcon = {
                     AppBarAction(
                         icon = CommonR.drawable.ic_arrow_back,
-                        onClick = { onEvent(SettingsUiEvent.GoBack) },
+                        onClick = { onEvent(UiEvent.GoBack) },
                         contentDescription = stringResource(CommonR.string.navigate_back),
                     )
                 },
@@ -83,9 +85,9 @@ internal fun SettingsScreen(
         },
     ) { contentPadding ->
         when (uiState) {
-            SettingsUiState.Loading -> Unit
+            UiState.Loading -> Unit
 
-            is SettingsUiState.Content -> SettingsScreenContent(
+            is UiState.Content -> SettingsScreenContent(
                 uiState = uiState,
                 onEvent = onEvent,
                 modifier = Modifier
@@ -97,8 +99,8 @@ internal fun SettingsScreen(
 
 @Composable
 private fun SettingsScreenContent(
-    uiState: SettingsUiState.Content,
-    onEvent: (SettingsUiEvent) -> Unit,
+    uiState: UiState.Content,
+    onEvent: (UiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -112,7 +114,7 @@ private fun SettingsScreenContent(
             SingleChoiceRow(
                 options = AppLanguage.entries,
                 selected = uiState.language,
-                onSelected = { onEvent(SettingsUiEvent.SetLanguage(it)) },
+                onSelected = { onEvent(UiEvent.SetLanguage(it)) },
                 label = { stringResource(it.labelRes()) },
             )
         }
@@ -121,7 +123,7 @@ private fun SettingsScreenContent(
             SingleChoiceRow(
                 options = ThemeMode.entries,
                 selected = uiState.themeMode,
-                onSelected = { onEvent(SettingsUiEvent.SetThemeMode(it)) },
+                onSelected = { onEvent(UiEvent.SetThemeMode(it)) },
                 label = { stringResource(it.labelRes()) },
             )
         }
@@ -131,7 +133,7 @@ private fun SettingsScreenContent(
                 label = stringResource(R.string.settings_autoplay_videos),
                 supportingText = stringResource(R.string.settings_autoplay_videos_description),
                 checked = uiState.autoPlayVideos,
-                onCheckedChange = { onEvent(SettingsUiEvent.SetAutoPlayVideos(it)) },
+                onCheckedChange = { onEvent(UiEvent.SetAutoPlayVideos(it)) },
             )
         }
     }
@@ -234,7 +236,7 @@ private fun AppLanguage.labelRes(): Int = when (this) {
 private fun SettingsScreenPreview() {
     MosaicTheme {
         SettingsScreen(
-            uiState = SettingsUiState.Content(
+            uiState = UiState.Content(
                 themeMode = ThemeMode.SYSTEM,
                 autoPlayVideos = true,
                 language = AppLanguage.ENGLISH,

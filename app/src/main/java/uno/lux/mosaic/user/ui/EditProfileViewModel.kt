@@ -22,6 +22,8 @@ import uno.lux.mosaic.common.util.stateInWhileSubscribed
 import uno.lux.mosaic.user.data.UserRepository
 import uno.lux.mosaic.user.data.domain.UserId
 import javax.inject.Inject
+import uno.lux.mosaic.user.ui.EditProfileUiEvent as UiEvent
+import uno.lux.mosaic.user.ui.EditProfileUiState as UiState
 
 /**
  * Drives the signed-in user's profile editor. The form is seeded from [UserRepository]'s
@@ -55,7 +57,7 @@ class EditProfileViewModel @Inject constructor(
             return form != initial
         }
 
-    val uiState: StateFlow<EditProfileUiState> = combine(
+    val uiState: StateFlow<UiState> = combine(
         _form,
         _initialForm,
         _loadError,
@@ -71,7 +73,7 @@ class EditProfileViewModel @Inject constructor(
         val saveError = args[5] as AppError?
 
         when {
-            form != null -> EditProfileUiState.Editing(
+            form != null -> UiState.Editing(
                 form = form,
                 isDirty = form != initialForm,
                 isSaving = isSaving,
@@ -79,11 +81,11 @@ class EditProfileViewModel @Inject constructor(
                 saveError = saveError,
             )
 
-            loadError != null -> EditProfileUiState.Error(loadError)
+            loadError != null -> UiState.Error(loadError)
 
-            else -> EditProfileUiState.Loading
+            else -> UiState.Loading
         }
-    }.stateInWhileSubscribed(viewModelScope, EditProfileUiState.Loading)
+    }.stateInWhileSubscribed(viewModelScope, UiState.Loading)
 
     private var loadJob: Job? = null
     private var saveJob: Job? = null
@@ -93,46 +95,46 @@ class EditProfileViewModel @Inject constructor(
         retry()
     }
 
-    fun onEvent(event: EditProfileUiEvent): Unit = when (event) {
-        is EditProfileUiEvent.NicknameChanged -> {
+    fun onEvent(event: UiEvent): Unit = when (event) {
+        is UiEvent.NicknameChanged -> {
             updateForm { it.copy(nickname = event.value) }
         }
 
-        is EditProfileUiEvent.AgeChanged -> {
+        is UiEvent.AgeChanged -> {
             updateForm { form ->
                 form.copy(age = event.value.filter { it.isDigit() }.take(3))
             }
         }
 
-        is EditProfileUiEvent.GenderChanged -> {
+        is UiEvent.GenderChanged -> {
             updateForm { it.copy(gender = event.gender) }
         }
 
-        is EditProfileUiEvent.BioChanged -> {
+        is UiEvent.BioChanged -> {
             updateForm { it.copy(bio = event.value) }
         }
 
-        is EditProfileUiEvent.AvatarPicked -> {
+        is UiEvent.AvatarPicked -> {
             updateForm { it.copy(pickedAvatarUri = event.uri) }
         }
 
-        EditProfileUiEvent.Save -> {
+        UiEvent.Save -> {
             save()
         }
 
-        EditProfileUiEvent.Retry -> {
+        UiEvent.Retry -> {
             retry()
         }
 
-        EditProfileUiEvent.GoBack -> {
+        UiEvent.GoBack -> {
             goBack()
         }
 
-        EditProfileUiEvent.DismissDiscard -> {
+        UiEvent.DismissDiscard -> {
             _showDiscardConfirmation.value = false
         }
 
-        EditProfileUiEvent.ConfirmDiscard -> {
+        UiEvent.ConfirmDiscard -> {
             _showDiscardConfirmation.value = false
             navigator.goBack()
         }

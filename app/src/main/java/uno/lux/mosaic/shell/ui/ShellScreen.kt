@@ -36,6 +36,7 @@ import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.home.ui.HomeScreen
 import uno.lux.mosaic.profile.ui.ProfileScreen
 import uno.lux.mosaic.user.data.domain.UserId
+import uno.lux.mosaic.shell.ui.ShellUiEvent as UiEvent
 
 /**
  * The tabbed shell: [DividedNavigationSuiteScaffold] adapts the navigation affordance to the
@@ -67,7 +68,7 @@ fun ShellScreen(
             val screen = destination.screen
 
             if (screen != null) {
-                viewModel.onEvent(ShellUiEvent.OpenDestination(screen))
+                viewModel.onEvent(UiEvent.OpenDestination(screen))
             } else {
                 currentDestination = destination
             }
