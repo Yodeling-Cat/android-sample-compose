@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -20,13 +21,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import uno.lux.mosaic.app.navigation.Screen
 import uno.lux.mosaic.designsystem.components.DividedNavigationSuiteScaffold
 import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
+import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.home.ui.HomeScreen
 import uno.lux.mosaic.profile.ui.ProfileScreen
 import uno.lux.mosaic.user.data.domain.UserId
@@ -50,6 +55,43 @@ fun ShellScreen(
 ) {
     var currentDestination by rememberSaveable { mutableStateOf(ShellDestinations.HOME) }
 
+    ShellScreen(
+        currentDestination = currentDestination,
+        onDestinationClick = { destination ->
+            // An entry carrying a screen is an action, not a tab: it pushes that page over the
+            // whole shell and leaves the current tab selected underneath.
+            val screen = destination.screen
+
+            if (screen != null) {
+                viewModel.openDestination(screen)
+            } else {
+                currentDestination = destination
+            }
+        },
+    ) { destination ->
+        when (destination) {
+            ShellDestinations.HOME -> HomeScreen()
+
+            ShellDestinations.PROFILE -> ProfileScreen(userId = currentUserId)
+
+            // CREATE pushes Screen.CreatePost over the shell rather than filling the
+            // content area, so it is never the selected destination and never renders here.
+            ShellDestinations.CREATE -> Unit
+        }
+    }
+}
+
+/**
+ * The shell's frame with no ViewModel behind it: the navigation suite and the cross-fading content
+ * area. [tabContent] draws the selected tab, which is what lets a preview stand a placeholder in for
+ * the real screens and their ViewModels.
+ */
+@Composable
+internal fun ShellScreen(
+    currentDestination: ShellDestinations,
+    onDestinationClick: (ShellDestinations) -> Unit,
+    tabContent: @Composable (ShellDestinations) -> Unit,
+) {
     val navItemColors = NavigationSuiteDefaults.itemColors(
         navigationBarItemColors = NavigationBarItemDefaults.colors(
             selectedIconColor = MaterialTheme.colorScheme.primary,
@@ -62,17 +104,11 @@ fun ShellScreen(
 
     DividedNavigationSuiteScaffold(
         navigationSuiteItems = {
-            destinationItems(current = currentDestination, colors = navItemColors) { destination ->
-                // An entry carrying a screen is an action, not a tab: it pushes that page over the
-                // whole shell and leaves the current tab selected underneath.
-                val screen = destination.screen
-
-                if (screen != null) {
-                    viewModel.openDestination(screen)
-                } else {
-                    currentDestination = destination
-                }
-            }
+            destinationItems(
+                current = currentDestination,
+                colors = navItemColors,
+                onClick = onDestinationClick,
+            )
         },
     ) {
         AnimatedContent(
@@ -81,15 +117,7 @@ fun ShellScreen(
             modifier = Modifier.fillMaxSize(),
             label = "tab",
         ) { destination ->
-            when (destination) {
-                ShellDestinations.HOME -> HomeScreen()
-
-                ShellDestinations.PROFILE -> ProfileScreen(userId = currentUserId)
-
-                // CREATE pushes Screen.CreatePost over the shell rather than filling the
-                // content area, so it is never the selected destination and never renders here.
-                ShellDestinations.CREATE -> Unit
-            }
+            tabContent(destination)
         }
     }
 }
@@ -143,4 +171,20 @@ private fun tabTransition(): ContentTransform {
 
     return (fadeIn(enter) + scaleIn(enter, initialScale = TAB_INITIAL_SCALE)) togetherWith
         fadeOut(tween(durationMillis = TAB_FADE_OUT_MILLIS))
+}
+
+@Preview(name = "Phone", showBackground = true)
+@Preview(name = "Tablet", showBackground = true, device = Devices.PIXEL_TABLET)
+@Composable
+private fun ShellScreenPreview() {
+    MosaicTheme {
+        ShellScreen(
+            currentDestination = ShellDestinations.HOME,
+            onDestinationClick = {},
+        ) { destination ->
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(stringResource(destination.labelRes))
+            }
+        }
+    }
 }
