@@ -27,7 +27,7 @@ fun FullscreenVideoScreen(
     FullscreenVideoScreen(
         url = url,
         title = title,
-        onBack = viewModel::goBack,
+        onBack = { viewModel.onEvent(FullscreenVideoUiEvent.GoBack) },
         modifier = modifier,
     )
 }

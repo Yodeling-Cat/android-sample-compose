@@ -53,7 +53,7 @@ fun AlbumViewerScreen(
     AlbumViewerScreen(
         imageUrls = imageUrls,
         initialIndex = initialIndex,
-        onBack = viewModel::goBack,
+        onBack = { viewModel.onEvent(AlbumViewerUiEvent.GoBack) },
         modifier = modifier,
     )
 }

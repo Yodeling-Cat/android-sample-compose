@@ -16,8 +16,8 @@ class FullscreenVideoViewModelTest {
     private val navigator = Navigator().apply { attach(backStack) }
 
     @Test
-    fun `goBack pops the video page`() {
-        FullscreenVideoViewModel(navigator).goBack()
+    fun `GoBack pops the video page`() {
+        FullscreenVideoViewModel(navigator).onEvent(FullscreenVideoUiEvent.GoBack)
 
         assertEquals(listOf(Screen.Shell), backStack.screens())
     }

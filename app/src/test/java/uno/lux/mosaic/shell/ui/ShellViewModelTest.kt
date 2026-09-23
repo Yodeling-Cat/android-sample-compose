@@ -15,15 +15,15 @@ class ShellViewModelTest {
 
     @Test
     fun `an action destination pushes its screen over the shell`() {
-        viewModel.openDestination(Screen.CreatePost)
+        viewModel.onEvent(ShellUiEvent.OpenDestination(Screen.CreatePost))
 
         Assert.assertEquals(listOf(Screen.Shell, Screen.CreatePost), backStack.screens())
     }
 
     @Test
     fun `re-selecting an action destination does not stack a second copy`() {
-        viewModel.openDestination(Screen.CreatePost)
-        viewModel.openDestination(Screen.CreatePost)
+        viewModel.onEvent(ShellUiEvent.OpenDestination(Screen.CreatePost))
+        viewModel.onEvent(ShellUiEvent.OpenDestination(Screen.CreatePost))
 
         Assert.assertEquals(listOf(Screen.Shell, Screen.CreatePost), backStack.screens())
     }

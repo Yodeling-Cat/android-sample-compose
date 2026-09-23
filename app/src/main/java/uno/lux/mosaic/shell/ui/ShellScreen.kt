@@ -67,7 +67,7 @@ fun ShellScreen(
             val screen = destination.screen
 
             if (screen != null) {
-                viewModel.openDestination(screen)
+                viewModel.onEvent(ShellUiEvent.OpenDestination(screen))
             } else {
                 currentDestination = destination
             }

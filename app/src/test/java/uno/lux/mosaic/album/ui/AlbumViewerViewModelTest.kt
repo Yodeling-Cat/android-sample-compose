@@ -16,8 +16,8 @@ class AlbumViewerViewModelTest {
     private val navigator = Navigator().apply { attach(backStack) }
 
     @Test
-    fun `goBack pops the viewer`() {
-        AlbumViewerViewModel(navigator).goBack()
+    fun `GoBack pops the viewer`() {
+        AlbumViewerViewModel(navigator).onEvent(AlbumViewerUiEvent.GoBack)
 
         assertEquals(listOf(Screen.Shell), backStack.screens())
     }
