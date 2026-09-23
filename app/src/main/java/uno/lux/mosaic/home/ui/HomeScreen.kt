@@ -252,23 +252,28 @@ private fun FeedList(
 
     LazyColumn(state = listState, modifier = modifier.fillMaxSize()) {
         items(posts, key = { it.post.id }) { data ->
+            // The lambdas capture the ids, never `data`: every emission rebuilds each
+            // PostCardData, and a lambda that captured one would make every row recompose.
+            val postId = data.post.id
+            val authorId = data.author.id
+
             PostCard(
                 post = data.post,
                 author = data.author,
                 reportSend = reportSend,
-                onToggleLike = { onEvent(UiEvent.ToggleLike(data.post.id)) },
-                onToggleBookmark = { onEvent(UiEvent.ToggleBookmark(data.post.id)) },
-                onOpenProfile = { onEvent(UiEvent.OpenProfile(data.author.id)) },
+                onToggleLike = { onEvent(UiEvent.ToggleLike(postId)) },
+                onToggleBookmark = { onEvent(UiEvent.ToggleBookmark(postId)) },
+                onOpenProfile = { onEvent(UiEvent.OpenProfile(authorId)) },
                 onOpenVideo = { video -> onEvent(UiEvent.OpenVideo(video)) },
                 onOpenAlbum = { urls, index ->
                     onEvent(UiEvent.OpenAlbum(urls, index))
                 },
-                onOpenPost = { onEvent(UiEvent.OpenPost(data.post.id)) },
+                onOpenPost = { onEvent(UiEvent.OpenPost(postId)) },
                 onReport = { reason, details ->
-                    onEvent(UiEvent.Report(data.post.id, reason, details))
+                    onEvent(UiEvent.Report(postId, reason, details))
                 },
                 onReportClosed = { onEvent(UiEvent.CloseReport) },
-                onDelete = if (data.isOwn) ({ onEvent(UiEvent.Delete(data.post.id)) }) else null,
+                onDelete = if (data.isOwn) ({ onEvent(UiEvent.Delete(postId)) }) else null,
             )
         }
         if (endReached) {
