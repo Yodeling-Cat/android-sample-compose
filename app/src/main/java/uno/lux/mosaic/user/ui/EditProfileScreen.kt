@@ -38,7 +38,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -62,36 +61,12 @@ import uno.lux.mosaic.common.ui.FormCard
 import uno.lux.mosaic.common.ui.FullScreenError
 import uno.lux.mosaic.common.ui.FullScreenProgress
 import uno.lux.mosaic.common.util.LightStatusBarIcons
-import uno.lux.mosaic.common.util.createActionsProxy
 import uno.lux.mosaic.designsystem.components.AppBarAction
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.designsystem.theme.accentBarColors
 import uno.lux.mosaic.designsystem.theme.rememberAccentWash
 import uno.lux.mosaic.user.data.domain.UserId
 import uno.lux.mosaic.common.R as CommonR
-
-@Stable
-interface EditProfileActions {
-    fun onNicknameChange(value: String)
-
-    fun onAgeChange(value: String)
-
-    fun onGenderChange(gender: GenderOption)
-
-    fun onBioChange(value: String)
-
-    fun onAvatarChange(uri: String)
-
-    fun save()
-
-    fun retry()
-
-    fun goBack()
-
-    fun dismissDiscardConfirmation()
-
-    fun confirmDiscard()
-}
 
 @Composable
 fun EditProfileScreen(
@@ -105,16 +80,16 @@ fun EditProfileScreen(
     ) { uri ->
         // The picker's session-scoped read grant is enough — the image bytes are read and
         // uploaded on save, so no persistable permission is needed.
-        if (uri != null) viewModel.onAvatarChange(uri.toString())
+        if (uri != null) viewModel.onEvent(EditProfileUiEvent.AvatarPicked(uri.toString()))
     }
 
     BackHandler {
-        viewModel.goBack()
+        viewModel.onEvent(EditProfileUiEvent.GoBack)
     }
 
     EditProfileScreen(
         uiState = uiState,
-        actions = viewModel,
+        onEvent = viewModel::onEvent,
         onPickAvatar = {
             pickAvatar.launch(
                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
@@ -127,8 +102,8 @@ fun EditProfileScreen(
         (uiState as EditProfileUiState.Editing).showDiscardConfirmation
     ) {
         DiscardChangesDialog(
-            onConfirm = viewModel::confirmDiscard,
-            onDismiss = viewModel::dismissDiscardConfirmation,
+            onConfirm = { viewModel.onEvent(EditProfileUiEvent.ConfirmDiscard) },
+            onDismiss = { viewModel.onEvent(EditProfileUiEvent.DismissDiscard) },
         )
     }
 }
@@ -137,7 +112,7 @@ fun EditProfileScreen(
 @Composable
 internal fun EditProfileScreen(
     uiState: EditProfileUiState,
-    actions: EditProfileActions,
+    onEvent: (EditProfileUiEvent) -> Unit,
     onPickAvatar: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -170,7 +145,7 @@ internal fun EditProfileScreen(
                 navigationIcon = {
                     AppBarAction(
                         icon = CommonR.drawable.ic_arrow_back,
-                        onClick = actions::goBack,
+                        onClick = { onEvent(EditProfileUiEvent.GoBack) },
                         contentDescription = stringResource(CommonR.string.navigate_back),
                     )
                 },
@@ -179,7 +154,7 @@ internal fun EditProfileScreen(
                         SaveAction(
                             isSaving = editing.isSaving,
                             enabled = editing.isDirty && editing.form.canSave,
-                            onSave = actions::save,
+                            onSave = { onEvent(EditProfileUiEvent.Save) },
                         )
                     }
                 },
@@ -193,7 +168,7 @@ internal fun EditProfileScreen(
 
             is EditProfileUiState.Error -> FullScreenError(
                 message = uiState.error.asText(),
-                onRetry = actions::retry,
+                onRetry = { onEvent(EditProfileUiEvent.Retry) },
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(contentPadding),
@@ -202,7 +177,7 @@ internal fun EditProfileScreen(
             is EditProfileUiState.Editing -> EditProfileContent(
                 form = uiState.form,
                 isSaving = uiState.isSaving,
-                actions = actions,
+                onEvent = onEvent,
                 onPickAvatar = onPickAvatar,
                 modifier = Modifier
                     .fillMaxSize()
@@ -241,7 +216,7 @@ private fun SaveAction(
 private fun EditProfileContent(
     form: EditProfileForm,
     isSaving: Boolean,
-    actions: EditProfileActions,
+    onEvent: (EditProfileUiEvent) -> Unit,
     onPickAvatar: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -267,7 +242,7 @@ private fun EditProfileContent(
             FormCard {
                 OutlinedTextField(
                     value = form.nickname,
-                    onValueChange = actions::onNicknameChange,
+                    onValueChange = { onEvent(EditProfileUiEvent.NicknameChanged(it)) },
                     label = { Text(stringResource(R.string.edit_profile_name_label)) },
                     singleLine = true,
                     enabled = !isSaving,
@@ -277,7 +252,7 @@ private fun EditProfileContent(
 
                 OutlinedTextField(
                     value = form.age,
-                    onValueChange = actions::onAgeChange,
+                    onValueChange = { onEvent(EditProfileUiEvent.AgeChanged(it)) },
                     label = { Text(stringResource(R.string.edit_profile_age_label)) },
                     singleLine = true,
                     enabled = !isSaving,
@@ -294,7 +269,7 @@ private fun EditProfileContent(
 
                 GenderSelector(
                     selected = form.gender,
-                    onSelected = actions::onGenderChange,
+                    onSelected = { onEvent(EditProfileUiEvent.GenderChanged(it)) },
                     enabled = !isSaving,
                 )
             }
@@ -304,7 +279,7 @@ private fun EditProfileContent(
             FormCard {
                 OutlinedTextField(
                     value = form.bio,
-                    onValueChange = actions::onBioChange,
+                    onValueChange = { onEvent(EditProfileUiEvent.BioChanged(it)) },
                     label = { Text(stringResource(R.string.edit_profile_bio_label)) },
                     minLines = 4,
                     enabled = !isSaving,
@@ -401,7 +376,7 @@ private fun EditProfileScreenPreview() {
                 showDiscardConfirmation = false,
                 saveError = null,
             ),
-            actions = createActionsProxy(),
+            onEvent = {},
             onPickAvatar = {},
         )
     }

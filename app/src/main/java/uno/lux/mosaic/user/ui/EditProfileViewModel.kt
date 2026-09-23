@@ -38,8 +38,7 @@ class EditProfileViewModel @Inject constructor(
     private val navigator: Navigator,
     private val savedStateHandle: SavedStateHandle,
     @param:CurrentUserId private val userId: UserId,
-) : ViewModel(),
-    EditProfileActions {
+) : ViewModel() {
 
     // Edits in progress are the one thing here that can't be fetched again, so they are saved.
     private val _form = MutableStateFlow(savedStateHandle.restoreDraft<EditProfileForm>(DRAFT_KEY))
@@ -94,7 +93,54 @@ class EditProfileViewModel @Inject constructor(
         retry()
     }
 
-    override fun retry() = launchIfIdle(::loadJob) { load() }
+    fun onEvent(event: EditProfileUiEvent) {
+        when (event) {
+            is EditProfileUiEvent.NicknameChanged -> {
+                updateForm { it.copy(nickname = event.value) }
+            }
+
+            is EditProfileUiEvent.AgeChanged -> {
+                updateForm { form ->
+                    form.copy(age = event.value.filter { it.isDigit() }.take(3))
+                }
+            }
+
+            is EditProfileUiEvent.GenderChanged -> {
+                updateForm { it.copy(gender = event.gender) }
+            }
+
+            is EditProfileUiEvent.BioChanged -> {
+                updateForm { it.copy(bio = event.value) }
+            }
+
+            is EditProfileUiEvent.AvatarPicked -> {
+                updateForm { it.copy(pickedAvatarUri = event.uri) }
+            }
+
+            EditProfileUiEvent.Save -> {
+                save()
+            }
+
+            EditProfileUiEvent.Retry -> {
+                retry()
+            }
+
+            EditProfileUiEvent.GoBack -> {
+                goBack()
+            }
+
+            EditProfileUiEvent.DismissDiscard -> {
+                _showDiscardConfirmation.value = false
+            }
+
+            EditProfileUiEvent.ConfirmDiscard -> {
+                _showDiscardConfirmation.value = false
+                navigator.goBack()
+            }
+        }
+    }
+
+    private fun retry() = launchIfIdle(::loadJob) { load() }
 
     private suspend fun load() {
         _loadError.value = null
@@ -118,19 +164,7 @@ class EditProfileViewModel @Inject constructor(
         }
     }
 
-    override fun onNicknameChange(value: String) = updateForm { it.copy(nickname = value) }
-
-    override fun onAgeChange(value: String) = updateForm { form ->
-        form.copy(age = value.filter { it.isDigit() }.take(3))
-    }
-
-    override fun onGenderChange(gender: GenderOption) = updateForm { it.copy(gender = gender) }
-
-    override fun onBioChange(value: String) = updateForm { it.copy(bio = value) }
-
-    override fun onAvatarChange(uri: String) = updateForm { it.copy(pickedAvatarUri = uri) }
-
-    override fun save() {
+    private fun save() {
         val form = _form.value ?: return
         if (!form.canSave) return
 
@@ -151,21 +185,12 @@ class EditProfileViewModel @Inject constructor(
         }
     }
 
-    override fun goBack() {
+    private fun goBack() {
         if (isDirty) {
             _showDiscardConfirmation.value = true
         } else {
             navigator.goBack()
         }
-    }
-
-    override fun dismissDiscardConfirmation() {
-        _showDiscardConfirmation.value = false
-    }
-
-    override fun confirmDiscard() {
-        _showDiscardConfirmation.value = false
-        navigator.goBack()
     }
 
     private fun updateForm(transform: (EditProfileForm) -> EditProfileForm) {

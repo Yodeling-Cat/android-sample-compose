@@ -106,11 +106,11 @@ class EditProfileViewModelTest : ViewModelTest() {
         val (viewModel, _, _) = fixture()
         collecting(viewModel)
 
-        viewModel.onNicknameChange("Ada King")
-        viewModel.onAgeChange("37")
-        viewModel.onGenderChange(GenderOption.MAN)
-        viewModel.onBioChange("Countess of Lovelace")
-        viewModel.onAvatarChange("content://media/picker/1")
+        viewModel.onEvent(EditProfileUiEvent.NicknameChanged("Ada King"))
+        viewModel.onEvent(EditProfileUiEvent.AgeChanged("37"))
+        viewModel.onEvent(EditProfileUiEvent.GenderChanged(GenderOption.MAN))
+        viewModel.onEvent(EditProfileUiEvent.BioChanged("Countess of Lovelace"))
+        viewModel.onEvent(EditProfileUiEvent.AvatarPicked("content://media/picker/1"))
 
         val form = viewModel.form()
         assertEquals("Ada King", form.nickname)
@@ -127,7 +127,7 @@ class EditProfileViewModelTest : ViewModelTest() {
         val (viewModel, _, _) = fixture()
         collecting(viewModel)
 
-        viewModel.onAgeChange("3a6.19")
+        viewModel.onEvent(EditProfileUiEvent.AgeChanged("3a6.19"))
 
         assertEquals("361", viewModel.form().age)
     }
@@ -137,14 +137,14 @@ class EditProfileViewModelTest : ViewModelTest() {
         val (viewModel, _, _) = fixture()
         collecting(viewModel)
 
-        viewModel.onNicknameChange("   ")
+        viewModel.onEvent(EditProfileUiEvent.NicknameChanged("   "))
         assertFalse(viewModel.form().canSave)
 
-        viewModel.onNicknameChange("Ada")
-        viewModel.onAgeChange("999")
+        viewModel.onEvent(EditProfileUiEvent.NicknameChanged("Ada"))
+        viewModel.onEvent(EditProfileUiEvent.AgeChanged("999"))
         assertFalse(viewModel.form().canSave)
 
-        viewModel.onAgeChange("")
+        viewModel.onEvent(EditProfileUiEvent.AgeChanged(""))
         assertTrue(viewModel.form().canSave)
     }
 
@@ -155,22 +155,22 @@ class EditProfileViewModelTest : ViewModelTest() {
 
         assertFalse("seeded form matches the user", viewModel.editing().isDirty)
 
-        viewModel.onNicknameChange("Ada King")
+        viewModel.onEvent(EditProfileUiEvent.NicknameChanged("Ada King"))
         assertTrue(viewModel.editing().isDirty)
 
-        viewModel.onNicknameChange("Ada Lovelace")
+        viewModel.onEvent(EditProfileUiEvent.NicknameChanged("Ada Lovelace"))
         assertFalse("reverting the edit is no longer dirty", viewModel.editing().isDirty)
     }
 
     @Test
-    fun `save persists the edited profile and navigates back`() = runTest {
+    fun `Save persists the edited profile and navigates back`() = runTest {
         val (viewModel, repository, dataSource) = fixture()
         collecting(viewModel)
 
-        viewModel.onNicknameChange(" Ada King ")
-        viewModel.onAgeChange("37")
-        viewModel.onBioChange("")
-        viewModel.save()
+        viewModel.onEvent(EditProfileUiEvent.NicknameChanged(" Ada King "))
+        viewModel.onEvent(EditProfileUiEvent.AgeChanged("37"))
+        viewModel.onEvent(EditProfileUiEvent.BioChanged(""))
+        viewModel.onEvent(EditProfileUiEvent.Save)
 
         assertEquals(
             "u1" to ProfileUpdate(
@@ -187,12 +187,12 @@ class EditProfileViewModelTest : ViewModelTest() {
     }
 
     @Test
-    fun `save reads the picked avatar and uploads it`() = runTest {
+    fun `Save reads the picked avatar and uploads it`() = runTest {
         val (viewModel, _, dataSource, avatarLoader) = fixture()
         collecting(viewModel)
 
-        viewModel.onAvatarChange("content://media/picker/42")
-        viewModel.save()
+        viewModel.onEvent(EditProfileUiEvent.AvatarPicked("content://media/picker/42"))
+        viewModel.onEvent(EditProfileUiEvent.Save)
 
         assertEquals("content://media/picker/42", avatarLoader.lastUri)
         assertEquals(avatarUpload, dataSource.lastUpdate?.second?.avatar)
@@ -205,11 +205,11 @@ class EditProfileViewModelTest : ViewModelTest() {
         collecting(viewModel)
 
         // Change every field except the avatar, then save.
-        viewModel.onNicknameChange("Ada King")
-        viewModel.onAgeChange("37")
-        viewModel.onGenderChange(GenderOption.MAN)
-        viewModel.onBioChange("Countess of Lovelace")
-        viewModel.save()
+        viewModel.onEvent(EditProfileUiEvent.NicknameChanged("Ada King"))
+        viewModel.onEvent(EditProfileUiEvent.AgeChanged("37"))
+        viewModel.onEvent(EditProfileUiEvent.GenderChanged(GenderOption.MAN))
+        viewModel.onEvent(EditProfileUiEvent.BioChanged("Countess of Lovelace"))
+        viewModel.onEvent(EditProfileUiEvent.Save)
 
         assertNull("the picked image is never read", avatarLoader.lastUri)
         assertNull("no avatar is uploaded", dataSource.lastUpdate?.second?.avatar)
@@ -217,12 +217,12 @@ class EditProfileViewModelTest : ViewModelTest() {
     }
 
     @Test
-    fun `save is ignored while the form is invalid`() = runTest {
+    fun `Save is ignored while the form is invalid`() = runTest {
         val (viewModel, _, dataSource) = fixture()
         collecting(viewModel)
 
-        viewModel.onNicknameChange("")
-        viewModel.save()
+        viewModel.onEvent(EditProfileUiEvent.NicknameChanged(""))
+        viewModel.onEvent(EditProfileUiEvent.Save)
 
         assertNull(dataSource.lastUpdate)
         assertEquals(Screen.EditProfile, backStack.last().screen)
@@ -233,7 +233,7 @@ class EditProfileViewModelTest : ViewModelTest() {
         val (viewModel, _, _) = fixture(failUpdates = true)
         collecting(viewModel)
 
-        viewModel.save()
+        viewModel.onEvent(EditProfileUiEvent.Save)
 
         val editing = viewModel.uiState.value as EditProfileUiState.Editing
         assertEquals(AppError.NoConnection, editing.saveError)
@@ -242,12 +242,12 @@ class EditProfileViewModelTest : ViewModelTest() {
     }
 
     @Test
-    fun `goBack shows discard confirmation when dirty`() = runTest {
+    fun `GoBack shows discard confirmation when dirty`() = runTest {
         val (viewModel, _, _) = fixture()
         collecting(viewModel)
 
-        viewModel.onNicknameChange("Ada King")
-        viewModel.goBack()
+        viewModel.onEvent(EditProfileUiEvent.NicknameChanged("Ada King"))
+        viewModel.onEvent(EditProfileUiEvent.GoBack)
 
         val editing = viewModel.uiState.value as EditProfileUiState.Editing
         assertTrue(editing.showDiscardConfirmation)
@@ -255,37 +255,37 @@ class EditProfileViewModelTest : ViewModelTest() {
     }
 
     @Test
-    fun `confirmDiscard pops the editor`() = runTest {
+    fun `ConfirmDiscard pops the editor`() = runTest {
         val (viewModel, _, _) = fixture()
         collecting(viewModel)
 
-        viewModel.onNicknameChange("Ada King")
-        viewModel.goBack()
-        viewModel.confirmDiscard()
+        viewModel.onEvent(EditProfileUiEvent.NicknameChanged("Ada King"))
+        viewModel.onEvent(EditProfileUiEvent.GoBack)
+        viewModel.onEvent(EditProfileUiEvent.ConfirmDiscard)
 
         assertFalse((viewModel.uiState.value as EditProfileUiState.Editing).showDiscardConfirmation)
         assertEquals(listOf(Screen.Shell), backStack.screens())
     }
 
     @Test
-    fun `dismissDiscardConfirmation hides the dialog`() = runTest {
+    fun `DismissDiscard hides the dialog`() = runTest {
         val (viewModel, _, _) = fixture()
         collecting(viewModel)
 
-        viewModel.onNicknameChange("Ada King")
-        viewModel.goBack()
-        viewModel.dismissDiscardConfirmation()
+        viewModel.onEvent(EditProfileUiEvent.NicknameChanged("Ada King"))
+        viewModel.onEvent(EditProfileUiEvent.GoBack)
+        viewModel.onEvent(EditProfileUiEvent.DismissDiscard)
 
         assertFalse((viewModel.uiState.value as EditProfileUiState.Editing).showDiscardConfirmation)
         assertEquals(listOf(Screen.Shell, Screen.EditProfile), backStack.screens())
     }
 
     @Test
-    fun `goBack pops immediately when clean`() = runTest {
+    fun `GoBack pops immediately when clean`() = runTest {
         val (viewModel, _, _) = fixture()
         collecting(viewModel)
 
-        viewModel.goBack()
+        viewModel.onEvent(EditProfileUiEvent.GoBack)
 
         assertEquals(listOf(Screen.Shell), backStack.screens())
     }

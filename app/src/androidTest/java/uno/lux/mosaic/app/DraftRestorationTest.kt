@@ -42,6 +42,7 @@ import uno.lux.mosaic.user.data.UserRepository
 import uno.lux.mosaic.user.data.domain.ProfileUpdate
 import uno.lux.mosaic.user.data.domain.User
 import uno.lux.mosaic.user.data.domain.UserId
+import uno.lux.mosaic.user.ui.EditProfileUiEvent
 import uno.lux.mosaic.user.ui.EditProfileUiState
 import uno.lux.mosaic.user.ui.EditProfileViewModel
 
@@ -191,8 +192,8 @@ class DraftRestorationTest {
         val handle = SavedStateHandle()
         val killed = editor(handle)
         editing(killed)
-        killed.onNicknameChange("Ada L.")
-        killed.onBioChange("Rewritten.")
+        killed.onEvent(EditProfileUiEvent.NicknameChanged("Ada L."))
+        killed.onEvent(EditProfileUiEvent.BioChanged("Rewritten."))
 
         val restored = editing(editor(handle.killAndRestore()))
 
@@ -209,7 +210,7 @@ class DraftRestorationTest {
         val handle = SavedStateHandle()
         val killed = editor(handle)
         editing(killed)
-        killed.onNicknameChange("Ada L.")
+        killed.onEvent(EditProfileUiEvent.NicknameChanged("Ada L."))
 
         val restored = editing(editor(handle.killAndRestore()))
 
