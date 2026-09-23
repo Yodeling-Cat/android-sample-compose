@@ -5,7 +5,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.keyframes
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,17 +27,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -244,8 +238,7 @@ internal fun PostActions(
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
     val bookmarkTint = if (post.isBookmarked) MaterialTheme.colorScheme.primary else muted
     // Crossfade the heart between muted and coral so the color tracks the pop rather than snapping.
-    // Held as State and read only at draw time, so the crossfade never recomposes the row.
-    val likeTint = animateColorAsState(
+    val likeTint by animateColorAsState(
         targetValue = if (post.isLiked) LocalMosaicColors.current.like else muted,
         label = "likeTint",
     )
@@ -260,7 +253,7 @@ internal fun PostActions(
             iconRes = if (post.isLiked) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_border,
             contentDescriptionRes = if (post.isLiked) R.string.post_action_unlike else R.string.post_action_like,
             label = compactCount(post.likeCount).asText(),
-            tint = { likeTint.value },
+            tint = { likeTint },
             onClick = onToggleLike,
             iconModifier = Modifier.pop(post.isLiked),
         )
@@ -294,9 +287,6 @@ private fun ActionButton(
     modifier: Modifier = Modifier,
     iconModifier: Modifier = Modifier,
 ) {
-    val painter = painterResource(iconRes)
-    val description = stringResource(contentDescriptionRes)
-
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(100.dp))
@@ -304,18 +294,14 @@ private fun ActionButton(
             .padding(horizontal = 10.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        // Material's Icon and Text take a plain Color, which would pull the animated tint into
-        // composition; drawing the painter here and giving BasicText a producer keeps it in draw.
-        Box(
+        // The ColorProducer overloads read the tint at draw time, so the crossfade never recomposes.
+        Icon(
+            painter = painterResource(iconRes),
+            tint = { tint() },
+            contentDescription = stringResource(contentDescriptionRes),
             modifier = Modifier
                 .size(23.dp)
-                .then(iconModifier)
-                .semantics {
-                    contentDescription = description
-                    role = Role.Image
-                }.drawBehind {
-                    with(painter) { draw(size, colorFilter = ColorFilter.tint(tint())) }
-                },
+                .then(iconModifier),
         )
         if (label != null) {
             Spacer(Modifier.width(7.dp))

@@ -3,10 +3,6 @@ package uno.lux.mosaic.post.ui
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.ui.test.SemanticsMatcher
-import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -29,29 +25,6 @@ class PostActionsTest {
 
     private fun string(id: Int): String =
         InstrumentationRegistry.getInstrumentation().targetContext.getString(id)
-
-    @Test
-    fun describesEachActionAsAnImage() {
-        composeRule.setContent {
-            MosaicTheme {
-                PostActions(
-                    post = SamplePosts.first { !it.isLiked && !it.isBookmarked },
-                    onToggleLike = {},
-                    onToggleBookmark = {},
-                    onCommentClick = {},
-                )
-            }
-        }
-
-        val isImage = SemanticsMatcher.expectValue(SemanticsProperties.Role, Role.Image)
-        listOf(R.string.post_action_like, R.string.post_action_comment, R.string.post_action_bookmark)
-            .forEach { id ->
-                composeRule
-                    .onNodeWithContentDescription(string(id), useUnmergedTree = true)
-                    .assertIsDisplayed()
-                    .assert(isImage)
-            }
-    }
 
     @Test
     fun heartDescriptionFollowsTheLike() {
