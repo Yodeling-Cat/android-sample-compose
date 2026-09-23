@@ -225,19 +225,19 @@ fun HomeScreen(modifier: Modifier = Modifier, viewModel: HomeViewModel = hiltVie
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
-    HomeScreen(uiState = uiState, isRefreshing = isRefreshing, actions = viewModel, ...)
+    HomeScreen(uiState = uiState, isRefreshing = isRefreshing, onEvent = viewModel::onEvent, ...)
 }
 
 @Composable
 internal fun HomeScreen(
     uiState: HomeUiState,
     isRefreshing: Boolean,
-    actions: HomeActions,
+    onEvent: (HomeUiEvent) -> Unit,
     modifier: Modifier = Modifier,
 )
 ```
 
-The **binder** injects the ViewModel and collects. The **stateless** overload takes pure inputs and callbacks. Only the second is previewable, and only the second is testable without a ViewModel — which is why the project writes it this way even for a screen that will only ever have one caller.
+The **binder** injects the ViewModel and collects. The **stateless** overload takes pure inputs and one `onEvent` for every intent. Only the second is previewable, and only the second is testable without a ViewModel — which is why the project writes it this way even for a screen that will only ever have one caller.
 
 **Hoist to the lowest common ancestor of every reader.** Hoisting further than that spreads recomposition wider than it needs to be, and turns a self-contained control into a component whose caller has to manage its internals.
 
@@ -377,28 +377,15 @@ Three places where declaring stability still earns its keep:
 
 ### Where this project uses them
 
-Three places, and no others. Domain models such as `Post` are left unannotated on purpose — `AGENTS.md` states the rule outright: do not chase `@Stable`/`@Immutable`. Feed rows skip fine as they are, because `PostRepository` preserves instance identity for every unchanged post, which is the subject of the next section and worth far more than any annotation.
+Two places, and no others. Domain models such as `Post` are left unannotated on purpose — `AGENTS.md` states the rule outright: do not chase `@Stable`/`@Immutable`. Feed rows skip fine as they are, because `PostRepository` preserves instance identity for every unchanged post, which is the subject of the next section and worth far more than any annotation.
 
-**1. The actions interfaces.** Every stateless screen takes its callbacks bundled into one interface, and each is `@Stable` — [HomeScreen.kt:75](../app/src/main/java/uno/lux/mosaic/home/ui/HomeScreen.kt#L75), and the same in `ProfileScreen`, `CreatePostScreen` and `EditProfileScreen`:
+**1. Snapshot-state holders.** `@Stable class VideoPlaybackController` ([VideoPlayback.kt:50](../app/src/main/java/uno/lux/mosaic/video/ui/VideoPlayback.kt#L50)) and `@Stable internal class HoldToConfirmState`. Both mutate, and both mutate exclusively through `by mutableStateOf(...)`, which is precisely the contract `@Stable` names.
 
-```kotlin
-@Stable
-interface HomeActions {
-    fun refresh()
-    fun onToggleLike(postId: PostId)
-    ...
-}
-```
-
-The ViewModel implements it, so the binder passes the ViewModel straight through — a `@Singleton`-lifetime object whose identity never changes, and whose every observable field is snapshot state or a `StateFlow`. The annotation is honest, and it collapses what would otherwise be a dozen separate callback parameters into one stable one.
-
-**2. Snapshot-state holders.** `@Stable class VideoPlaybackController` ([VideoPlayback.kt:50](../app/src/main/java/uno/lux/mosaic/video/ui/VideoPlayback.kt#L50)) and `@Stable internal class HoldToConfirmState`. Both mutate, and both mutate exclusively through `by mutableStateOf(...)`, which is precisely the contract `@Stable` names.
-
-**3. A theme token bag.** `@Immutable data class MosaicColors` ([MosaicColors.kt:12](../core/design-system/src/main/kotlin/uno/lux/mosaic/designsystem/theme/MosaicColors.kt#L12)) — two `val Color`s, constructed once per theme and never touched again.
+**2. A theme token bag.** `@Immutable data class MosaicColors` ([MosaicColors.kt:12](../core/design-system/src/main/kotlin/uno/lux/mosaic/designsystem/theme/MosaicColors.kt#L12)) — two `val Color`s, constructed once per theme and never touched again.
 
 ### The annotation is taken at its word — a real bug from this repo
 
-`@Stable` says "compare me with `equals`", and the compiler emits exactly that call. [ActionsInvocationHandler.kt](../core/common/src/main/kotlin/uno/lux/mosaic/common/util/ActionsInvocationHandler.kt) exists because of it. Previews pass a `java.lang.reflect.Proxy` in place of an actions interface, and the naive handler returned `Unit` from every method — including the `equals` that recomposition calls on a stable parameter:
+`@Stable` says "compare me with `equals`", and the compiler emits exactly that call. Screens used to take their intents as a `@Stable` actions interface, and previews passed a `java.lang.reflect.Proxy` in its place. The naive handler returned `Unit` from every method — including the `equals` that recomposition calls on a stable parameter:
 
 ```
 result has type boolean, got kotlin.Unit
@@ -414,7 +401,7 @@ when (method.name) {
 }
 ```
 
-Worth remembering as the concrete form of "the compiler cannot verify these annotations". Here it surfaced as a crash. The quieter version — a type that mutates without notifying composition — surfaces as a screen that simply stops updating.
+The screens now take one `onEvent` lambda, and a preview passes `{}`, so the proxy is gone. The lesson stays: this is the concrete form of "the compiler cannot verify these annotations". Here it surfaced as a crash. The quieter version — a type that mutates without notifying composition — surfaces as a screen that simply stops updating.
 
 ### The order to work in
 

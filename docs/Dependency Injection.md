@@ -50,7 +50,7 @@ class ProfileViewModel @AssistedInject constructor(
     private val navigator: Navigator,
     @param:CurrentUserId private val currentUserId: UserId,
     @Assisted private val userId: UserId,
-) : ViewModel(), ProfileActions {
+) : ViewModel() {
 
     @AssistedFactory
     interface Factory {

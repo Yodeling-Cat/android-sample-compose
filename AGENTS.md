@@ -178,6 +178,7 @@ Konsist scans every module, so the rules reach `:core:common` and `:core:design-
 5. **`common` knows no concern.**
 6. **The design system knows no concern.** Gradle already stops `:core:design-system` from importing `:app`; what this rule adds is the direction Gradle cannot see — a concern dragged *into* the design system, for example a branded control that grew a `Post` parameter. `common/util` is covered by rule 5 instead, now that it lives in `common`.
 7. **A repository with no interface stays plain-JVM.** A `*Repository` class with no supertype carries no Android import. `DataStoreSettingsRepository` and `AppCompatLocaleRepository` may touch the platform, because their consumers can be handed a test double instead.
+8. **A screen's ViewModel takes intent only through `onEvent`.** A `*ViewModel` in a concern's `ui/` package extends only `ViewModel`, and `onEvent` is its only public function. `MainViewModel` lives in `app/ui`, so the path puts it outside the rule. Overrides are left to the supertype check, because an `override` with no written modifier inherits `protected`, and Konsist reads `onCleared` as public.
 
 The test does **not** check the direction of the cross-concern graph, on purpose. Encoding which cycles are tolerated would cost more than the code review that catches them.
 
@@ -262,22 +263,26 @@ Destinations are data-driven from the `ShellDestinations` enum in `shell/ui/`. E
 
 ### Feature UI — the HOME feed sets the pattern
 
-The app uses MVVM with unidirectional data flow. `HomeViewModel` exposes `StateFlow<HomeUiState>`, with states `Loading`, `Error`, and `Feed`. It converts user intent into repository mutations or `Navigator` pushes, both through one `HomeActions` seam.
+The app uses MVVM with unidirectional data flow. `HomeViewModel` exposes `StateFlow<HomeUiState>`, with states `Loading`, `Error`, and `Feed`. It takes every user intent as one `HomeUiEvent` through `onEvent`, and turns it into a repository mutation or a `Navigator` push.
 
-**Two intent seams exist, on purpose — one is a pilot.** `HomeViewModel` and `ProfileViewModel` take intent through an actions interface the ViewModel implements. `PostDetailViewModel` takes it as one `PostDetailUiEvent` through an `eventSink` the *state itself* carries, so the stateless screen takes `(uiState, modifier)` and nothing else, whatever the page's seventeen intents grow to. `SettingsViewModel` is a half-step: sealed events, but the sink passed as a separate parameter.
+**Every screen takes intent the same way: one sealed `<Screen>UiEvent`, sent through `onEvent`.** The ViewModel's only public function is `fun onEvent(event: HomeUiEvent): Unit = when (event) { … }`, and every handler behind it is private. `ArchitectureTest` enforces this. The stateless screen takes its state and `onEvent: (HomeUiEvent) -> Unit`, so a preview passes `onEvent = {}`, and a UI test can pass `events::add` and assert on exactly what was sent. An event that carries an argument is a `data class`, and one without is a `data object`. Name an event for what the user asked for (`ToggleLike`, `OpenPost`), or for what happened to the screen (`ImagesPicked`, `FailedActionShown`).
 
-`PostDetailUiState` is the shape the pilot is testing: one data class the ViewModel owns and edits with `copy`, with the load axis as a nested sealed `Content` field and everything orthogonal to it — the thread, the send states, the announcement — as ordinary fields beside it. Only the shared entity store stays reactive, through a single collector, because a like toggled on the feed or a delete performed on a profile has to reach the page unasked. **Do not migrate the other screens until this one has been lived with**; until then, follow whichever seam the screen you are editing already uses.
+**The sink is a parameter beside the state, never a field inside it.** `HomeUiState` and the other load states are sealed, and a sink inside them would have to ride on every case. A lambda in a data class also makes equality depend on one instance surviving every `copy`, and makes a test build a sink just to write an expected state.
 
-Every screen splits into two parts: a **stateful binder** that collects state and injects the ViewModel, and an **internal stateless composable** that takes pure inputs and callbacks. This split lets a screen preview and test with no ViewModel.
+**Leaf composables never take the sink.** `PostCard` takes plain lambdas, and each screen turns them into its own events at the call site. That is what lets Home, Profile and the detail page share it. The shell, the album viewer and the video page keep their stateless `onBack`-style lambdas for the same reason, and their binders turn those into events. The system pickers in the composer and the profile editor stay separate `onPick…` parameters, because launching one needs a launcher from the composition, not a ViewModel.
+
+**`PostDetailUiState` is a pilot for the *state* shape, not for the event seam.** It tests one data class the ViewModel owns and edits with `copy`, with the load axis as a nested sealed `Content` field and everything orthogonal to it — the thread, the send states, the announcement — as ordinary fields beside it. Only the shared entity store stays reactive, through a single collector, because a like toggled on the feed or a delete performed on a profile has to reach the page unasked. **Do not migrate the other screens' state until this one has been lived with**; until then, keep each screen's state in the shape it already has.
+
+Every screen splits into two parts: a **stateful binder** that collects state and injects the ViewModel, and an **internal stateless composable** that takes its state and `onEvent`. This split lets a screen preview and test with no ViewModel.
 
 **A loaded feed outranks a load error.** When nothing is loaded, a failure becomes `HomeUiState.Error` and takes over the screen. When a feed is already loaded, a failure rides along as `Feed.refreshError` and shows in a snackbar instead, because a failed pull-to-refresh must not take away the posts the user is reading.
 
-The transient error is **spent once shown**: `onRefreshErrorShown()` clears it, so a configuration change cannot show it again. `retry()` is the only path back to the full-screen error. Follow this pattern on any screen that can fail while it shows content.
+The transient error is **spent once shown**: `HomeUiEvent.RefreshErrorShown` clears it, so a configuration change cannot show it again. `HomeUiEvent.Retry` is the only path back to the full-screen error. Follow this pattern on any screen that can fail while it shows content.
 
 **`profile/ui/`** uses the same split, parameterized by user through Hilt assisted injection, plus the `@CurrentUserId` signed-in user. A sticky tab row is generated from the `ProfileTab` enum: Posts, Likes, and Saved.
 
 - **Saved is private, Likes is public.** `ProfileTab.ownerOnly` filters the tab row. This is why the selected index is `tabs.indexOf(selected)`, **not** the tab's ordinal. Client gating is only a courtesy. The server enforces the rule: `/bookmarks` returns 403 unless `:id` is the caller, and it refuses before the lookup, so an unknown id cannot distinguish itself from a real one.
-- **Both lists load lazily on first open**, through `onSavedTabShown` and `onLikesTabShown`, not on `refresh`. A tab nobody opened costs no request. `bookmarkIds` and `likeIds` emit `null` until that first load. This is how a tab tells "empty" apart from "not asked yet." Refresh re-fetches only the tabs that were opened.
+- **Both lists load lazily on first open**, through `ProfileUiEvent.SavedTabShown` and `LikesTabShown`, not on `Refresh`. A tab nobody opened costs no request. `bookmarkIds` and `likeIds` emit `null` until that first load. This is how a tab tells "empty" apart from "not asked yet." Refresh re-fetches only the tabs that were opened.
 - **For the signed-in user, each list is derived from its flag, not echoed from the fetch.** `OnDemandPostIds` takes `Post::isBookmarked` or `Post::isLiked` and combines it with the entity store, so membership moves in both directions from anywhere, with no re-fetch. Deriving only *removal* is a trap to avoid. It would make membership depend on whether the post happened to be in an already-fetched page. Order comes from the server's keyset, `(createdAt, id)` descending, and the client reproduces this order. `PageState.oldestLoaded` holds back a post below the loaded window, instead of letting it jump ahead.
 - None of this applies to **another** user's Likes tab, which is echoed exactly as fetched. `isLiked` and `isBookmarked` are viewer-scoped, so on someone else's profile they describe the viewer, not the profile owner. Saved and liked posts can be by anyone, so their authors ride along in `included.users` into `UserRepository`.
 
@@ -395,8 +400,8 @@ fun FeedTopBar(elevated: Boolean, onOpenSettings: () -> Unit)
 fun HomeScreen(
     uiState: HomeUiState,
     isRefreshing: Boolean,
-    actions: HomeActions,
-    onOpenSettings: () -> Unit,
+    onEvent: (HomeUiEvent) -> Unit,
+    modifier: Modifier = Modifier,
 )
 ```
 
@@ -423,26 +428,28 @@ fun provideJson(): Json = Json { ignoreUnknownKeys = true }
 
 ```kotlin
 // Yes
-override fun onToggleLike(postId: PostId) = launchCatching {
+private fun toggleLike(postId: PostId) = launchCatching {
     postRepository.toggleLike(postId)
 }
 
 // No
-override fun onToggleLike(postId: PostId) =
+private fun toggleLike(postId: PostId) =
     launchCatching { postRepository.toggleLike(postId) }
 ```
 
-A **block of work**, for example anything launched, a coroutine body, or a test body, always takes its own lines. This way a ViewModel's actions all read as one shape. A **small value expression** passed to such a block stays inline until it no longer fits on one line:
+A **block of work**, for example anything launched, a coroutine body, or a test body, always takes its own lines. This way a ViewModel's handlers all read as one shape. A **small value expression** passed to such a block stays inline until it no longer fits on one line:
 
 ```kotlin
-override fun onNicknameChange(value: String) = updateForm { it.copy(nickname = value) }
+private fun setNickname(value: String) = updateForm { it.copy(nickname = value) }
 
-override fun onAgeChange(value: String) = updateForm { form ->
+private fun setAge(value: String) = updateForm { form ->
     form.copy(age = value.filter { it.isDigit() }.take(3))
 }
 ```
 
 **A trailing lambda is not what decides between the two rules — what the lambda *is* decides.** `Json { … }` builds a value, so it goes below the `=`. `launchCatching { … }` and `updateForm { … }` open a block of work, so they keep their brace up on the declaration line. When it is genuinely unclear, ask whether the lambda's last expression is the thing being returned.
+
+**`onEvent` is a block of work too**, so its `when` opens on the declaration line: `fun onEvent(event: HomeUiEvent): Unit = when (event) {`, with each branch one indent in. **The declared `Unit` is load-bearing.** Without it, the return type is inferred from the branches, and one branch that returns a value would widen the public `onEvent` to `Any` with no warning. With it, that branch fails to compile.
 
 **Both rules are about function bodies.** A property initializer is not one, and stays inline: `val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()`.
 
