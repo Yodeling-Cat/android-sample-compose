@@ -31,6 +31,7 @@ The shell is Windows PowerShell. Invoke the wrapper as `.\gradlew.bat`.
 - Unit tests: `.\gradlew.bat testRemoteDebugUnitTest testDebugUnitTest`. Both task names are needed and neither is redundant — `:app`'s tests are flavored and the two library modules' are not, so from the root each name runs in whichever projects have it. For one class, add `--tests "uno.lux.mosaic.post.data.PostRepositoryTest"`. Add `.<method>` to run one test.
 - Lint: `.\gradlew.bat lintRemoteDebug lintDebug`, for the app and the libraries. The app's report is at `app/build/reports/lint-results-remoteDebug.html`. For formatting, use `.\gradlew.bat ktlintCheck`, which already covers every module.
 - Build or install: `.\gradlew.bat assembleRemoteDebug` or `.\gradlew.bat installRemoteDebug`.
+- Compose stability reports: `.\gradlew.bat -Pmosaic.composeReports compileRemoteReleaseKotlin --rerun compileReleaseKotlin --rerun`. It writes `*-classes.txt` and `*-composables.txt` to each module's `build/compose-reports/`. Both task names are needed, for the same reason as the unit tests. Keep each `--rerun`: the reports are not a tracked output, so a compile task that is up to date or restored from the build cache writes none. See *Compose performance* for when to run it and what to look for.
 - Instrumented tests (need a device): `.\gradlew.bat connectedRemoteDebugAndroidTest`. For one class, add `-Pandroid.testInstrumentationRunnerArguments.class=…`.
 
 **CI** (`.github/workflows/ci.yml`) runs `ktlintCheck`, `lintRemoteDebug lintDebug`, and `testRemoteDebugUnitTest testDebugUnitTest` on every push to main and every pull request. It uploads the reports as artifacts. These three JVM-only checks are the checks that gate a change.
@@ -364,7 +365,13 @@ Video playback position is deliberately not restored.
 Strong skipping is on, through the built-in Compose compiler in Kotlin 2.4.20. This shapes what is worth doing:
 
 - **Do not wrap lambdas in `remember` by reflex.** Strong skipping auto-remembers them, keyed on what they capture.
-- **Make every type a composable takes provably stable.** Strong skipping still skips on an unstable parameter, but compares it by *instance*, so a new but equal value recomposes anyway. A stable parameter is compared with `equals`. Check the compiler's verdict with `.\gradlew.bat -Pmosaic.composeReports compileRemoteReleaseKotlin`, which writes `*-classes.txt` and `*-composables.txt` to each module's `build/compose-reports/`.
+- **Make every type a composable takes provably stable.** Strong skipping still skips on an unstable parameter, but compares it by *instance*, so a new but equal value recomposes anyway. A stable parameter is compared with `equals`. The compiler states which is which in its stability reports (see *Commands*).
+- **Run the stability reports after a new screen, and at the end of a large change.** CI does not run them. Read the reports in this order:
+  1. In `*-composables.txt`, look for any parameter marked `unstable`. Each one is compared by instance.
+  2. In `*-classes.txt`, look for `unstable` or `Uncertain(…)` on a type that a composable receives. The field lines under it name the cause. ViewModels, repositories, DTOs and data sources show as unstable too. Ignore them, because no composable takes them as a parameter.
+  3. Fix a finding with the rules below, then run the reports again to confirm it is gone.
+
+  The reports show only how a parameter is compared. They do not show state read too high in the tree, a lambda that captures a rebuilt wrapper, or work done on every frame. For those, read the code against the rest of this section, and measure on a device with Layout Inspector's recomposition counts.
 - **Decide stability when you write the type, not later.** This applies to every new data class, sealed type, or state holder that a composable will receive:
   - A data class of `val`s with stable types needs nothing. The compiler infers it.
   - A sealed interface is *uncertain* to the compiler, even when every case is an immutable data class. Mark it `@Immutable`. `HomeUiState`, `PostDetailUiState.Content`, `CreatePostMedia`, `AppError` and `Screen` are examples.
