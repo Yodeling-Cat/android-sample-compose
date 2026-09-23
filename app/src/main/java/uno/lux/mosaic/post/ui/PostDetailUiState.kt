@@ -36,6 +36,8 @@ data class CommentThread(
     /** Null both before the first page lands and once the last one has. */
     val nextCursor: String? = null,
     val endReached: Boolean = false,
+    /** The last attempt at the page after [comments] failed, so the footer offers a retry. */
+    val loadMoreFailed: Boolean = false,
     /** The comment the screen still owes a scroll to, or null once it has made it. */
     val scrollTo: CommentId? = null,
 )

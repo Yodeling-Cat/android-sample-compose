@@ -777,6 +777,47 @@ class PostDetailViewModelTest : ViewModelTest() {
         assertFalse(thread.endReached)
     }
 
+    // The failure has to reach the footer, or it would keep spinning over a page nobody is fetching.
+    @Test
+    fun `a failed page is carried on the thread for the footer to offer a retry`() = runTest {
+        val source = pagedSource(thread(5), pageSize = 2)
+        val vm = viewModel(commentDataSource = source)
+
+        source.loadError = UnknownHostException("offline")
+        vm.onEvent(PostDetailUiEvent.LoadMoreComments)
+
+        assertTrue(vm.uiState.value.commentThread.loadMoreFailed)
+    }
+
+    @Test
+    fun `asking for the page again clears the failure and appends it`() = runTest {
+        val full = thread(5)
+        val source = pagedSource(full, pageSize = 2)
+        val vm = viewModel(commentDataSource = source)
+        source.loadError = UnknownHostException("offline")
+        vm.onEvent(PostDetailUiEvent.LoadMoreComments)
+        source.loadError = null
+
+        vm.onEvent(PostDetailUiEvent.LoadMoreComments)
+
+        val thread = vm.uiState.value.commentThread
+        assertFalse(thread.loadMoreFailed)
+        assertEquals(full.take(4), thread.comments)
+    }
+
+    @Test
+    fun `RetryComments clears a failed page, since it starts the thread over`() = runTest {
+        val source = pagedSource(thread(5), pageSize = 2)
+        val vm = viewModel(commentDataSource = source)
+        source.loadError = UnknownHostException("offline")
+        vm.onEvent(PostDetailUiEvent.LoadMoreComments)
+        source.loadError = null
+
+        vm.onEvent(PostDetailUiEvent.RetryComments)
+
+        assertFalse(vm.uiState.value.commentThread.loadMoreFailed)
+    }
+
     // A retry is a fresh thread, not a resumed one: the cursor it was holding describes a window
     // into a thread that may have moved since.
     @Test

@@ -304,7 +304,7 @@ class PostDetailViewModel @AssistedInject constructor(
     }
 
     private suspend fun loadComments() {
-        mutateCommentThread { it.copy(isLoading = true, error = null) }
+        mutateCommentThread { it.copy(isLoading = true, error = null, loadMoreFailed = false) }
 
         try {
             catchErrors(onError = { e -> mutateCommentThread { it.copy(error = e.toAppError()) } }) {
@@ -332,8 +332,15 @@ class PostDetailViewModel @AssistedInject constructor(
      */
     private fun loadMoreComments() = launchIfIdle(::loadMoreJob) {
         val cursor = _uiState.value.commentThread.nextCursor ?: return@launchIfIdle
+        mutateCommentThread { it.copy(loadMoreFailed = false) }
 
-        catchErrors {
+        catchErrors(onError = {
+            // Only a failure of the page the thread is still waiting for; one a reload has moved
+            // past has nothing left to retry.
+            mutateCommentThread { thread ->
+                if (thread.nextCursor == cursor) thread.copy(loadMoreFailed = true) else thread
+            }
+        }) {
             val page = commentRepository.loadComments(postId, cursor)
             mutateCommentThread { thread ->
                 // A reload that landed while this page was on the wire started the thread over, so

@@ -86,7 +86,7 @@ import uno.lux.mosaic.common.ui.FailedActionEffect
 import uno.lux.mosaic.common.ui.FullScreenError
 import uno.lux.mosaic.common.ui.FullScreenProgress
 import uno.lux.mosaic.common.ui.LoadMoreEffect
-import uno.lux.mosaic.common.ui.LoadingMoreFooter
+import uno.lux.mosaic.common.ui.LoadMoreFooter
 import uno.lux.mosaic.common.util.compactCount
 import uno.lux.mosaic.common.util.createActionsProxy
 import uno.lux.mosaic.designsystem.components.ScrimIconButton
@@ -318,12 +318,14 @@ private fun ProfileContent(
         ProfileTab.POSTS -> LoadMoreEffect(
             listState = listState,
             endReached = data.postsEndReached,
+            loadMoreFailed = data.postsLoadMoreFailed,
             onLoadMore = actions::loadMorePosts,
         )
 
         ProfileTab.LIKES -> OnDemandTabEffects(
             listState = listState,
             list = data.likes,
+            loadFailed = data.likesLoadFailed,
             onShown = actions::onLikesTabShown,
             onLoadMore = actions::loadMoreLikes,
         )
@@ -331,6 +333,7 @@ private fun ProfileContent(
         ProfileTab.SAVED -> OnDemandTabEffects(
             listState = listState,
             list = data.bookmarks,
+            loadFailed = data.bookmarksLoadFailed,
             onShown = actions::onSavedTabShown,
             onLoadMore = actions::loadMoreBookmarks,
         )
@@ -389,6 +392,9 @@ private fun ProfileContent(
 
                         ProfileTab.LIKES -> onDemandTabItems(
                             list = data.likes,
+                            loadFailed = data.likesLoadFailed,
+                            onFirstLoad = actions::onLikesTabShown,
+                            onLoadMore = actions::loadMoreLikes,
                             reportSend = reportSend,
                             actions = actions,
                             keyPrefix = "likes",
@@ -397,6 +403,9 @@ private fun ProfileContent(
 
                         ProfileTab.SAVED -> onDemandTabItems(
                             list = data.bookmarks,
+                            loadFailed = data.bookmarksLoadFailed,
+                            onFirstLoad = actions::onSavedTabShown,
+                            onLoadMore = actions::loadMoreBookmarks,
                             reportSend = reportSend,
                             actions = actions,
                             keyPrefix = "saved",
@@ -701,7 +710,9 @@ private fun LazyListScope.postItems(
         )
     }
     if (!screenData.postsEndReached) {
-        item(key = "posts-loading-more") { LoadingMoreFooter() }
+        item(key = "posts-loading-more") {
+            LoadMoreFooter(failed = screenData.postsLoadMoreFailed, onRetry = actions::loadMorePosts)
+        }
     }
 }
 
@@ -710,6 +721,7 @@ private fun LazyListScope.postItems(
 private fun OnDemandTabEffects(
     listState: LazyListState,
     list: ProfilePostList?,
+    loadFailed: Boolean,
     onShown: () -> Unit,
     onLoadMore: () -> Unit,
 ) {
@@ -718,23 +730,28 @@ private fun OnDemandTabEffects(
     LoadMoreEffect(
         listState = listState,
         endReached = list?.endReached ?: true,
+        loadMoreFailed = loadFailed,
         onLoadMore = onLoadMore,
     )
 }
 
 /**
  * One on-demand tab's rows — Saved or Likes. A null [list] is the state before that tab's first
- * fetch lands, so unlike the posts above it has a loading state of its own.
+ * fetch lands, so unlike the posts above it has a loading state of its own. [loadFailed] turns
+ * either spinner into a retry: of [onFirstLoad] before the list has loaded, of [onLoadMore] after.
  */
 private fun LazyListScope.onDemandTabItems(
     list: ProfilePostList?,
+    loadFailed: Boolean,
+    onFirstLoad: () -> Unit,
+    onLoadMore: () -> Unit,
     reportSend: ReportSendState,
     actions: ProfileActions,
     keyPrefix: String,
     @StringRes emptyMessageRes: Int,
 ) {
     if (list == null) {
-        item(key = "$keyPrefix-loading") { LoadingMoreFooter() }
+        item(key = "$keyPrefix-loading") { LoadMoreFooter(failed = loadFailed, onRetry = onFirstLoad) }
         return
     }
 
@@ -762,7 +779,7 @@ private fun LazyListScope.onDemandTabItems(
     }
 
     if (!list.endReached) {
-        item(key = "$keyPrefix-loading-more") { LoadingMoreFooter() }
+        item(key = "$keyPrefix-loading-more") { LoadMoreFooter(failed = loadFailed, onRetry = onLoadMore) }
     }
 }
 

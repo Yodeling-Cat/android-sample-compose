@@ -48,13 +48,15 @@ class HomeViewModel @Inject constructor(
     HomeActions {
 
     private val _loadError = MutableStateFlow<AppError?>(null)
+    private val _loadMoreFailed = MutableStateFlow(false)
 
     val uiState: StateFlow<HomeUiState> = combine(
         feedRepository.feedState,
         postRepository.entities,
         userRepository.users,
         _loadError,
-    ) { feedState, entities, users, loadError ->
+        _loadMoreFailed,
+    ) { feedState, entities, users, loadError, loadMoreFailed ->
         when (feedState) {
             FeedState.NotLoaded -> {
                 if (loadError != null) HomeUiState.Error(loadError) else HomeUiState.Loading
@@ -74,6 +76,7 @@ class HomeViewModel @Inject constructor(
                     posts = cards,
                     endReached = !feedState.hasMore,
                     refreshError = loadError,
+                    loadMoreFailed = loadMoreFailed,
                 )
             }
         }
@@ -120,11 +123,14 @@ class HomeViewModel @Inject constructor(
     }
 
     override fun loadMore() = launchIfIdle(::loadMoreJob) {
-        catchErrors { feedRepository.loadMore() }
+        _loadMoreFailed.value = false
+
+        catchErrors(onError = { _loadMoreFailed.value = true }) { feedRepository.loadMore() }
     }
 
     private suspend fun load() {
         _loadError.value = null
+        _loadMoreFailed.value = false
 
         ignoreErrors(_loadError) { feedRepository.refresh() }
     }

@@ -51,7 +51,7 @@ import uno.lux.mosaic.common.ui.FailedActionEffect
 import uno.lux.mosaic.common.ui.FullScreenError
 import uno.lux.mosaic.common.ui.FullScreenProgress
 import uno.lux.mosaic.common.ui.LoadMoreEffect
-import uno.lux.mosaic.common.ui.LoadingMoreFooter
+import uno.lux.mosaic.common.ui.LoadMoreFooter
 import uno.lux.mosaic.common.util.createActionsProxy
 import uno.lux.mosaic.designsystem.components.AppBarAction
 import uno.lux.mosaic.designsystem.components.MosaicWordmark
@@ -212,6 +212,7 @@ internal fun HomeScreen(
                         FeedList(
                             posts = uiState.posts,
                             endReached = uiState.endReached,
+                            loadMoreFailed = uiState.loadMoreFailed,
                             autoPlayVideos = autoPlayVideos,
                             reportSend = reportSend,
                             listState = listState,
@@ -266,6 +267,7 @@ private val TopBarElevation = 4.dp
 private fun FeedList(
     posts: List<PostCardData>,
     endReached: Boolean,
+    loadMoreFailed: Boolean,
     autoPlayVideos: Boolean,
     reportSend: ReportSendState,
     listState: LazyListState,
@@ -298,7 +300,12 @@ private fun FeedList(
         }
     }
 
-    LoadMoreEffect(listState, endReached, actions::loadMore)
+    LoadMoreEffect(
+        listState = listState,
+        endReached = endReached,
+        loadMoreFailed = loadMoreFailed,
+        onLoadMore = actions::loadMore,
+    )
 
     LazyColumn(state = listState, modifier = modifier.fillMaxSize()) {
         items(posts, key = { it.post.id }) { data ->
@@ -325,7 +332,7 @@ private fun FeedList(
             }
         } else {
             item(key = "loading_more") {
-                LoadingMoreFooter()
+                LoadMoreFooter(failed = loadMoreFailed, onRetry = actions::loadMore)
             }
         }
     }

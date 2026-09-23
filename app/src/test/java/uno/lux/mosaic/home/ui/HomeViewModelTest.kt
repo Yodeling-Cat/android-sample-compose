@@ -334,6 +334,52 @@ class HomeViewModelTest : ViewModelTest() {
     }
 
     @Test
+    fun `a failed load-more is carried on the feed for the footer to offer a retry`() = runTest {
+        val dataSource = FlakyFeedDataSource(FeedPage(listOf(post), listOf(author), "c2", true))
+        val viewModel = viewModel(feedDataSource = dataSource)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+        dataSource.failNext = true
+
+        viewModel.loadMore()
+
+        assertTrue((viewModel.uiState.value as HomeUiState.Feed).loadMoreFailed)
+    }
+
+    @Test
+    fun `loading more again clears the failure`() = runTest {
+        val dataSource = FlakyFeedDataSource(FeedPage(listOf(post), listOf(author), "c2", true))
+        val viewModel = viewModel(feedDataSource = dataSource)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+        dataSource.failNext = true
+        viewModel.loadMore()
+        dataSource.failNext = false
+
+        viewModel.loadMore()
+
+        assertFalse((viewModel.uiState.value as HomeUiState.Feed).loadMoreFailed)
+    }
+
+    @Test
+    fun `a refresh clears a load-more failure, since it restarts the feed`() = runTest {
+        val dataSource = FlakyFeedDataSource(FeedPage(listOf(post), listOf(author), "c2", true))
+        val viewModel = viewModel(feedDataSource = dataSource)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+        dataSource.failNext = true
+        viewModel.loadMore()
+        dataSource.failNext = false
+
+        viewModel.refresh()
+
+        assertFalse((viewModel.uiState.value as HomeUiState.Feed).loadMoreFailed)
+    }
+
+    @Test
     fun `retry shows Loading while reloading after the feed was already loaded`() = runTest {
         val dataSource = SucceedOnceThenSuspendFeedDataSource(
             firstPage = FeedPage(listOf(post), listOf(author), null, false),

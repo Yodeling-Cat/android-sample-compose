@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uno.lux.mosaic.app.di.CurrentUserId
 import uno.lux.mosaic.app.navigation.Navigator
@@ -103,16 +105,30 @@ class ProfileViewModel @AssistedInject constructor(
             ProfilePostList(posts = cards, endReached = !more)
         }
 
-    /** The two lazily-loaded tabs, paired so the state combine stays within its typed arity. */
+    /** Which of the three lists failed the last time it was asked for a page. */
+    private data class LoadFailures(
+        val posts: Boolean = false,
+        val bookmarks: Boolean = false,
+        val likes: Boolean = false,
+    )
+
+    private val _loadFailures = MutableStateFlow(LoadFailures())
+
+    /**
+     * The two lazily-loaded tabs and the lists' load failures, bundled so the state combine stays
+     * within its typed arity.
+     */
     private data class LazyTabs(
         val bookmarks: ProfilePostList?,
         val likes: ProfilePostList?,
+        val failures: LoadFailures,
     )
 
     private val lazyTabs: Flow<LazyTabs> = combine(
         cardListFlow(saved),
         cardListFlow(liked),
-    ) { savedPosts, likedPosts -> LazyTabs(savedPosts, likedPosts) }
+        _loadFailures,
+    ) { savedPosts, likedPosts, failures -> LazyTabs(savedPosts, likedPosts, failures) }
 
     val uiState: StateFlow<ProfileUiState> = combine(
         combine(
@@ -135,6 +151,9 @@ class ProfileViewModel @AssistedInject constructor(
                         postsEndReached = !hasMorePosts,
                         bookmarks = tabs.bookmarks,
                         likes = tabs.likes,
+                        postsLoadMoreFailed = tabs.failures.posts,
+                        bookmarksLoadFailed = tabs.failures.bookmarks,
+                        likesLoadFailed = tabs.failures.likes,
                     ),
                     isCurrentUser = userId == currentUserId,
                 )
@@ -186,6 +205,16 @@ class ProfileViewModel @AssistedInject constructor(
 
     private suspend fun load() {
         _loadError.value = null
+        // A refresh restarts every list it re-fetches, so a page that failed to follow the old one
+        // is moot. A tab that never loaded is not re-fetched, so its failure still stands.
+        val savedLoaded = saved.ids.first() != null
+        val likedLoaded = liked.ids.first() != null
+        _loadFailures.update {
+            LoadFailures(
+                bookmarks = it.bookmarks && !savedLoaded,
+                likes = it.likes && !likedLoaded,
+            )
+        }
 
         ignoreErrors(_loadError) {
             coroutineScope {
@@ -246,7 +275,7 @@ class ProfileViewModel @AssistedInject constructor(
     }
 
     override fun loadMorePosts() = launchIfIdle(::loadMorePostsJob) {
-        catchErrors { profileRepository.loadMorePosts(userId) }
+        trackingFailure({ copy(posts = it) }) { profileRepository.loadMorePosts(userId) }
     }
 
     /**
@@ -254,20 +283,34 @@ class ProfileViewModel @AssistedInject constructor(
      * served from the repository, and a pull-to-refresh is what re-fetches it.
      */
     override fun onSavedTabShown() = launchIfIdle(::bookmarksJob) {
-        catchErrors { saved.ensureLoaded() }
+        trackingFailure({ copy(bookmarks = it) }) { saved.ensureLoaded() }
     }
 
     override fun loadMoreBookmarks() = launchIfIdle(::bookmarksJob) {
-        catchErrors { saved.loadMore() }
+        trackingFailure({ copy(bookmarks = it) }) { saved.loadMore() }
     }
 
     /** The Likes tab became visible. Loads once, the way [onSavedTabShown] does. */
     override fun onLikesTabShown() = launchIfIdle(::likesJob) {
-        catchErrors { liked.ensureLoaded() }
+        trackingFailure({ copy(likes = it) }) { liked.ensureLoaded() }
     }
 
     override fun loadMoreLikes() = launchIfIdle(::likesJob) {
-        catchErrors { liked.loadMore() }
+        trackingFailure({ copy(likes = it) }) { liked.loadMore() }
+    }
+
+    /**
+     * Runs one list's page load, recording in [_loadFailures] whether it failed, through [mark],
+     * which names the list. Every attempt starts by clearing the mark, so a retry re-arms the
+     * list's paging the moment it begins.
+     */
+    private suspend fun trackingFailure(
+        mark: LoadFailures.(failed: Boolean) -> LoadFailures,
+        block: suspend () -> Unit,
+    ) {
+        _loadFailures.update { it.mark(false) }
+
+        catchErrors(onError = { _loadFailures.update { it.mark(true) } }, block = block)
     }
 
     override fun goBack() = navigator.goBack()

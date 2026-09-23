@@ -12,6 +12,9 @@ data class ProfileScreenData(
     val postsEndReached: Boolean = true,
     val bookmarks: ProfilePostList? = null,
     val likes: ProfilePostList? = null,
+    val postsLoadMoreFailed: Boolean = false,
+    val bookmarksLoadFailed: Boolean = false,
+    val likesLoadFailed: Boolean = false,
 )
 
 data class ProfilePostList(

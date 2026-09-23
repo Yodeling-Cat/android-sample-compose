@@ -14,5 +14,6 @@ sealed interface HomeUiState {
         val posts: List<PostCardData>,
         val endReached: Boolean,
         val refreshError: AppError? = null,
+        val loadMoreFailed: Boolean = false,
     ) : HomeUiState
 }

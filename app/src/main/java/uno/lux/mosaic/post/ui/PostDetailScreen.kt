@@ -77,7 +77,7 @@ import uno.lux.mosaic.common.ui.FailedActionEffect
 import uno.lux.mosaic.common.ui.FullScreenError
 import uno.lux.mosaic.common.ui.FullScreenProgress
 import uno.lux.mosaic.common.ui.LoadMoreEffect
-import uno.lux.mosaic.common.ui.LoadingMoreFooter
+import uno.lux.mosaic.common.ui.LoadMoreFooter
 import uno.lux.mosaic.common.util.AppError
 import uno.lux.mosaic.common.util.LightStatusBarIcons
 import uno.lux.mosaic.common.util.relativeTime
@@ -258,6 +258,7 @@ private fun PostDetailContent(
     LoadMoreEffect(
         listState = listState,
         endReached = thread.endReached || thread.isLoading || thread.error != null,
+        loadMoreFailed = thread.loadMoreFailed,
         onLoadMore = { eventSink(PostDetailUiEvent.LoadMoreComments) },
     )
 
@@ -317,7 +318,12 @@ private fun PostDetailContent(
                     )
                 }
                 if (!thread.endReached) {
-                    item(key = "comments_loading_more") { LoadingMoreFooter() }
+                    item(key = "comments_loading_more") {
+                        LoadMoreFooter(
+                            failed = thread.loadMoreFailed,
+                            onRetry = { eventSink(PostDetailUiEvent.LoadMoreComments) },
+                        )
+                    }
                 }
             } else {
                 item(key = "empty_comments") {

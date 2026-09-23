@@ -92,6 +92,8 @@ class ProfileViewModelTest : ViewModelTest() {
         likes: List<Post> = listOf(likedPost),
         /** The authors sideloaded with the profile's own posts — in practice only its own user. */
         postAuthors: List<User> = listOf(ada),
+        /** Whether the profile's own posts continue past their first page. */
+        postsHaveMore: Boolean = false,
         userDataSource: UserDataSource = FakeUserDataSource(mapOf("u1" to ada, "u2" to grace)),
         postDataSource: FakePostDataSource = FakePostDataSource(),
     ): ProfileViewModel {
@@ -101,7 +103,12 @@ class ProfileViewModelTest : ViewModelTest() {
             refreshData = mapOf(
                 "u1" to ProfileRefreshData(
                     postsCount = 1,
-                    page = PostsPage(listOf(post), postAuthors, null, false),
+                    page = PostsPage(
+                        posts = listOf(post),
+                        users = postAuthors,
+                        cursor = if (postsHaveMore) "c2" else null,
+                        hasMore = postsHaveMore,
+                    ),
                 ),
                 "u2" to ProfileRefreshData(
                     postsCount = 0,
@@ -377,6 +384,66 @@ class ProfileViewModelTest : ViewModelTest() {
         assertEquals(grace, card.author)
         assertFalse(card.isOwn)
         assertTrue(saved.endReached)
+    }
+
+    @Test
+    fun `a Saved tab whose first load fails says so, rather than pending forever`() = runTest {
+        val viewModel = viewModel()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+        profileDataSource.offline = true
+
+        viewModel.onSavedTabShown()
+
+        val data = (viewModel.uiState.value as ProfileUiState.Loaded).data
+        assertNull(data.bookmarks)
+        assertTrue(data.bookmarksLoadFailed)
+    }
+
+    @Test
+    fun `retrying the Saved tab clears the failure and loads it`() = runTest {
+        val viewModel = viewModel()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+        profileDataSource.offline = true
+        viewModel.onSavedTabShown()
+        profileDataSource.offline = false
+
+        viewModel.onSavedTabShown()
+
+        val data = (viewModel.uiState.value as ProfileUiState.Loaded).data
+        assertFalse(data.bookmarksLoadFailed)
+        assertEquals(listOf("p2"), data.bookmarks!!.posts.map { it.post.id })
+    }
+
+    @Test
+    fun `a failed posts load-more is carried for the footer to offer a retry`() = runTest {
+        val viewModel = viewModel(postsHaveMore = true)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+        profileDataSource.offline = true
+
+        viewModel.loadMorePosts()
+
+        assertTrue((viewModel.uiState.value as ProfileUiState.Loaded).data.postsLoadMoreFailed)
+    }
+
+    @Test
+    fun `a refresh clears a posts load-more failure, since it restarts the list`() = runTest {
+        val viewModel = viewModel(postsHaveMore = true)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+        profileDataSource.offline = true
+        viewModel.loadMorePosts()
+        profileDataSource.offline = false
+
+        viewModel.refresh()
+
+        assertFalse((viewModel.uiState.value as ProfileUiState.Loaded).data.postsLoadMoreFailed)
     }
 
     @Test

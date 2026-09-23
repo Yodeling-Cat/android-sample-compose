@@ -8,6 +8,7 @@
     <string name="error_http">Chyba serveru (%1$d)</string>
     <string name="error_unknown">Něco se pokazilo</string>
     <string name="error_retry">Zkusit znovu</string>
+    <string name="error_load_more">Další se nepodařilo načíst</string>
 
     <!-- Failed fire-and-forget actions -->
     <string name="action_failed_delete_post">Příspěvek se nepodařilo smazat</string>

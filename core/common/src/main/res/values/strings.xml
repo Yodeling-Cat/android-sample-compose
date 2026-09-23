@@ -8,6 +8,7 @@
     <string name="error_http">Server error (%1$d)</string>
     <string name="error_unknown">Something went wrong</string>
     <string name="error_retry">Retry</string>
+    <string name="error_load_more">Couldn\'t load more</string>
 
     <!-- Failed fire-and-forget actions -->
     <string name="action_failed_delete_post">Couldn\'t delete the post</string>
