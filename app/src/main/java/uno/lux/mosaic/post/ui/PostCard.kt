@@ -23,6 +23,23 @@ import uno.lux.mosaic.video.data.domain.Video
 
 private const val FEED_BODY_MAX_LINES = 5
 
+/**
+ * A lazy list's `contentType` for a post's card, so a scrolled-off slot is reused only by a card
+ * with the same layout.
+ */
+enum class PostCardContentType {
+    TEXT,
+    ALBUM,
+    VIDEO,
+}
+
+val Post.cardContentType: PostCardContentType
+    get() = when {
+        video != null -> PostCardContentType.VIDEO
+        album != null -> PostCardContentType.ALBUM
+        else -> PostCardContentType.TEXT
+    }
+
 @Composable
 internal fun PostCard(
     post: Post,

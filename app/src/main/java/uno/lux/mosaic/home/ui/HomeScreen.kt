@@ -57,6 +57,7 @@ import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.post.ui.PostCard
 import uno.lux.mosaic.post.ui.PostCardData
 import uno.lux.mosaic.post.ui.PostReportSend
+import uno.lux.mosaic.post.ui.cardContentType
 import uno.lux.mosaic.post.ui.sendStateFor
 import uno.lux.mosaic.video.ui.LocalVideoPlayback
 import uno.lux.mosaic.common.R as CommonR
@@ -266,7 +267,11 @@ private fun FeedList(
     )
 
     LazyColumn(state = listState, modifier = modifier.fillMaxSize()) {
-        items(posts, key = { it.post.id }) { data ->
+        items(
+            items = posts,
+            key = { it.post.id },
+            contentType = { it.post.cardContentType },
+        ) { data ->
             // The lambdas capture the ids, never `data`: every emission rebuilds each
             // PostCardData, and a lambda that captured one would make every row recompose.
             val postId = data.post.id

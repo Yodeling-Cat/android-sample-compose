@@ -95,6 +95,7 @@ import uno.lux.mosaic.designsystem.theme.MosaicGradients
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.post.ui.PostCard
 import uno.lux.mosaic.post.ui.PostReportSend
+import uno.lux.mosaic.post.ui.cardContentType
 import uno.lux.mosaic.post.ui.sendStateFor
 import uno.lux.mosaic.profile.data.domain.Profile
 import uno.lux.mosaic.user.data.domain.User
@@ -631,7 +632,11 @@ private fun LazyListScope.postItems(
         item(key = "posts-empty") { EmptyTab(R.string.profile_empty_posts) }
         return
     }
-    items(posts, key = { it.id }) { post ->
+    items(
+        items = posts,
+        key = { it.id },
+        contentType = { it.cardContentType },
+    ) { post ->
         PostCard(
             post = post,
             author = author,
@@ -697,7 +702,11 @@ private fun LazyListScope.onDemandTabItems(
         return
     }
 
-    items(list.posts, key = { "$keyPrefix-${it.post.id}" }) { data ->
+    items(
+        items = list.posts,
+        key = { "$keyPrefix-${it.post.id}" },
+        contentType = { it.post.cardContentType },
+    ) { data ->
         // The lambdas capture the ids, never `data`: every emission rebuilds each PostCardData,
         // and a lambda that captured one would make every row recompose.
         val postId = data.post.id
