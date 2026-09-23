@@ -260,6 +260,23 @@ class PostRepositoryTest {
         assertFalse(result.isLiked)
     }
 
+    // A refresh mid-flight brought a count that other people's likes have moved, and that already
+    // counts this one. Taking back this tap must take back one like, not rewind to the count
+    // before the tap and lose everyone else's.
+    @Test
+    fun `a failed toggleLike takes back only its own like from a count that moved mid-flight`() = runTest {
+        val dataSource = FakePostDataSource().apply { setLikeError = IllegalStateException("boom") }
+        val repo = repository(dataSource)
+        repo.ingest(listOf(unliked))
+        dataSource.whileInFlight = {
+            repo.ingest(listOf(unliked.copy(isLiked = true, likeCount = 7)))
+        }
+
+        runCatching { repo.toggleLike("unliked") }
+
+        assertEquals(6, repo.entities.first()["unliked"]!!.likeCount)
+    }
+
     // Two taps in flight at once: the second one is what the user last asked for, so the first
     // request's answer — which describes a state nobody is waiting for — must not overwrite it.
     @Test

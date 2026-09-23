@@ -665,6 +665,24 @@ class PostDetailViewModelTest : ViewModelTest() {
         assertEquals(2, comment.likeCount)
     }
 
+    // The same as a post's: a reload mid-flight brought a count that already holds this like and
+    // others', so a failure takes back one like rather than rewinding to the count before the tap.
+    @Test
+    fun `a failed comment like takes back only its own like from a count that moved mid-flight`() = runTest {
+        val source = commentSource().apply { setLikeError = UnknownHostException("offline") }
+        val vm = viewModel(commentDataSource = source)
+        source.whileInFlight = {
+            source.comments = mapOf("p1" to listOf(seedComment.copy(isLiked = true, likeCount = 5)))
+            vm.onEvent(PostDetailUiEvent.RetryComments)
+            // Lets the reload land while the like is still on the wire.
+            yield()
+        }
+
+        vm.onEvent(PostDetailUiEvent.ToggleCommentLike("c1"))
+
+        assertEquals(4, vm.comments.single().likeCount)
+    }
+
     // A comment like writes only the two fields it owns, so a thread reloaded while the request
     // was in flight keeps the text it brought back rather than the copy the tap was made against.
     @Test

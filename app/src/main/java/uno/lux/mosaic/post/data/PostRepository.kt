@@ -88,11 +88,12 @@ class PostRepository(
     suspend fun toggleLike(postId: PostId) {
         val before = _entities.value[postId] ?: return
         val liked = !before.isLiked
+        val delta = if (liked) 1 else -1
         // A later tap has already moved past this request, so its answer is the one to trust.
         val stillOurs = { post: Post -> post.isLiked == liked }
 
         updateEntity(postId) {
-            it.copy(isLiked = liked, likeCount = it.likeCount + if (liked) 1 else -1)
+            it.copy(isLiked = liked, likeCount = it.likeCount + delta)
         }
 
         try {
@@ -106,8 +107,10 @@ class PostRepository(
             // that outlives the screen. The next read settles it either way.
             throw e
         } catch (e: Exception) {
+            // Takes back this tap's one like from the count as it stands now, not the count
+            // [before] held: a refresh that landed meanwhile may have moved it by other people's.
             updateEntity(postId, stillOurs) {
-                it.copy(isLiked = before.isLiked, likeCount = before.likeCount)
+                it.copy(isLiked = before.isLiked, likeCount = it.likeCount - delta)
             }
             throw e
         }

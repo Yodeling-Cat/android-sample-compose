@@ -365,11 +365,12 @@ class PostDetailViewModel @AssistedInject constructor(
         val thread = _uiState.value.commentThread
         val before = thread.comments.find { it.id == commentId } ?: return@launchCatching
         val liked = !before.isLiked
+        val delta = if (liked) 1 else -1
         // A later tap has already moved past this request, so its answer is the one to trust.
         val stillOurs = { comment: Comment -> comment.isLiked == liked }
 
         updateComment(commentId) {
-            it.copy(isLiked = liked, likeCount = it.likeCount + if (liked) 1 else -1)
+            it.copy(isLiked = liked, likeCount = it.likeCount + delta)
         }
 
         try {
@@ -382,8 +383,9 @@ class PostDetailViewModel @AssistedInject constructor(
             // optimistic value is the better guess to leave behind.
             throw e
         } catch (e: Exception) {
+            // One like back off the count as it stands, the way PostRepository.toggleLike does.
             updateComment(commentId, stillOurs) {
-                it.copy(isLiked = before.isLiked, likeCount = before.likeCount)
+                it.copy(isLiked = before.isLiked, likeCount = it.likeCount - delta)
             }
             throw e
         }
