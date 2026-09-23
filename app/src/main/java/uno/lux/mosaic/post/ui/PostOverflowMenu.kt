@@ -54,16 +54,14 @@ import uno.lux.mosaic.user.data.domain.User
 import uno.lux.mosaic.user.ui.Avatar
 
 /**
- * The post's "⋮" affordance and everything behind it: a bottom sheet of save / share / copy-link /
- * report actions, plus the dialogs it can raise. Hosted by the feed card's header and by the
- * detail screen's top bar, so both offer the same menu from the same code.
+ * The post's "⋮" button, its bottom sheet of actions, and the dialogs they raise. The feed card
+ * and the detail screen's top bar both host it.
  *
- * [onDelete] is null for a post the signed-in user didn't write, and the sheet then omits the
- * delete row — a nullable action rather than a separate `canDelete` flag, so the two cannot
- * disagree.
+ * [onDelete] is null for someone else's post, which hides the delete row, so no separate
+ * `canDelete` flag can disagree with it.
  *
- * [reportSend] is the screen's report state, which only the menu with the dialog open reads: the
- * dialog is modal, so the one report a screen can have in flight is always this one's.
+ * [reportSend] is the screen's report state. The dialog is modal, so the one report in flight is
+ * always this menu's.
  */
 @Composable
 internal fun PostOverflowMenu(

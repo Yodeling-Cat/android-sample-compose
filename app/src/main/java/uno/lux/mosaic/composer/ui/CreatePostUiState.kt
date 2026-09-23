@@ -17,16 +17,11 @@ const val CREATE_POST_MAX_IMAGES = 10
 const val CREATE_POST_MAX_VIDEO_BYTES = 25L * 1024 * 1024
 
 /**
- * The media attached to a draft. A post carries photos *or* a video, never both, so the states are
- * modelled as a closed hierarchy rather than two independent fields — the illegal combination is
- * unrepresentable here instead of being a rule the form has to remember to enforce.
+ * The media attached to a draft: photos or one video, never both. A closed hierarchy makes the
+ * illegal combination unrepresentable.
  *
- * Both variants hold content-URI strings rather than bytes: a selection can run to ten photos or a
- * 25 MB clip, and holding that in memory for the length of the composing session would be wasteful
- * when the thumbnails render straight from the URI. They are read into [FileUpload]s once, at
- * publish (see `CreatePostViewModel.publish`).
- *
- * [Serializable] because a picked selection is part of the draft that survives process death.
+ * Both variants hold content-URI strings, not bytes. They are read into [FileUpload]s once, at
+ * publish. [Serializable] so a picked selection survives process death with the rest of the draft.
  */
 @Serializable
 sealed interface CreatePostMedia {

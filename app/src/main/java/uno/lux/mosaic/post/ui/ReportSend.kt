@@ -26,15 +26,11 @@ enum class ReportSendState {
 
 /**
  * Sends the report [block] describes, moving the dialog through the send with [setState] and
- * keeping the [Job] in [jobRef] for [dropReport] to abandon. The dialog is modal, so a screen has
- * one report in flight at a time.
+ * keeping the [Job] in [jobRef] so [dropReport] can cancel it.
  *
- * A setter rather than the state holder itself, so the ViewModel can keep the send as one field
- * of a larger UI state that it copies, rather than as a flow of its own.
- *
- * Not `launchReporting`: the dialog is still on screen when the answer arrives, so the failure
- * has somewhere of its own to show. [launchIfIdle] is the second guard behind the disabled Send
- * button.
+ * Takes a setter so the send can be one field of a larger UI state. Not `launchReporting`: the
+ * dialog is still up when the answer arrives, so a failure shows there. [launchIfIdle] backs up
+ * the disabled Send button.
  */
 fun ViewModel.launchReport(
     jobRef: KMutableProperty0<Job?>,

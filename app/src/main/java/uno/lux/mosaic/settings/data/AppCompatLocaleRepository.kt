@@ -8,18 +8,14 @@ import kotlinx.coroutines.flow.first
 import uno.lux.mosaic.settings.data.domain.AppLanguage
 
 /**
- * [AppLocaleRepository] on the per-app language APIs. `AppCompatDelegate` forwards to the
- * framework's `LocaleManager` on Android 13+ and, below that, keeps the choice itself (enabled by
- * the `autoStoreLocales` flag on the `AppLocalesMetadataHolderService` declared in the manifest).
- * Either way the platform re-applies it before the Activity exists, which is what keeps a cold
- * start from drawing a frame in the wrong language.
+ * [AppLocaleRepository] on `AppCompatDelegate`, which forwards to `LocaleManager` on Android 13+
+ * and stores the choice itself below that. Either way the platform re-applies it before the
+ * Activity exists, so a cold start never draws a frame in the wrong language.
  *
- * That platform copy is a cache, not the app's answer: [SettingsRepository] holds the choice, and
- * [applyLanguage] pushes it back down. Applying recreates the Activity, which is what re-reads the
- * resources — hence the guard against re-applying what is already in effect.
+ * [SettingsRepository] holds the choice, and the platform copy is a cache. Applying recreates the
+ * Activity, hence the guard against re-applying what is already in effect.
  *
- * Both `AppCompatDelegate` locale calls need the delegate to exist, so [applyLanguage] and
- * [resolveInitialLanguage] must not run before an `AppCompatActivity` has attached.
+ * [applyLanguage] and [resolveInitialLanguage] need an attached `AppCompatActivity`.
  */
 class AppCompatLocaleRepository(
     private val settingsRepository: SettingsRepository,

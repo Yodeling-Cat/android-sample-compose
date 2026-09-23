@@ -140,11 +140,8 @@ class ProfileRepository(
     }
 
     /**
-     * One profile tab's worth of post IDs, per user, filled on demand by [fetchPage] and paged
-     * with its cursor. [forUser] narrows it to the one list a caller is asking about.
-     *
-     * The posts and their authors go into the shared entity stores on the way through, which is
-     * what lets a like toggled anywhere reach these lists.
+     * One on-demand tab's post IDs per user, filled by [fetchPage]. Its posts and authors go into
+     * the shared stores on the way through, so a like made anywhere reaches these lists.
      */
     private inner class OnDemandPostIds(
         private val fetchPage: suspend (UserId, String?) -> PostsPage,
@@ -175,13 +172,9 @@ class ProfileRepository(
                 get() = _state.value.containsKey(userId)
 
             /**
-             * Your own list is *derived*, not echoed: every post [stillBelongs] accepts, in the
-             * server's own `(createdAt, id)` order. So liking a post anywhere inserts it here in
-             * the right place, and unliking removes it, with no re-fetch.
-             *
-             * A post older than [TabState.oldestLoaded] belongs to a page the server hasn't sent
-             * yet, so it is held back rather than jumped to the end of a partial list. A
-             * fully-loaded list has no floor.
+             * Every post [stillBelongs] accepts, in the server's `(createdAt, id)` order. A post
+             * older than [TabState.oldestLoaded] is on a page not yet sent, so it is held back
+             * rather than placed at the end of a partial list.
              */
             private fun derivedIds(): Flow<List<PostId>?> =
                 combine(_state, postRepository.entities) { states, entities ->

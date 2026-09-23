@@ -5,7 +5,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import uno.lux.mosaic.common.asText
 import uno.lux.mosaic.common.util.catchErrors
@@ -14,16 +13,12 @@ import uno.lux.mosaic.common.util.launchCatching
 // TODO: Using a global enum for this is terrible architecture. Should probably take any data class as argument instead.
 
 /**
- * A fire-and-forget user action whose request failed after the UI had already moved on — the
- * confirmation dialog closed, the sheet dismissed, the follow button never moved — so there is
- * nothing left on screen for the failure to show up in. The ViewModel that ran the action names it here for the screen
- * to announce once and then spend.
+ * A fire-and-forget action whose request failed after its UI was gone (the dialog closed, the
+ * sheet dismissed), so the screen announces it once and then spends it.
  *
- * Two kinds of mutation are deliberately absent. An optimistic one — a like or a bookmark —
- * reverts the control the user just tapped, and that revert is its own announcement. A report
- * keeps its dialog up until the server answers, so the failure is stated in the dialog the user
- * is still reading; a snackbar would land behind it either way. The rule is whether the failure
- * is visible where the tap happened, not which screen the action belongs to.
+ * Optimistic mutations and reports are absent on purpose: a like reverts the control the user
+ * tapped, and a report's dialog stays up to show its own failure. The rule is whether the failure
+ * is visible where the tap happened.
  */
 enum class FailedAction {
     DELETE_POST,
@@ -32,16 +27,11 @@ enum class FailedAction {
 }
 
 /**
- * Launches [block], handing [action] to [onFailed] if it fails. [launchCatching] with somewhere
- * to report to — for the mutations whose UI is gone by the time the answer arrives, where logging
- * and discarding would leave the tap looking exactly like success.
+ * [launchCatching] that hands [action] to [onFailed] on failure, for a mutation whose UI is gone
+ * by the time the answer arrives, where a silent failure would look like success.
  *
- * Takes a setter rather than the [MutableStateFlow] itself, so it says nothing about where the
- * ViewModel keeps the announcement: a flow of its own, or one field of a larger UI state that is
- * copied. The ViewModel still owns the state a test asserts against, which is the property
- * [uno.lux.mosaic.common.util.launchRefresh] takes its `refreshing` flag for. Not in `common/util`
- * with the other launch shapes because it names [FailedAction], and `common/util` imports nothing
- * of the project's — the same reason [ignoreErrors] lives here.
+ * Takes a setter so the announcement can live in its own flow or as a field of a larger state.
+ * Lives here, not in `common/util`, because it names [FailedAction].
  */
 fun ViewModel.launchReporting(
     action: FailedAction,

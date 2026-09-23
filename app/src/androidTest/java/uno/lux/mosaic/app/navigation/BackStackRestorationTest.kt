@@ -111,10 +111,8 @@ class BackStackRestorationTest {
     }
 
     /**
-     * The same page open twice is two pages. State is scoped to [BackStackEntry.id] rather than to
-     * the [Screen], so a second push of an *equal* key gets its own entry — and both survive a
-     * restore separately. Before that identity existed, the second push landed in the first one's
-     * saveable-state slot and ViewModel store, and this counter would read 2 instead of 0.
+     * Two pushes of an equal [Screen] are two pages. State is scoped to [BackStackEntry.id], so
+     * each push gets its own entry, and both survive a restore separately.
      */
     @Test
     fun keepsTwoEntriesOfTheSameScreenIndependent() {
@@ -136,10 +134,9 @@ class BackStackRestorationTest {
     }
 
     /**
-     * The opt-in on the other side. A screen pinning [Screen.sharedId] resolves every push to one
-     * identity, so its entries share a ViewModel store and one set of saveable state — what every
-     * other screen deliberately gives up — and go on sharing it across a restore. Asserting on the
-     * state rather than only on the ids is what this can say that `NavigatorTest` cannot.
+     * A screen that pins [Screen.sharedId] resolves every push to one entry, so its pushes share
+     * one ViewModel store and one saveable state, before and after a restore. Unlike
+     * `NavigatorTest`, this asserts on the state, not only on the ids.
      */
     @Test
     fun sharesStateBetweenEntriesOfAScreenThatPinsItsIdentity() {

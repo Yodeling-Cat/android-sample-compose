@@ -47,17 +47,14 @@ import uno.lux.mosaic.user.ui.EditProfileUiState
 import uno.lux.mosaic.user.ui.EditProfileViewModel
 
 /**
- * The other half of surviving process death: [BackStackRestorationTest] pins that the *page* comes
- * back, this pins that what the user had **typed into it** comes back with it.
+ * Pins that what the user typed comes back after process death, along with the page itself
+ * ([BackStackRestorationTest]).
  *
- * Instrumented because that is where the mechanism actually lives. A draft is written through
- * `androidx.savedstate`'s serializer into a `SavedState` — a `Bundle` on Android — and the round
- * trip below is the real one the platform performs: ask the handle's provider to save, then build
- * a fresh handle from that state, the way the framework does for a restarted process. None of that
- * can be exercised on the JVM, so testing it there would only ever have proven a stand-in.
+ * Instrumented because a draft is saved into a `SavedState`, which is a `Bundle` on Android. The
+ * round trip below is the platform's own: save through the handle's provider, then build a fresh
+ * handle from that state.
  *
- * The doubles are inert on purpose: these tests type into a form and restart it, so anything that
- * would reach the network is unreachable and says so.
+ * The doubles are inert: nothing here should reach the network, and anything that tries says so.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)

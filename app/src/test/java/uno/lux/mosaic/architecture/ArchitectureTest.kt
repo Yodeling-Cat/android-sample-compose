@@ -43,14 +43,9 @@ class ArchitectureTest {
             get() = pkg.removePrefix("$ROOT.").substringAfter('.', missingDelimiterValue = "").startsWith("data")
 
         /**
-         * Every production file the rules are about, parsed **once** for the whole class.
-         *
-         * Konsist scans the whole tree, `build-logic` included, and re-parses it on every call —
-         * so a `PRODUCTION` function would have cost ten scans of three modules per run. The
-         * filter keeps the convention plugins out without naming them: they declare no package at
-         * all, which is what made each one read as a concern named "". A file that *has* a package
-         * stays in scope even if it is a foreign one, so a misfiled package fails a rule rather
-         * than quietly leaving it.
+         * Every production file the rules check, parsed once for the class, because Konsist
+         * re-parses the tree on every call. Files with no package are the `build-logic` convention
+         * plugins. A file with a foreign package stays in, so it fails a rule instead of escaping.
          */
         val PRODUCTION: List<KoFileDeclaration> =
             Konsist.scopeFromProduction().files.filter { it.packagee != null }

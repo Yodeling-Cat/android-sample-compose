@@ -30,17 +30,12 @@ internal fun mosaicColors(darkTheme: Boolean) =
     )
 
 /**
- * The accent-filled app bar: brand indigo behind a title, a navigation icon and any actions, all
- * three of them on the light side of it.
+ * The accent app bar's colors: brand indigo behind a light title, navigation icon and actions.
  *
- * Named here rather than spelled out per screen because `TopAppBarColors` carries the container
- * and *three separate* content slots, and a slot left at its default is invisible until the day a
- * bar happens to use it — an accent bar that never set `actionIconContentColor` reads perfectly
- * well right up to the moment it grows its first action, and then draws it in `onSurface` dark.
+ * Named once because `TopAppBarColors` has three content slots, and a slot left at its default
+ * shows up only when a bar first uses it, as a dark icon on indigo.
  *
- * A bar wearing this reaches up behind the status bar, so the screen also owes it
- * `LightStatusBarIcons()`: the Activity picks the icon appearance from the resolved theme,
- * which is the wrong answer over indigo in light mode.
+ * The bar reaches behind the status bar, so the screen also owes it `LightStatusBarIcons()`.
  */
 @Composable
 fun accentBarColors(): TopAppBarColors = TopAppBarDefaults.topAppBarColors(

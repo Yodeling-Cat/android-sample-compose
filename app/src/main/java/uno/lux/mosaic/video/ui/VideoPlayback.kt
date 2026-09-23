@@ -95,10 +95,8 @@ class VideoPlaybackController(
     }
 
     /**
-     * Stops the current video but keeps the player instance warm for the next one. Clearing
-     * [activeVideoUrl] reverts inline posts to their thumbnail; the player itself is only ever
-     * released in [release]. This is the feed's "nothing on screen should play" path, so a scroll
-     * from one video to the next reuses the same player instead of rebuilding it.
+     * Stops the current video but keeps the player warm for the next one. Clearing
+     * [activeVideoUrl] reverts inline posts to their thumbnail.
      */
     fun stopPlayback() {
         player?.pause()
@@ -150,13 +148,12 @@ class VideoPlaybackViewModel @Inject constructor(
 val LocalVideoPlayback = compositionLocalOf<VideoPlaybackController?> { null }
 
 /**
- * Puts the shared player in reach of [content]. The controller is held by an **activity-scoped**
- * [VideoPlaybackViewModel], so it survives the push to full screen and configuration changes and is
- * released when the activity finishes; providing it around the whole back stack is what lets an
- * inline post and the full-screen page reach the same instance.
+ * Provides the shared player to [content]. Wrapping the whole back stack lets an inline post and
+ * the full-screen page reach the same instance, which an activity-scoped [VideoPlaybackViewModel]
+ * keeps across configuration changes.
  *
- * Playback also pauses whenever the app is backgrounded — it resumes on the user's next tap — which
- * belongs here rather than in a screen: the player outlives every one of them.
+ * Pauses playback whenever the app is backgrounded. That lives here because the player outlives
+ * every screen.
  */
 @Composable
 fun ProvideVideoPlayback(content: @Composable () -> Unit) {

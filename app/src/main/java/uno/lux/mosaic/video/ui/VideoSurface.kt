@@ -11,19 +11,15 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerView
 
 /**
- * The one place a `PlayerView` is built. Both surfaces that show video — the inline post and the
- * full-screen page — attach the *same* player to one of these, so the chrome they draw has to
- * match; keeping a single factory is what stops the two drifting apart.
+ * The one place a `PlayerView` is built, so the inline post and the full-screen page, which share
+ * one player, draw the same chrome.
  *
- * It owns no playback. [player] is whatever the caller decides this surface should be showing at
- * this moment, and null detaches without releasing, which is how the inline post lets go while
- * full screen has the stream. Everything that varies between the two is a parameter, and there is
- * deliberately nothing else: no [LocalVideoPlayback] lookup here, because which player a surface
- * gets is the caller's decision to explain.
+ * It owns no playback. A null [player] detaches without releasing, which is how the inline post
+ * lets go while full screen has the stream. It does not read [LocalVideoPlayback], because which
+ * player a surface gets is the caller's decision.
  *
- * [isFullscreen] tells the control which way it points — media3 swaps the glyph and its content
- * description to match — not where this surface is drawn. [onFullscreenClick] fires only for a
- * real tap, which media3 takes some care to keep separate; the comment on the binding says how.
+ * [isFullscreen] sets which way the fullscreen control points, not where this surface is drawn.
+ * [onFullscreenClick] fires only for a real tap; the comment on the binding says how.
  */
 @OptIn(UnstableApi::class)
 @Composable

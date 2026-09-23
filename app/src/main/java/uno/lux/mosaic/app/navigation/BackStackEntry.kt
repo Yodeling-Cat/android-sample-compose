@@ -24,14 +24,11 @@ data class BackStackEntry(
 ) : NavKey
 
 /**
- * The composition-owned back stack, seeded with [root] the first time it is created and restored
- * from the instance state on every recreation after that — the guarantee `MosaicApp` rests on.
- * [navigator] mints the root's identity, so that stays in the one place that does it.
+ * The composition-owned back stack, seeded with [root] on first creation and restored from the
+ * instance state after that.
  *
- * This stands in for `rememberNavBackStack`, whose overloads both return a `NavBackStack<NavKey>`
- * serialized through a reflective per-element `NavKeySerializer`. [BackStackEntry] is the only
- * key type this app has, so naming it here keeps the stack typed end to end — [Navigator] takes a
- * `MutableList<BackStackEntry>` and needs no cast to read the screen off the top entry.
+ * Stands in for `rememberNavBackStack`, which returns an untyped `NavBackStack<NavKey>`, so the
+ * stack stays a list of [BackStackEntry] end to end.
  */
 @Composable
 fun rememberBackStack(navigator: Navigator, root: Screen): NavBackStack<BackStackEntry> =
@@ -40,15 +37,11 @@ fun rememberBackStack(navigator: Navigator, root: Screen): NavBackStack<BackStac
     }
 
 /**
- * The `NavDisplay` entry provider: renders [content] for whichever screen an entry holds, keyed by
- * [BackStackEntry.id]. That key is the whole guarantee — "state belongs to the position, not to
- * the page" — so it is stated here once rather than by each host that builds a display.
+ * The `NavDisplay` entry provider: renders [content] for each entry's screen, keyed by
+ * [BackStackEntry.id] so state belongs to the position, not to the page.
  *
- * Deliberately not the `entryProvider { entry<T>() }` DSL. That builds a `KClass`-keyed map to
- * dispatch between registered key types, which buys nothing when there is exactly one, and its
- * metadata cache is keyed by the whole key and never pruned — so with an identity per push it
- * would retain every entry ever pushed, and their `Screen` payloads (an album's image URLs) with
- * them.
+ * Not the `entryProvider { entry<T>() }` DSL: its metadata cache is keyed by the whole key and
+ * never pruned, so with an identity per push it would retain every entry ever pushed.
  */
 fun backStackEntryProvider(
     content: @Composable (Screen) -> Unit,

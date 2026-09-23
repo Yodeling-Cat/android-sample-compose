@@ -21,16 +21,12 @@ import uno.lux.mosaic.post.ui.ReportSendState
 import uno.lux.mosaic.profile.data.domain.Profile
 
 /**
- * The profile's scroll position is stored in two places, and only one of them was ever saved.
- * `rememberLazyListState` remembers where the posts list sits, but the *first* screenful of the
- * gesture never reaches the list at all — it collapses the header, and that offset lives in a
- * `mutableFloatStateOf` the screen owns outright. A profile scrolled less than one header's worth
- * therefore came back from a post detail (or a rotation) fully expanded, having remembered a list
- * position of zero perfectly.
+ * Pins that the profile's scroll position survives recreation in both places it lives: the posts
+ * list's state, and the header-collapse offset the screen owns. The first screenful of a scroll
+ * only collapses the header, so losing the offset reopens a slightly scrolled profile expanded.
  *
- * [StateRestorationTester] performs the same save-and-rebuild round trip an activity recreation
- * does — and leaving a page for another back-stack entry saves the same `rememberSaveable` state
- * through the entry decorator, so covering the recreation covers the navigation case with it.
+ * Leaving the page for another back-stack entry saves the same `rememberSaveable` state, so the
+ * [StateRestorationTester] round trip covers navigation too.
  */
 @RunWith(AndroidJUnit4::class)
 class ProfileScrollRestorationTest {

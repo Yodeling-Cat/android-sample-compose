@@ -775,15 +775,12 @@ private const val BAR_FILL_FRACTION = 0.5f
 
 /**
  * A transparent app bar over the cover that fills to the surface color as the header collapses.
- * Its buttons' scrims fade on the same [progress], so bar and buttons move in lockstep, reaching
- * opaque [BAR_FILL_FRACTION] of the way through the collapse rather than at the very end, so the
- * chrome settles while the cover is still on its way out.
+ * Its button scrims fade on the same [progress], which reaches opaque [BAR_FILL_FRACTION] of the
+ * way through, so the chrome settles before the cover is gone.
  *
- * Once the tab row pins flush beneath it the bar drops its shadow, which would otherwise fall
- * only across the seam onto the tabs. That is keyed off the *raw* collapse, not [progress],
- * since it tracks where the tabs actually are.
- *
- * [collapse] is read here rather than at the screen scope so a scroll recomposes only the bar.
+ * The bar drops its shadow once the tab row pins beneath it, so that keys off the raw [collapse],
+ * which tracks where the tabs are. [collapse] is read here, not at screen scope, so a scroll
+ * recomposes only the bar.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

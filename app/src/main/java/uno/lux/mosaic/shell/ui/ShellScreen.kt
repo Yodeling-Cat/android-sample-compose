@@ -39,19 +39,13 @@ import uno.lux.mosaic.user.data.domain.UserId
 import uno.lux.mosaic.shell.ui.ShellUiEvent as UiEvent
 
 /**
- * The tabbed shell: [DividedNavigationSuiteScaffold] adapts the navigation affordance to the
- * window size — bottom bar on phones, navigation rail on larger or unfolded screens — and the
- * selected [ShellDestinations] entry chooses which screen fills the content area. Tabs are peer
- * destinations held as plain selection state (switching tabs is not a navigation event and
- * never grows the back stack), so the content cross-fades (fade-through) rather than sliding.
+ * The tabbed shell. Tab selection is plain state, not a back-stack entry, so switching tabs never
+ * grows the stack.
  *
- * An [ShellDestinations] entry carrying a [Screen] breaks that rule deliberately: it is an action,
- * not a tab, and selecting it pushes that page over the whole shell through [ShellViewModel] —
- * covering the navigation bar, leaving the current tab selected underneath, and sliding in like
- * any other page. [ShellDestinations.CREATE] opens the composer this way.
+ * A [ShellDestinations] entry that carries a [Screen] is an action, not a tab: selecting it pushes
+ * that page over the whole shell, and the current tab stays selected underneath.
  *
- * Back from any tab but [ShellDestinations.HOME] returns to Home first, and only back from Home
- * leaves the shell. That is the one way back touches the tabs: it never walks the tab history.
+ * Back from any tab but [ShellDestinations.HOME] returns to Home. Back from Home leaves the shell.
  */
 @Composable
 fun ShellScreen(

@@ -8,11 +8,9 @@ import uno.lux.mosaic.post.data.domain.Post
 import uno.lux.mosaic.user.data.domain.User
 
 /**
- * How far the comment in the composer has got. The composer owns the text itself, so this is
- * what tells it when to give the text up: [SENT] is reached only once the server has taken the
- * comment, and a failure returns to [IDLE] with what the user typed still in the box.
- *
- * [SENDING] disables the field and the send button, so one tap is one comment.
+ * How far the comment in the composer has got. [SENT] means the server took it, so the composer
+ * clears its text; a failure returns to [IDLE] with the text kept. [SENDING] disables the field
+ * and the send button, so one tap is one comment.
  */
 enum class CommentSendState {
     IDLE,
@@ -21,13 +19,9 @@ enum class CommentSendState {
 }
 
 /**
- * The stretch of the thread this page has loaded, together with where the next page starts and
- * how the last load went. One value rather than a field per part because they move together, so
- * the screen can never see a thread grown past a cursor that has not.
- *
- * [nextCursor] is the one part the screen never draws. It lives here anyway, because *that* is
- * the invariant: a cursor kept anywhere else could be updated a moment after the list it points
- * into.
+ * The loaded stretch of the thread, with where the next page starts and how the last load went.
+ * They are one value, [nextCursor] included, so the screen never sees a list grown past a cursor
+ * that has not moved yet.
  */
 data class CommentThread(
     val comments: List<Comment> = emptyList(),

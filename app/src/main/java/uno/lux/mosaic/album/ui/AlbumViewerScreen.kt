@@ -177,14 +177,12 @@ private fun ZoomableImage(
 /**
  * Pinch-to-zoom and pan for an image inside a pager.
  *
- * At scale = 1 single-finger events are NOT consumed, so the parent [HorizontalPager] can swipe
- * normally. Once the gesture becomes a zoom or a pan — two or more fingers down, or a finger
- * landing on an already-zoomed image — every change is consumed for the rest of the gesture, so
- * the pager stays locked.
+ * At scale 1, single-finger events are not consumed, so the parent [HorizontalPager] can swipe.
+ * Once a gesture becomes a zoom or a pan (two fingers, or one finger on a zoomed image), it
+ * consumes every change until it ends, which locks the pager.
  *
- * [scale], [offset] and [imageSize] are read on every event rather than captured, since the
- * caller owns them. [imageSize] is the image's intrinsic size; it bounds panning by the drawn
- * content instead of by the letterboxed composable. [onTransform] receives the clamped result.
+ * [imageSize] is the image's intrinsic size, so panning is bounded by the drawn content rather
+ * than by the letterboxed composable.
  */
 private suspend fun PointerInputScope.detectZoomAndPan(
     scale: () -> Float,

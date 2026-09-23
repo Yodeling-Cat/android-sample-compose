@@ -104,17 +104,14 @@ internal class HoldToConfirmState(
 }
 
 /**
- * A filled button that commits only after the user has held it for [holdMillis] — the guard rail
- * for an action worth a moment's thought, like publishing a post. The fill sweeps left to right as
- * the hold progresses, so the remaining time is legible rather than a wait in the dark.
+ * A filled button that commits only after being held for [holdMillis]. The fill sweeps left to
+ * right to show the time left.
  *
- * [text] names the button only while it sits untouched. The moment a finger lands, the label
- * becomes [hintText]: a user who does not yet know this button has to be *held* learns it while
- * there is still time to act on it, rather than after having already let go too soon. Releasing
- * early leaves the nudge up for [hintMillis] before [text] returns.
+ * Once a finger lands, the label switches from [text] to [hintText], so a user learns to hold
+ * while there is still time to. An early release leaves the hint up for [hintMillis].
  *
- * Holding is a motor-skill barrier, so an accessibility service activating the button confirms
- * immediately through the semantics [onClick] instead of being asked to sustain a gesture.
+ * An accessibility service confirms at once through the semantics [onClick], because holding is a
+ * motor-skill barrier.
  */
 @Composable
 fun HoldToConfirmButton(

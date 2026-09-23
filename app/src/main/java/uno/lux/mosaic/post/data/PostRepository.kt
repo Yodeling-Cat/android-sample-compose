@@ -13,16 +13,12 @@ import uno.lux.mosaic.post.data.domain.PostWithUsers
 import uno.lux.mosaic.user.data.UserRepository
 
 /**
- * Normalized entity store for posts.
+ * The one store of post entities, shared by every screen, so a like toggled on the feed shows on
+ * a profile in the same emission. One copy per post is also what makes the optimistic
+ * [toggleLike] and [toggleBookmark] safe to revert.
  *
- * All screens share one entity map so a like toggled in the feed is immediately visible on a
- * profile and vice versa. [ingest] merges posts fetched by
- * any screen into the shared store; [toggleLike] and [toggleBookmark] mutate individual entries
- * so every observer sees the update in the same emission — optimistically, which having exactly
- * one copy of each post to correct is what makes safe.
- *
- * Ordered, screen-specific lists of post IDs (feed order, per-user order, etc.) live in
- * [uno.lux.mosaic.feed.data.FeedRepository] or [uno.lux.mosaic.profile.data.ProfileRepository]; this store owns only the entity data.
+ * Ordered lists of IDs belong to the feed and profile repositories. This store owns only the
+ * entities.
  */
 class PostRepository(
     private val dataSource: PostDataSource,

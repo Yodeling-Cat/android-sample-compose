@@ -43,17 +43,12 @@ import uno.lux.mosaic.profile.ui.ProfileUiEvent as UiEvent
 import uno.lux.mosaic.profile.ui.ProfileUiState as UiState
 
 /**
- * Holds the profile state for one [userId]. Combines [UserRepository], [ProfileRepository]
- * (counts + ordered post IDs + pagination), and [PostRepository] (entity map) into a single
- * [ProfileScreenData]. Mutations go directly through [PostRepository] so a like toggled here is
- * immediately visible on the home feed — the shared entity store propagates the update to all
- * observers. Navigation intents (opening a post, profile, viewer or the editor, going back) are
- * pushes and pops on the injected [Navigator]. [userId] is a runtime arg wired through [Factory].
+ * Holds the profile page for one [userId]. Likes and bookmarks go through [PostRepository]'s
+ * shared store, so they show on every screen.
  *
- * The Saved and Likes tabs are loaded lazily, on [UiEvent.SavedTabShown] / [UiEvent.LikesTabShown].
- * Saved is private: the screen offers that tab only on the signed-in user's own profile, and the
- * server refuses the list to anyone else regardless. Likes are public, and load the same way only
- * because a tab nobody opened should cost no request.
+ * The Saved and Likes tabs load on first open ([UiEvent.SavedTabShown], [UiEvent.LikesTabShown]),
+ * so a tab nobody opened costs no request. Saved is shown only on the signed-in user's own
+ * profile, and the server refuses it to anyone else.
  */
 @HiltViewModel(assistedFactory = ProfileViewModel.Factory::class)
 class ProfileViewModel @AssistedInject constructor(

@@ -311,11 +311,9 @@ class PostDetailViewModel @AssistedInject constructor(
     }
 
     /**
-     * Appends the page after the one loaded last.
-     *
-     * The cursor is the whole guard: it is null before the first page lands and again once the
-     * server says that page was the last, so neither case needs a flag of its own. [loadMoreJob]
-     * covers the third — the screen asking again while a page is still on the wire.
+     * Appends the page after the one loaded last. A null cursor means there is nothing to ask for:
+     * the first page has not landed, or the server sent the last one. [loadMoreJob] stops a second
+     * request while one is in flight.
      */
     private fun loadMoreComments() = launchIfIdle(::loadMoreJob) {
         val cursor = _uiState.value.commentThread.nextCursor ?: return@launchIfIdle

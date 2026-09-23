@@ -9,16 +9,11 @@ import java.io.IOException
 import java.util.Properties
 
 /**
- * Forwards each attached device's own [port] to this machine's, with `adb reverse`.
+ * Forwards each attached device's own [port] to this machine's, with `adb reverse`. *Which server
+ * a build talks to* in AGENTS.md says why this is a tunnel rather than an IP.
  *
- * The `local` flavor's default host is loopback *on the device*, which is only the dev machine
- * because of this tunnel. adb is the route rather than an IP because the server runs under WSL,
- * whose mirrored networking relays a Linux listener to Windows processes only — see *Which server
- * a build talks to* in AGENTS.md.
- *
- * **The task never fails the build.** Assembling an APK with no device plugged in is ordinary, and
- * so is having no SDK on a machine that only runs the JVM checks. Every failure is reported as one
- * line and swallowed.
+ * **The task never fails the build.** Assembling with no device or no SDK is ordinary, so every
+ * failure is one line on the console.
  */
 abstract class AdbReverseTask : DefaultTask() {
 

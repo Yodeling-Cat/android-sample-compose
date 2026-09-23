@@ -30,37 +30,26 @@ class Navigator(
     }
 
     /**
-     * Builds the entry [screen] occupies once pushed, giving it a fresh identity — and with it its
-     * own ViewModel and `rememberSaveable` state — unless the screen pins one through
-     * [Screen.sharedId], in which case every push resolves to the same position's state.
+     * Builds the entry for [screen] with a fresh identity, unless the screen pins one through
+     * [Screen.sharedId].
      *
-     * Visible to the module rather than private because [rememberBackStack] seeds the stack's root
-     * entry with it, and tests build a stack the way the app builds one; it is not part of the
-     * surface ViewModels navigate through.
+     * `internal` rather than private because [rememberBackStack] and the tests build entries with it.
      */
     internal fun entryFor(screen: Screen) =
         BackStackEntry(screen, screen.sharedId ?: nextId())
 
     /**
-     * Pushes [screen] on top of the back stack. Deliberately allows a screen equal to the current
-     * top (e.g. the same profile opened from a post on that profile); the click debounce every
-     * navigation control carries only guards against an accidental fast double-tap, not this
-     * intentional re-open. Screens that must never stack on themselves use [goToSingleTop].
+     * Pushes [screen], even when an equal screen is already on top, so a deliberate re-open works.
+     * Pages that must never stack on themselves use [goToSingleTop].
      */
     fun goTo(screen: Screen) {
         backStack?.add(entryFor(screen))
     }
 
     /**
-     * Pushes [screen] unless it already sits on top of the back stack — the "single top" launch
-     * behaviour. Used for pages that are semantically unique wherever they're reached (Settings,
-     * the profile editor): re-invoking the affordance while the page is showing is a no-op rather
-     * than a second copy on the stack. This is a real guarantee independent of tap timing, which
-     * is why it can't be left to the debounce.
-     *
-     * The comparison is against the top entry's *screen*, which is the question being asked —
-     * "is this page already showing?" — and is exactly what identity living on the entry rather
-     * than inside the key keeps answerable.
+     * Pushes [screen] unless an equal screen is already on top. For pages that are one of a kind
+     * wherever they open, such as Settings. Unlike the click debounce, this holds whatever the tap
+     * timing.
      */
     fun goToSingleTop(screen: Screen) {
         val backStack = backStack ?: return
@@ -69,11 +58,8 @@ class Navigator(
     }
 
     /**
-     * Swaps the top entry for [screen] — pop and push as one step. Used by a page that has served
-     * its purpose and hands off to another: back from [screen] then returns to whatever sat below
-     * the replaced page, not to the page itself. The composer replaces itself with the published
-     * post's detail page this way, so backing out of that post lands on the feed rather than on a
-     * composer the user is done with.
+     * Swaps the top entry for [screen], so back from [screen] skips the replaced page. The composer
+     * hands off to the published post this way.
      */
     fun replaceTop(screen: Screen) {
         val backStack = backStack ?: return
