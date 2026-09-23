@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListLayoutInfo
+import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -58,7 +58,6 @@ import uno.lux.mosaic.post.ui.PostCard
 import uno.lux.mosaic.post.ui.PostCardData
 import uno.lux.mosaic.post.ui.PostReportSend
 import uno.lux.mosaic.post.ui.sendStateFor
-import uno.lux.mosaic.video.data.domain.Video
 import uno.lux.mosaic.video.ui.LocalVideoPlayback
 import uno.lux.mosaic.common.R as CommonR
 import uno.lux.mosaic.home.ui.HomeUiEvent as UiEvent
@@ -235,12 +234,27 @@ private fun FeedList(
             // stop, so the per-frame visibility scan below would be pure waste.
             if (!autoPlayVideos && playback.activeVideoUrl == null) return@collect
 
+            val posts = currentPosts
+            // FeedList emits the posts first, so a list index is a post index.
+            val mostVisible = mostVisibleVideoIndex(
+                visibleItems = layoutInfo.visibleItemsInfo,
+                viewportStart = layoutInfo.viewportStartOffset,
+                viewportEnd = layoutInfo.viewportEndOffset,
+                hasVideo = { it < posts.size && posts[it].post.video != null },
+            )
+            val activeUrl = playback.activeVideoUrl
             val url = videoToPlay(
-                mostVisibleUrl = mostVisibleVideo(layoutInfo, currentPosts)?.videoUrl,
-                activeUrl = playback.activeVideoUrl,
+                mostVisibleUrl = mostVisible?.let { posts[it].post.video?.videoUrl },
+                activeUrl = activeUrl,
                 autoPlayVideos = autoPlayVideos,
             )
-            if (url != null) playback.playInline(url) else playback.stopPlayback()
+
+            // This runs on every scroll frame; the controller only needs to hear about a change.
+            when {
+                url == activeUrl -> Unit
+                url != null -> playback.playInline(url)
+                else -> playback.stopPlayback()
+            }
         }
     }
 
@@ -329,24 +343,32 @@ internal fun videoToPlay(
     autoPlayVideos: Boolean,
 ): String? = mostVisibleUrl?.takeIf { autoPlayVideos || it == activeUrl }
 
-/** Assumes [FeedList] emits the posts first, so a list index is a post index. */
-private fun mostVisibleVideo(layoutInfo: LazyListLayoutInfo, posts: List<PostCardData>): Video? {
-    val viewportStart = layoutInfo.viewportStartOffset
-    val viewportEnd = layoutInfo.viewportEndOffset
+/**
+ * The index of the most visible item holding a video, or null when that item shows less than half
+ * of itself. Inline and index-based because it runs on every scroll frame.
+ */
+internal inline fun mostVisibleVideoIndex(
+    visibleItems: List<LazyListItemInfo>,
+    viewportStart: Int,
+    viewportEnd: Int,
+    hasVideo: (index: Int) -> Boolean,
+): Int? {
+    var winner = -1
+    var winnerFraction = 0f
 
-    fun visibleFraction(offset: Int, size: Int): Float {
-        val visibleTop = maxOf(offset, viewportStart)
-        val visibleBottom = minOf(offset + size, viewportEnd)
-        return maxOf(0, visibleBottom - visibleTop).toFloat() / size
+    for (i in visibleItems.indices) {
+        val item = visibleItems[i]
+        if (item.size <= 0 || !hasVideo(item.index)) continue
+
+        val visible = minOf(item.offset + item.size, viewportEnd) - maxOf(item.offset, viewportStart)
+        val fraction = maxOf(0, visible).toFloat() / item.size
+        if (winner == -1 || fraction > winnerFraction) {
+            winner = item.index
+            winnerFraction = fraction
+        }
     }
 
-    val (winner, fraction) = layoutInfo.visibleItemsInfo
-        .filter { it.index < posts.size && posts[it.index].post.video != null }
-        .map { it to visibleFraction(it.offset, it.size) }
-        .maxByOrNull { (_, f) -> f }
-        ?: return null
-
-    return posts[winner.index].post.video.takeIf { fraction >= 0.5f }
+    return winner.takeIf { it != -1 && winnerFraction >= 0.5f }
 }
 
 @Preview(showBackground = true)
