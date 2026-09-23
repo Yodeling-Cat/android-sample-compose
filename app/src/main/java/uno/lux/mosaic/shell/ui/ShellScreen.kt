@@ -1,5 +1,6 @@
 package uno.lux.mosaic.shell.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.core.tween
@@ -47,6 +48,9 @@ import uno.lux.mosaic.user.data.domain.UserId
  * not a tab, and selecting it pushes that page over the whole shell through [ShellViewModel] —
  * covering the navigation bar, leaving the current tab selected underneath, and sliding in like
  * any other page. [ShellDestinations.CREATE] opens the composer this way.
+ *
+ * Back from any tab but [ShellDestinations.HOME] returns to Home first, and only back from Home
+ * leaves the shell. That is the one way back touches the tabs: it never walks the tab history.
  */
 @Composable
 fun ShellScreen(
@@ -57,7 +61,7 @@ fun ShellScreen(
 
     ShellScreen(
         currentDestination = currentDestination,
-        onDestinationClick = { destination ->
+        onSelectDestination = { destination ->
             // An entry carrying a screen is an action, not a tab: it pushes that page over the
             // whole shell and leaves the current tab selected underneath.
             val screen = destination.screen
@@ -85,13 +89,20 @@ fun ShellScreen(
  * The shell's frame with no ViewModel behind it: the navigation suite and the cross-fading content
  * area. [tabContent] draws the selected tab, which is what lets a preview stand a placeholder in for
  * the real screens and their ViewModels.
+ *
+ * [onSelectDestination] receives the destination the user asked for, by tapping its item or, off
+ * Home, by pressing back.
  */
 @Composable
 internal fun ShellScreen(
     currentDestination: ShellDestinations,
-    onDestinationClick: (ShellDestinations) -> Unit,
+    onSelectDestination: (ShellDestinations) -> Unit,
     tabContent: @Composable (ShellDestinations) -> Unit,
 ) {
+    BackHandler(enabled = currentDestination != ShellDestinations.HOME) {
+        onSelectDestination(ShellDestinations.HOME)
+    }
+
     val navItemColors = NavigationSuiteDefaults.itemColors(
         navigationBarItemColors = NavigationBarItemDefaults.colors(
             selectedIconColor = MaterialTheme.colorScheme.primary,
@@ -107,7 +118,7 @@ internal fun ShellScreen(
             destinationItems(
                 current = currentDestination,
                 colors = navItemColors,
-                onClick = onDestinationClick,
+                onClick = onSelectDestination,
             )
         },
     ) {
@@ -180,7 +191,7 @@ private fun ShellScreenPreview() {
     MosaicTheme {
         ShellScreen(
             currentDestination = ShellDestinations.HOME,
-            onDestinationClick = {},
+            onSelectDestination = {},
         ) { destination ->
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(stringResource(destination.labelRes))

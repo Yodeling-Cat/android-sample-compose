@@ -209,7 +209,7 @@ It extends `AppCompatActivity` for **one reason only**: AppCompat's delegate app
 
 `MosaicApp()` owns a `rememberBackStack` of `@Serializable` `BackStackEntry` keys. Each key pairs a `Screen` with the identity its state is scoped to. `Screen.Shell` is the permanent root. `Screen.Profile(userId)` and `Screen.Settings` push over it.
 
-`NavDisplay` renders the top entry, using the push and pop specs in `app/navigation/PageTransitions.kt`, and it includes predictive back. Back handling is `onBack` popping the stack. **The code uses no hand-rolled `BackHandler`.** Entry decorators give each entry its own saveable state and `ViewModelStore`, so a pushed page's ViewModel is created on push and cleared on pop.
+`NavDisplay` renders the top entry, using the push and pop specs in `app/navigation/PageTransitions.kt`, and it includes predictive back. Back handling is `onBack` popping the stack. **The code uses no hand-rolled `BackHandler` to pop it.** The shell's return-to-Home handler is the one exception, and it is not a pop: see *The shell*. Entry decorators give each entry its own saveable state and `ViewModelStore`, so a pushed page's ViewModel is created on push and cleared on pop.
 
 **Identity lives on the entry, not on the `Screen`.** Nav3 scopes everything per entry by `contentKey`, a function of the back-stack key *alone*.
 
@@ -237,7 +237,7 @@ Unit tests drive the real `Navigator` through `testing/BackStacks.kt`'s `backSta
 
 Destinations are data-driven from the `ShellDestinations` enum in `shell/ui/`. Each entry has a `@StringRes` label, an icon, and an optional `screen`. It lives in `ui/` because a label resource and a drawable are presentation. Add or change a tab by editing the enum.
 
-- **Tab selection is plain `rememberSaveable`, not back-stack entries.** Switching tabs is not a navigation event, so the system back button never walks through tabs.
+- **Tab selection is plain `rememberSaveable`, not back-stack entries.** Switching tabs is not a navigation event, so the system back button never walks the tab history. **Back from any tab but Home returns to Home**, through a `BackHandler` in the stateless `ShellScreen` that is enabled only off Home, and back from Home leaves the shell. `ShellBackTest` (instrumented) pins this.
 - **CREATE is deliberately not a tab.** A destination that carries a `screen` is an *action*. Selecting it pushes that page over the whole shell with `goToSingleTop`, instead of swapping the content area, so the tab underneath stays highlighted. This is why the `CREATE -> Unit` branch in the content `when` is unreachable.
 - Each screen owns its own `Scaffold` and `TopAppBar`. Tab switches cross-fade. Page pushes slide.
 
