@@ -13,7 +13,7 @@ import uno.lux.mosaic.post.data.domain.NewPost
 import uno.lux.mosaic.post.data.domain.NewPostMedia
 import uno.lux.mosaic.post.data.domain.PostId
 import uno.lux.mosaic.post.data.domain.PostWithUsers
-import uno.lux.mosaic.user.data.network.toDomain
+import uno.lux.mosaic.user.data.network.UserMapper
 
 class NetworkPostDataSource(
     private val api: PostApi,
@@ -65,6 +65,6 @@ class NetworkPostDataSource(
 
     private fun PostResponse.toPostWithUsers() = PostWithUsers(
         post = PostMapper.map(data),
-        users = included.users.map { it.toDomain() },
+        users = included.users.map { UserMapper.map(it) },
     )
 }

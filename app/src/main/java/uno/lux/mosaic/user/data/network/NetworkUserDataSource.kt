@@ -17,7 +17,7 @@ class NetworkUserDataSource(
     override suspend fun fetch(userId: UserId): User? = withContext(Dispatchers.IO) {
         // Null for an unknown user is the contract [UserDataSource.fetch] has always declared —
         // the same "gone is an answer" rule the post fetch follows.
-        notFoundAsNull { api.getUser(userId) }?.data?.toDomain()
+        notFoundAsNull { api.getUser(userId) }?.data?.let(UserMapper::map)
     }
 
     override suspend fun update(userId: UserId, update: ProfileUpdate): User =
@@ -36,7 +36,7 @@ class NetworkUserDataSource(
                     bio = update.bio.orEmpty().asTextPart(),
                     avatar = update.avatar?.asPart("avatar"),
                 ).data
-                .toDomain()
+                .let(UserMapper::map)
         }
 
     override suspend fun toggleFollow(user: User): User = withContext(Dispatchers.IO) {

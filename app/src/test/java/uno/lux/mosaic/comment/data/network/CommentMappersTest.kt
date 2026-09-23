@@ -8,7 +8,7 @@ import java.time.Instant
 class CommentMappersTest {
 
     @Test
-    fun `CommentMapper maps the author through the manual UserDto mapper`() {
+    fun `CommentMapper maps the nested author`() {
         val dto = CommentDto(
             id = "c1",
             text = "Hello",

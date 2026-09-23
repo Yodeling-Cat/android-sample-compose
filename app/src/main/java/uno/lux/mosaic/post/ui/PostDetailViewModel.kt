@@ -64,8 +64,6 @@ class PostDetailViewModel @AssistedInject constructor(
 
     private var postFetch: PostFetch = PostFetch.Pending
 
-    // TODO: Wouldn't it be better to initialize as Content.Loading?
-
     private val _uiState = MutableStateFlow(
         UiState(
             content = content(),

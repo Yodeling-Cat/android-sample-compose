@@ -5,7 +5,7 @@ import kotlinx.coroutines.withContext
 import uno.lux.mosaic.feed.data.FeedDataSource
 import uno.lux.mosaic.feed.data.FeedPage
 import uno.lux.mosaic.post.data.network.PostMapper
-import uno.lux.mosaic.user.data.network.toDomain
+import uno.lux.mosaic.user.data.network.UserMapper
 
 class NetworkFeedDataSource(
     private val api: FeedApi,
@@ -18,7 +18,7 @@ class NetworkFeedDataSource(
             users = response.included
                 ?.users
                 .orEmpty()
-                .map { it.toDomain() },
+                .map { UserMapper.map(it) },
             nextCursor = response.page.nextCursor,
             hasMore = response.page.hasMore,
         )

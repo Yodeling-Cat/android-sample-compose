@@ -8,7 +8,7 @@ import uno.lux.mosaic.profile.data.PostsPage
 import uno.lux.mosaic.profile.data.ProfileDataSource
 import uno.lux.mosaic.profile.data.ProfileRefreshData
 import uno.lux.mosaic.user.data.domain.UserId
-import uno.lux.mosaic.user.data.network.toDomain
+import uno.lux.mosaic.user.data.network.UserMapper
 
 class NetworkProfileDataSource(
     private val api: ProfileApi,
@@ -38,7 +38,7 @@ class NetworkProfileDataSource(
 
     private fun PostsWithAuthorsResponse.toPage() = PostsPage(
         posts = data.map { PostMapper.map(it) },
-        users = included.users.map { it.toDomain() },
+        users = included.users.map { UserMapper.map(it) },
         cursor = page.nextCursor,
         hasMore = page.hasMore,
     )
