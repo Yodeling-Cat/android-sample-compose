@@ -5,6 +5,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.keyframes
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,7 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,11 +27,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -235,8 +242,10 @@ internal fun PostActions(
     modifier: Modifier = Modifier,
 ) {
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
+    val bookmarkTint = if (post.isBookmarked) MaterialTheme.colorScheme.primary else muted
     // Crossfade the heart between muted and coral so the color tracks the pop rather than snapping.
-    val likeTint by animateColorAsState(
+    // Held as State and read only at draw time, so the crossfade never recomposes the row.
+    val likeTint = animateColorAsState(
         targetValue = if (post.isLiked) LocalMosaicColors.current.like else muted,
         label = "likeTint",
     )
@@ -251,7 +260,7 @@ internal fun PostActions(
             iconRes = if (post.isLiked) R.drawable.ic_favorite_filled else R.drawable.ic_favorite_border,
             contentDescriptionRes = if (post.isLiked) R.string.post_action_unlike else R.string.post_action_like,
             label = compactCount(post.likeCount).asText(),
-            tint = likeTint,
+            tint = { likeTint.value },
             onClick = onToggleLike,
             iconModifier = Modifier.pop(post.isLiked),
         )
@@ -260,7 +269,7 @@ internal fun PostActions(
             iconRes = R.drawable.ic_comment,
             contentDescriptionRes = R.string.post_action_comment,
             label = compactCount(post.commentCount).asText(),
-            tint = muted,
+            tint = { muted },
             onClick = onCommentClick,
         )
         Spacer(Modifier.weight(1f))
@@ -268,7 +277,7 @@ internal fun PostActions(
             iconRes = if (post.isBookmarked) R.drawable.ic_bookmark else R.drawable.ic_bookmark_border,
             contentDescriptionRes = if (post.isBookmarked) R.string.post_action_unbookmark else R.string.post_action_bookmark,
             label = null,
-            tint = if (post.isBookmarked) MaterialTheme.colorScheme.primary else muted,
+            tint = { bookmarkTint },
             onClick = onToggleBookmark,
             iconModifier = Modifier.pop(post.isBookmarked),
         )
@@ -280,11 +289,14 @@ private fun ActionButton(
     iconRes: Int,
     @StringRes contentDescriptionRes: Int,
     label: String?,
-    tint: Color,
+    tint: () -> Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     iconModifier: Modifier = Modifier,
 ) {
+    val painter = painterResource(iconRes)
+    val description = stringResource(contentDescriptionRes)
+
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(100.dp))
@@ -292,20 +304,25 @@ private fun ActionButton(
             .padding(horizontal = 10.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(
-            painter = painterResource(iconRes),
-            contentDescription = stringResource(contentDescriptionRes),
-            tint = tint,
+        // Material's Icon and Text take a plain Color, which would pull the animated tint into
+        // composition; drawing the painter here and giving BasicText a producer keeps it in draw.
+        Box(
             modifier = Modifier
                 .size(23.dp)
-                .then(iconModifier),
+                .then(iconModifier)
+                .semantics {
+                    contentDescription = description
+                    role = Role.Image
+                }.drawBehind {
+                    with(painter) { draw(size, colorFilter = ColorFilter.tint(tint())) }
+                },
         )
         if (label != null) {
             Spacer(Modifier.width(7.dp))
-            Text(
+            BasicText(
                 text = label,
                 style = MaterialTheme.typography.labelLarge,
-                color = tint,
+                color = { tint() },
             )
         }
     }
