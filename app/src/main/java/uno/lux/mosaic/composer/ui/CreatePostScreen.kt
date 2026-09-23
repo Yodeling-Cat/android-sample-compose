@@ -37,7 +37,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -59,7 +58,6 @@ import uno.lux.mosaic.common.ui.DiscardChangesDialog
 import uno.lux.mosaic.common.ui.FormCard
 import uno.lux.mosaic.common.ui.MediaBadge
 import uno.lux.mosaic.common.ui.MediaRemoveButton
-import uno.lux.mosaic.common.util.createActionsProxy
 import uno.lux.mosaic.designsystem.components.AppBarAction
 import uno.lux.mosaic.designsystem.components.HoldToConfirmButton
 import uno.lux.mosaic.designsystem.components.debouncedClickable
@@ -67,40 +65,6 @@ import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.designsystem.theme.rememberAccentWash
 import uno.lux.mosaic.common.R as CommonR
-
-/**
- * The composer's ViewModel-backed intents, as one [Stable] seam the stateless
- * [CreatePostScreen] depends on — the field edits, the media add/remove/preview intents, and
- * publishing and leaving, the navigating ones routed through the injected `Navigator`.
- * [CreatePostViewModel] implements it, so the binder passes the ViewModel directly and a
- * preview passes a no-op [createActionsProxy].
- */
-@Stable
-interface CreatePostActions {
-    fun onTitleChange(value: String)
-
-    fun onBodyChange(value: String)
-
-    fun onImagesPicked(uris: List<String>)
-
-    fun onRemoveImage(uri: String)
-
-    fun onVideoPicked(uri: String)
-
-    fun onRemoveVideo()
-
-    fun openImages(media: CreatePostMedia.Images, initialIndex: Int)
-
-    fun openVideo(media: CreatePostMedia.Video)
-
-    fun publish()
-
-    fun goBack()
-
-    fun dismissDiscardConfirmation()
-
-    fun confirmDiscard()
-}
 
 @Composable
 fun CreatePostScreen(
@@ -116,22 +80,24 @@ fun CreatePostScreen(
     ) { uris ->
         // The picker's session-scoped read grant is enough — the bytes are read and uploaded
         // on publish, so no persistable permission is needed.
-        if (uris.isNotEmpty()) viewModel.onImagesPicked(uris.map { it.toString() })
+        if (uris.isNotEmpty()) {
+            viewModel.onEvent(CreatePostUiEvent.ImagesPicked(uris.map { it.toString() }))
+        }
     }
 
     val pickVideo = rememberLauncherForActivityResult(
         ActivityResultContracts.PickVisualMedia(),
     ) { uri ->
-        if (uri != null) viewModel.onVideoPicked(uri.toString())
+        if (uri != null) viewModel.onEvent(CreatePostUiEvent.VideoPicked(uri.toString()))
     }
 
     BackHandler {
-        viewModel.goBack()
+        viewModel.onEvent(CreatePostUiEvent.GoBack)
     }
 
     CreatePostScreen(
         uiState = uiState,
-        actions = viewModel,
+        onEvent = viewModel::onEvent,
         onPickImages = {
             pickImages.launch(
                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
@@ -147,8 +113,8 @@ fun CreatePostScreen(
 
     if (uiState.showDiscardConfirmation) {
         DiscardChangesDialog(
-            onConfirm = viewModel::confirmDiscard,
-            onDismiss = viewModel::dismissDiscardConfirmation,
+            onConfirm = { viewModel.onEvent(CreatePostUiEvent.ConfirmDiscard) },
+            onDismiss = { viewModel.onEvent(CreatePostUiEvent.DismissDiscard) },
         )
     }
 }
@@ -157,14 +123,14 @@ fun CreatePostScreen(
  * Stateless post composer — a title, a body, and either up to [CREATE_POST_MAX_IMAGES] photos or one
  * video. It is pushed over the shell rather than being a tab, so the bar carries an
  * up-affordance. Holding no ViewModel makes it directly previewable and testable; the two pick
- * callbacks are passed in rather than living on [CreatePostActions] because launching the system
+ * callbacks are passed in rather than sent as a [CreatePostUiEvent] because launching the system
  * picker needs a composition-scoped launcher, not a ViewModel.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun CreatePostScreen(
     uiState: CreatePostUiState,
-    actions: CreatePostActions,
+    onEvent: (CreatePostUiEvent) -> Unit,
     onPickImages: () -> Unit,
     onPickVideo: () -> Unit,
     modifier: Modifier = Modifier,
@@ -199,7 +165,7 @@ internal fun CreatePostScreen(
                 navigationIcon = {
                     AppBarAction(
                         icon = CommonR.drawable.ic_arrow_back,
-                        onClick = actions::goBack,
+                        onClick = { onEvent(CreatePostUiEvent.GoBack) },
                         contentDescription = stringResource(CommonR.string.navigate_back),
                     )
                 },
@@ -209,7 +175,7 @@ internal fun CreatePostScreen(
         CreatePostForm(
             form = uiState.form,
             isPublishing = uiState.isPublishing,
-            actions = actions,
+            onEvent = onEvent,
             onPickImages = onPickImages,
             onPickVideo = onPickVideo,
             modifier = Modifier
@@ -224,7 +190,7 @@ internal fun CreatePostScreen(
 private fun CreatePostForm(
     form: CreatePostForm,
     isPublishing: Boolean,
-    actions: CreatePostActions,
+    onEvent: (CreatePostUiEvent) -> Unit,
     onPickImages: () -> Unit,
     onPickVideo: () -> Unit,
     modifier: Modifier = Modifier,
@@ -238,7 +204,7 @@ private fun CreatePostForm(
         FormCard {
             OutlinedTextField(
                 value = form.title,
-                onValueChange = actions::onTitleChange,
+                onValueChange = { onEvent(CreatePostUiEvent.TitleChanged(it)) },
                 label = { Text(stringResource(R.string.create_post_title_label)) },
                 singleLine = true,
                 enabled = !isPublishing,
@@ -249,7 +215,7 @@ private fun CreatePostForm(
 
             OutlinedTextField(
                 value = form.body,
-                onValueChange = actions::onBodyChange,
+                onValueChange = { onEvent(CreatePostUiEvent.BodyChanged(it)) },
                 label = { Text(stringResource(R.string.create_post_body_label)) },
                 minLines = 8,
                 enabled = !isPublishing,
@@ -261,7 +227,7 @@ private fun CreatePostForm(
             PostMediaPicker(
                 media = form.media,
                 enabled = !isPublishing,
-                actions = actions,
+                onEvent = onEvent,
                 onPickImages = onPickImages,
                 onPickVideo = onPickVideo,
             )
@@ -272,7 +238,7 @@ private fun CreatePostForm(
         PublishButton(
             isPublishing = isPublishing,
             enabled = form.canPublish,
-            onPublish = actions::publish,
+            onPublish = { onEvent(CreatePostUiEvent.Publish) },
         )
     }
 }
@@ -288,7 +254,7 @@ private fun CreatePostForm(
 private fun PostMediaPicker(
     media: CreatePostMedia,
     enabled: Boolean,
-    actions: CreatePostActions,
+    onEvent: (CreatePostUiEvent) -> Unit,
     onPickImages: () -> Unit,
     onPickVideo: () -> Unit,
 ) {
@@ -315,16 +281,16 @@ private fun PostMediaPicker(
                 media = media,
                 enabled = enabled,
                 onPickImages = onPickImages,
-                onOpenImage = { index -> actions.openImages(media, index) },
-                onRemoveImage = actions::onRemoveImage,
+                onOpenImage = { index -> onEvent(CreatePostUiEvent.OpenImages(media, index)) },
+                onRemoveImage = { uri -> onEvent(CreatePostUiEvent.RemoveImage(uri)) },
             )
 
             is CreatePostMedia.Video -> PickedMediaThumbnail(
                 uri = media.uri,
                 removeDescription = stringResource(R.string.create_post_remove_video),
                 enabled = enabled,
-                onOpen = { actions.openVideo(media) },
-                onRemove = actions::onRemoveVideo,
+                onOpen = { onEvent(CreatePostUiEvent.OpenVideo(media)) },
+                onRemove = { onEvent(CreatePostUiEvent.RemoveVideo) },
             ) {
                 MediaBadge(
                     text = formatVideoDuration(media.durationSeconds),
@@ -521,7 +487,7 @@ private fun CreatePostScreenPreview() {
                     body = "Finally got the carry mechanism to behave.",
                 ),
             ),
-            actions = createActionsProxy(),
+            onEvent = {},
             onPickImages = {},
             onPickVideo = {},
         )
@@ -535,7 +501,7 @@ private fun CreatePostScreenEmptyPreview() {
     MosaicTheme {
         CreatePostScreen(
             uiState = CreatePostUiState(),
-            actions = createActionsProxy(),
+            onEvent = {},
             onPickImages = {},
             onPickVideo = {},
         )
@@ -554,7 +520,7 @@ private fun CreatePostScreenVideoPreview() {
                     media = CreatePostMedia.Video(uri = "", durationSeconds = 42),
                 ),
             ),
-            actions = createActionsProxy(),
+            onEvent = {},
             onPickImages = {},
             onPickVideo = {},
         )
@@ -575,7 +541,7 @@ private fun CreatePostScreenPublishingPreview() {
                 ),
                 isPublishing = true,
             ),
-            actions = createActionsProxy(),
+            onEvent = {},
             onPickImages = {},
             onPickVideo = {},
         )

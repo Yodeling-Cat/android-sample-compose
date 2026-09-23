@@ -27,6 +27,7 @@ import uno.lux.mosaic.common.data.files.FileLoader
 import uno.lux.mosaic.common.data.files.FileUpload
 import uno.lux.mosaic.common.data.files.VideoMetadataReader
 import uno.lux.mosaic.composer.ui.CreatePostMedia
+import uno.lux.mosaic.composer.ui.CreatePostUiEvent
 import uno.lux.mosaic.composer.ui.CreatePostViewModel
 import uno.lux.mosaic.feed.data.FeedDataSource
 import uno.lux.mosaic.feed.data.FeedPage
@@ -96,9 +97,9 @@ class DraftRestorationTest {
     fun aPartWrittenPostComesBack() = runTest {
         val handle = SavedStateHandle()
         val killed = composer(handle)
-        killed.onTitleChange("Engine sketches")
-        killed.onBodyChange("Carry mechanism works.")
-        killed.onImagesPicked(listOf("content://pick/a", "content://pick/b"))
+        killed.onEvent(CreatePostUiEvent.TitleChanged("Engine sketches"))
+        killed.onEvent(CreatePostUiEvent.BodyChanged("Carry mechanism works."))
+        killed.onEvent(CreatePostUiEvent.ImagesPicked(listOf("content://pick/a", "content://pick/b")))
 
         val restored = composer(handle.killAndRestore())
 
@@ -118,7 +119,7 @@ class DraftRestorationTest {
     @Test
     fun anAttachedVideoComesBackWithItsDuration() = runTest {
         val handle = SavedStateHandle()
-        composer(handle).onVideoPicked("content://pick/clip")
+        composer(handle).onEvent(CreatePostUiEvent.VideoPicked("content://pick/clip"))
 
         val restored = composer(handle.killAndRestore())
 
@@ -131,7 +132,7 @@ class DraftRestorationTest {
     @Test
     fun anUntouchedComposerKeepsTheEmptyMediaCase() = runTest {
         val handle = SavedStateHandle()
-        composer(handle).onTitleChange("Clip")
+        composer(handle).onEvent(CreatePostUiEvent.TitleChanged("Clip"))
 
         val restored = composer(handle.killAndRestore())
 
@@ -144,7 +145,7 @@ class DraftRestorationTest {
     @Test
     fun aRestoredComposerIsIdleAndCarriesNoStaleError() = runTest {
         val handle = SavedStateHandle()
-        composer(handle).onTitleChange("Engine sketches")
+        composer(handle).onEvent(CreatePostUiEvent.TitleChanged("Engine sketches"))
 
         val restored = composer(handle.killAndRestore())
 

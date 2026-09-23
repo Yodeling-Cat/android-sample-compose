@@ -69,8 +69,8 @@ class CreatePostViewModelTest : ViewModelTest() {
         get() = (media as? CreatePostMedia.Images)?.uris.orEmpty()
 
     private fun CreatePostViewModel.fillIn(title: String = "Title", body: String = "Body") {
-        onTitleChange(title)
-        onBodyChange(body)
+        onEvent(CreatePostUiEvent.TitleChanged(title))
+        onEvent(CreatePostUiEvent.BodyChanged(body))
     }
 
     @Test
@@ -122,11 +122,11 @@ class CreatePostViewModelTest : ViewModelTest() {
     }
 
     @Test
-    fun `publish sends the trimmed draft`() = runTest {
+    fun `Publish sends the trimmed draft`() = runTest {
         val (viewModel, dataSource) = fixture()
         viewModel.fillIn(title = "  Title  ", body = "  Body  ")
 
-        viewModel.publish()
+        viewModel.onEvent(CreatePostUiEvent.Publish)
 
         assertEquals("Title", dataSource.lastDraft?.title)
         assertEquals("Body", dataSource.lastDraft?.body)
@@ -137,7 +137,7 @@ class CreatePostViewModelTest : ViewModelTest() {
         val viewModel = fixture().viewModel
         viewModel.fillIn()
 
-        viewModel.publish()
+        viewModel.onEvent(CreatePostUiEvent.Publish)
 
         assertTrue(
             viewModel.uiState
@@ -150,11 +150,11 @@ class CreatePostViewModelTest : ViewModelTest() {
     }
 
     @Test
-    fun `publish is a no-op while the form is incomplete`() = runTest {
+    fun `Publish is a no-op while the form is incomplete`() = runTest {
         val (viewModel, dataSource) = fixture()
-        viewModel.onTitleChange("Title")
+        viewModel.onEvent(CreatePostUiEvent.TitleChanged("Title"))
 
-        viewModel.publish()
+        viewModel.onEvent(CreatePostUiEvent.Publish)
 
         assertNull(dataSource.lastDraft)
         assertEquals(listOf(Screen.Shell, Screen.CreatePost), backStack.screens())
@@ -165,7 +165,7 @@ class CreatePostViewModelTest : ViewModelTest() {
         val viewModel = fixture(createError = IOException("offline")).viewModel
         viewModel.fillIn(title = "Title", body = "Body")
 
-        viewModel.publish()
+        viewModel.onEvent(CreatePostUiEvent.Publish)
 
         val state = viewModel.uiState.first()
         assertEquals("Title", state.form.title)
@@ -192,7 +192,7 @@ class CreatePostViewModelTest : ViewModelTest() {
         ).viewModel
         viewModel.fillIn(title = "Title", body = "Body")
 
-        viewModel.publish()
+        viewModel.onEvent(CreatePostUiEvent.Publish)
 
         val state = viewModel.uiState.first()
         assertEquals("Title", state.form.title)
@@ -208,8 +208,8 @@ class CreatePostViewModelTest : ViewModelTest() {
     fun `picked images are added to the form in order`() = runTest {
         val viewModel = fixture().viewModel
 
-        viewModel.onImagesPicked(listOf("uri-a", "uri-b"))
-        viewModel.onImagesPicked(listOf("uri-c"))
+        viewModel.onEvent(CreatePostUiEvent.ImagesPicked(listOf("uri-a", "uri-b")))
+        viewModel.onEvent(CreatePostUiEvent.ImagesPicked(listOf("uri-c")))
 
         assertEquals(
             listOf("uri-a", "uri-b", "uri-c"),
@@ -223,8 +223,8 @@ class CreatePostViewModelTest : ViewModelTest() {
     fun `re-picking an already chosen image does not duplicate it`() = runTest {
         val viewModel = fixture().viewModel
 
-        viewModel.onImagesPicked(listOf("uri-a", "uri-b"))
-        viewModel.onImagesPicked(listOf("uri-a", "uri-c"))
+        viewModel.onEvent(CreatePostUiEvent.ImagesPicked(listOf("uri-a", "uri-b")))
+        viewModel.onEvent(CreatePostUiEvent.ImagesPicked(listOf("uri-a", "uri-c")))
 
         assertEquals(
             listOf("uri-a", "uri-b", "uri-c"),
@@ -238,7 +238,7 @@ class CreatePostViewModelTest : ViewModelTest() {
     fun `the selection is capped at the album limit`() = runTest {
         val viewModel = fixture().viewModel
 
-        viewModel.onImagesPicked(List(CREATE_POST_MAX_IMAGES + 5) { "uri-$it" })
+        viewModel.onEvent(CreatePostUiEvent.ImagesPicked(List(CREATE_POST_MAX_IMAGES + 5) { "uri-$it" }))
 
         val media = viewModel.uiState
             .first()
@@ -250,9 +250,9 @@ class CreatePostViewModelTest : ViewModelTest() {
     @Test
     fun `a removed image leaves the rest in place`() = runTest {
         val viewModel = fixture().viewModel
-        viewModel.onImagesPicked(listOf("uri-a", "uri-b", "uri-c"))
+        viewModel.onEvent(CreatePostUiEvent.ImagesPicked(listOf("uri-a", "uri-b", "uri-c")))
 
-        viewModel.onRemoveImage("uri-b")
+        viewModel.onEvent(CreatePostUiEvent.RemoveImage("uri-b"))
 
         assertEquals(
             listOf("uri-a", "uri-c"),
@@ -265,9 +265,9 @@ class CreatePostViewModelTest : ViewModelTest() {
     @Test
     fun `removing the last image returns to no media, re-offering video`() = runTest {
         val viewModel = fixture().viewModel
-        viewModel.onImagesPicked(listOf("uri-a"))
+        viewModel.onEvent(CreatePostUiEvent.ImagesPicked(listOf("uri-a")))
 
-        viewModel.onRemoveImage("uri-a")
+        viewModel.onEvent(CreatePostUiEvent.RemoveImage("uri-a"))
 
         assertEquals(
             CreatePostMedia.None,
@@ -278,12 +278,12 @@ class CreatePostViewModelTest : ViewModelTest() {
     }
 
     @Test
-    fun `publish uploads the picked images with the draft`() = runTest {
+    fun `Publish uploads the picked images with the draft`() = runTest {
         val (viewModel, dataSource) = fixture()
         viewModel.fillIn()
-        viewModel.onImagesPicked(listOf("uri-a", "uri-b"))
+        viewModel.onEvent(CreatePostUiEvent.ImagesPicked(listOf("uri-a", "uri-b")))
 
-        viewModel.publish()
+        viewModel.onEvent(CreatePostUiEvent.Publish)
 
         val media = dataSource.lastDraft?.media as NewPostMedia.Images
         assertEquals(listOf("uri-a", "uri-b"), media.files.map { it.filename })
@@ -294,7 +294,7 @@ class CreatePostViewModelTest : ViewModelTest() {
     fun `a picked video is attached with the duration read from the file`() = runTest {
         val viewModel = fixture(videoDuration = 42).viewModel
 
-        viewModel.onVideoPicked("clip")
+        viewModel.onEvent(CreatePostUiEvent.VideoPicked("clip"))
 
         assertEquals(
             CreatePostMedia.Video(uri = "clip", durationSeconds = 42),
@@ -308,7 +308,7 @@ class CreatePostViewModelTest : ViewModelTest() {
     fun `an oversized video is refused without being attached`() = runTest {
         val viewModel = fixture(videoSize = CREATE_POST_MAX_VIDEO_BYTES + 1).viewModel
 
-        viewModel.onVideoPicked("clip")
+        viewModel.onEvent(CreatePostUiEvent.VideoPicked("clip"))
 
         val state = viewModel.uiState.first()
         assertEquals(CreatePostMedia.None, state.form.media)
@@ -319,7 +319,7 @@ class CreatePostViewModelTest : ViewModelTest() {
     fun `a video of unknown size is left to the server rather than refused`() = runTest {
         val viewModel = fixture(videoSize = null).viewModel
 
-        viewModel.onVideoPicked("clip")
+        viewModel.onEvent(CreatePostUiEvent.VideoPicked("clip"))
 
         val state = viewModel.uiState.first()
         assertTrue(state.form.media is CreatePostMedia.Video)
@@ -329,9 +329,9 @@ class CreatePostViewModelTest : ViewModelTest() {
     @Test
     fun `picking images is a no-op while a video is attached`() = runTest {
         val viewModel = fixture().viewModel
-        viewModel.onVideoPicked("clip")
+        viewModel.onEvent(CreatePostUiEvent.VideoPicked("clip"))
 
-        viewModel.onImagesPicked(listOf("uri-a"))
+        viewModel.onEvent(CreatePostUiEvent.ImagesPicked(listOf("uri-a")))
 
         assertTrue(
             viewModel.uiState
@@ -343,9 +343,9 @@ class CreatePostViewModelTest : ViewModelTest() {
     @Test
     fun `a removed video returns to no media`() = runTest {
         val viewModel = fixture().viewModel
-        viewModel.onVideoPicked("clip")
+        viewModel.onEvent(CreatePostUiEvent.VideoPicked("clip"))
 
-        viewModel.onRemoveVideo()
+        viewModel.onEvent(CreatePostUiEvent.RemoveVideo)
 
         assertEquals(
             CreatePostMedia.None,
@@ -356,19 +356,19 @@ class CreatePostViewModelTest : ViewModelTest() {
     }
 
     @Test
-    fun `openImages pushes the album viewer at the tapped photo`() = runTest {
+    fun `OpenImages pushes the album viewer at the tapped photo`() = runTest {
         val viewModel = fixture().viewModel
 
-        viewModel.openImages(CreatePostMedia.Images(listOf("uri-a", "uri-b")), initialIndex = 1)
+        viewModel.onEvent(CreatePostUiEvent.OpenImages(CreatePostMedia.Images(listOf("uri-a", "uri-b")), initialIndex = 1))
 
         assertEquals(Screen.AlbumViewer(listOf("uri-a", "uri-b"), initialIndex = 1), backStack.last().screen)
     }
 
     @Test
-    fun `openVideo pushes the fullscreen player for the picked clip`() = runTest {
+    fun `OpenVideo pushes the fullscreen player for the picked clip`() = runTest {
         val viewModel = fixture().viewModel
 
-        viewModel.openVideo(CreatePostMedia.Video(uri = "clip", durationSeconds = 12))
+        viewModel.onEvent(CreatePostUiEvent.OpenVideo(CreatePostMedia.Video(uri = "clip", durationSeconds = 12)))
 
         // The key carries no title — a clip picked from disk has none.
         assertEquals(Screen.FullscreenVideo(url = "clip"), backStack.last().screen)
@@ -379,12 +379,12 @@ class CreatePostViewModelTest : ViewModelTest() {
      * badge stays on the UI side, since the server derives the stored video's own.
      */
     @Test
-    fun `publish uploads the video with the draft`() = runTest {
+    fun `Publish uploads the video with the draft`() = runTest {
         val (viewModel, dataSource) = fixture(videoDuration = 7)
         viewModel.fillIn()
-        viewModel.onVideoPicked("clip")
+        viewModel.onEvent(CreatePostUiEvent.VideoPicked("clip"))
 
-        viewModel.publish()
+        viewModel.onEvent(CreatePostUiEvent.Publish)
 
         val media = dataSource.lastDraft?.media as NewPostMedia.Video
         assertEquals("clip", media.file.filename)
@@ -395,7 +395,7 @@ class CreatePostViewModelTest : ViewModelTest() {
         val (viewModel, dataSource) = fixture()
         viewModel.fillIn()
 
-        viewModel.publish()
+        viewModel.onEvent(CreatePostUiEvent.Publish)
 
         assertEquals(NewPostMedia.None, dataSource.lastDraft?.media)
     }
@@ -404,9 +404,9 @@ class CreatePostViewModelTest : ViewModelTest() {
     fun `an unreadable image fails the publish and keeps the form`() = runTest {
         val (viewModel, dataSource) = fixture(fileError = IOException("gone"))
         viewModel.fillIn(title = "Title", body = "Body")
-        viewModel.onImagesPicked(listOf("uri-a"))
+        viewModel.onEvent(CreatePostUiEvent.ImagesPicked(listOf("uri-a")))
 
-        viewModel.publish()
+        viewModel.onEvent(CreatePostUiEvent.Publish)
 
         assertNull(dataSource.lastDraft)
         val state = viewModel.uiState.first()
@@ -419,9 +419,9 @@ class CreatePostViewModelTest : ViewModelTest() {
     @Test
     fun `images alone count as a part-written post`() = runTest {
         val viewModel = fixture().viewModel
-        viewModel.onImagesPicked(listOf("uri-a"))
+        viewModel.onEvent(CreatePostUiEvent.ImagesPicked(listOf("uri-a")))
 
-        viewModel.goBack()
+        viewModel.onEvent(CreatePostUiEvent.GoBack)
 
         assertTrue(viewModel.uiState.first().showDiscardConfirmation)
         assertEquals(listOf(Screen.Shell, Screen.CreatePost), backStack.screens())
@@ -430,30 +430,30 @@ class CreatePostViewModelTest : ViewModelTest() {
     @Test
     fun `a video alone counts as a part-written post`() = runTest {
         val viewModel = fixture().viewModel
-        viewModel.onVideoPicked("clip")
+        viewModel.onEvent(CreatePostUiEvent.VideoPicked("clip"))
 
-        viewModel.goBack()
+        viewModel.onEvent(CreatePostUiEvent.GoBack)
 
         assertTrue(viewModel.uiState.first().showDiscardConfirmation)
         assertEquals(listOf(Screen.Shell, Screen.CreatePost), backStack.screens())
     }
 
     @Test
-    fun `goBack leaves straight away when nothing has been typed`() = runTest {
+    fun `GoBack leaves straight away when nothing has been typed`() = runTest {
         val viewModel = fixture().viewModel
 
-        viewModel.goBack()
+        viewModel.onEvent(CreatePostUiEvent.GoBack)
 
         assertFalse(viewModel.uiState.first().showDiscardConfirmation)
         assertEquals(listOf(Screen.Shell), backStack.screens())
     }
 
     @Test
-    fun `goBack asks before dropping a part-written post`() = runTest {
+    fun `GoBack asks before dropping a part-written post`() = runTest {
         val viewModel = fixture().viewModel
-        viewModel.onTitleChange("Half a thought")
+        viewModel.onEvent(CreatePostUiEvent.TitleChanged("Half a thought"))
 
-        viewModel.goBack()
+        viewModel.onEvent(CreatePostUiEvent.GoBack)
 
         assertTrue(viewModel.uiState.first().showDiscardConfirmation)
         assertEquals(listOf(Screen.Shell, Screen.CreatePost), backStack.screens())
@@ -463,9 +463,9 @@ class CreatePostViewModelTest : ViewModelTest() {
     fun `confirming the discard leaves the composer`() = runTest {
         val viewModel = fixture().viewModel
         viewModel.fillIn()
-        viewModel.goBack()
+        viewModel.onEvent(CreatePostUiEvent.GoBack)
 
-        viewModel.confirmDiscard()
+        viewModel.onEvent(CreatePostUiEvent.ConfirmDiscard)
 
         assertFalse(viewModel.uiState.first().showDiscardConfirmation)
         assertEquals(listOf(Screen.Shell), backStack.screens())
@@ -475,9 +475,9 @@ class CreatePostViewModelTest : ViewModelTest() {
     fun `dismissing the discard stays put and keeps the typed text`() = runTest {
         val viewModel = fixture().viewModel
         viewModel.fillIn(title = "Half a thought")
-        viewModel.goBack()
+        viewModel.onEvent(CreatePostUiEvent.GoBack)
 
-        viewModel.dismissDiscardConfirmation()
+        viewModel.onEvent(CreatePostUiEvent.DismissDiscard)
 
         val state = viewModel.uiState.first()
         assertFalse(state.showDiscardConfirmation)

@@ -35,8 +35,7 @@ class CreatePostViewModel @Inject constructor(
     private val videoMetadataReader: VideoMetadataReader,
     private val navigator: Navigator,
     savedStateHandle: SavedStateHandle,
-) : ViewModel(),
-    CreatePostActions {
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
         CreatePostUiState(form = savedStateHandle.restoreDraft(DRAFT_KEY) ?: CreatePostForm()),
@@ -50,12 +49,57 @@ class CreatePostViewModel @Inject constructor(
         savedStateHandle.saveDraft(DRAFT_KEY) { _uiState.value.form }
     }
 
-    override fun onTitleChange(value: String) = updateForm {
-        it.copy(title = value.take(CREATE_POST_TITLE_MAX_LENGTH))
-    }
+    fun onEvent(event: CreatePostUiEvent) {
+        when (event) {
+            is CreatePostUiEvent.TitleChanged -> {
+                updateForm { it.copy(title = event.value.take(CREATE_POST_TITLE_MAX_LENGTH)) }
+            }
 
-    override fun onBodyChange(value: String) = updateForm {
-        it.copy(body = value.take(CREATE_POST_BODY_MAX_LENGTH))
+            is CreatePostUiEvent.BodyChanged -> {
+                updateForm { it.copy(body = event.value.take(CREATE_POST_BODY_MAX_LENGTH)) }
+            }
+
+            is CreatePostUiEvent.ImagesPicked -> {
+                addImages(event.uris)
+            }
+
+            is CreatePostUiEvent.RemoveImage -> {
+                removeImage(event.uri)
+            }
+
+            is CreatePostUiEvent.VideoPicked -> {
+                attachVideo(event.uri)
+            }
+
+            CreatePostUiEvent.RemoveVideo -> {
+                removeVideo()
+            }
+
+            is CreatePostUiEvent.OpenImages -> {
+                navigator.goTo(Screen.AlbumViewer(event.media.uris, event.initialIndex))
+            }
+
+            is CreatePostUiEvent.OpenVideo -> {
+                navigator.goTo(Screen.FullscreenVideo(event.media.uri))
+            }
+
+            CreatePostUiEvent.Publish -> {
+                publish()
+            }
+
+            CreatePostUiEvent.GoBack -> {
+                goBack()
+            }
+
+            CreatePostUiEvent.DismissDiscard -> {
+                _uiState.update { it.copy(showDiscardConfirmation = false) }
+            }
+
+            CreatePostUiEvent.ConfirmDiscard -> {
+                _uiState.update { it.copy(showDiscardConfirmation = false) }
+                navigator.goBack()
+            }
+        }
     }
 
     /**
@@ -64,7 +108,7 @@ class CreatePostViewModel @Inject constructor(
      * A no-op while a video is attached: the screen hides the photo affordance in that state, so
      * reaching here would mean the two media kinds were about to coexist.
      */
-    override fun onImagesPicked(uris: List<String>) = updateForm { form ->
+    private fun addImages(uris: List<String>) = updateForm { form ->
         val current = when (val media = form.media) {
             CreatePostMedia.None -> emptyList()
             is CreatePostMedia.Images -> media.uris
@@ -76,7 +120,7 @@ class CreatePostViewModel @Inject constructor(
     }
 
     /** Removing the last photo returns to [CreatePostMedia.None], re-offering the video option. */
-    override fun onRemoveImage(uri: String) = updateForm { form ->
+    private fun removeImage(uri: String) = updateForm { form ->
         val media = form.media as? CreatePostMedia.Images ?: return@updateForm form
         val remaining = media.uris - uri
 
@@ -91,7 +135,7 @@ class CreatePostViewModel @Inject constructor(
      * Duration is read here, at pick time, because it is cheap (metadata only) and the thumbnail
      * badges it — the upload itself carries no duration, the server deriving that from the file.
      */
-    override fun onVideoPicked(uri: String) {
+    private fun attachVideo(uri: String) {
         launchIfIdle(::pickVideoJob) {
             catchErrors(
                 onError = { e ->
@@ -118,19 +162,11 @@ class CreatePostViewModel @Inject constructor(
         }
     }
 
-    override fun onRemoveVideo() = updateForm { form ->
+    private fun removeVideo() = updateForm { form ->
         if (form.media is CreatePostMedia.Video) form.copy(media = CreatePostMedia.None) else form
     }
 
-    /** Opens the picked photos in the album viewer. */
-    override fun openImages(media: CreatePostMedia.Images, initialIndex: Int) =
-        navigator.goTo(Screen.AlbumViewer(media.uris, initialIndex))
-
-    /** Plays the picked clip on the full-screen video page. */
-    override fun openVideo(media: CreatePostMedia.Video) =
-        navigator.goTo(Screen.FullscreenVideo(media.uri))
-
-    override fun publish() {
+    private fun publish() {
         if (!_uiState.value.form.canPublish) return
 
         launchIfIdle(::publishJob) {
@@ -153,21 +189,12 @@ class CreatePostViewModel @Inject constructor(
         }
     }
 
-    override fun goBack() {
+    private fun goBack() {
         if (_uiState.value.form.isEmpty) {
             navigator.goBack()
         } else {
             _uiState.update { it.copy(showDiscardConfirmation = true) }
         }
-    }
-
-    override fun dismissDiscardConfirmation() {
-        _uiState.update { it.copy(showDiscardConfirmation = false) }
-    }
-
-    override fun confirmDiscard() {
-        _uiState.update { it.copy(showDiscardConfirmation = false) }
-        navigator.goBack()
     }
 
     private suspend fun loadMedia(media: CreatePostMedia): NewPostMedia = when (media) {
