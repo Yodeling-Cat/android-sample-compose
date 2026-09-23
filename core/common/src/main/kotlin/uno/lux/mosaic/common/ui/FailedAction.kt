@@ -39,9 +39,9 @@ enum class FailedAction {
  * Takes a setter rather than the [MutableStateFlow] itself, so it says nothing about where the
  * ViewModel keeps the announcement: a flow of its own, or one field of a larger UI state that is
  * copied. The ViewModel still owns the state a test asserts against, which is the property
- * [uno.lux.mosaic.common.util.launchRefresh] takes its `refreshing` flag for. Not in `app/util`
- * with the other launch shapes because it names [FailedAction], and `app/util` imports nothing
- * of the project's — the same reason [catchErrors]'s error-sink overload lives here.
+ * [uno.lux.mosaic.common.util.launchRefresh] takes its `refreshing` flag for. Not in `common/util`
+ * with the other launch shapes because it names [FailedAction], and `common/util` imports nothing
+ * of the project's — the same reason [ignoreErrors] lives here.
  */
 fun ViewModel.launchReporting(
     action: FailedAction,

@@ -28,7 +28,7 @@ suspend fun <T> notFoundAsNull(request: suspend () -> T): T? =
  * from "the server refused that".
  *
  * Lives here rather than beside [AppError] because naming [HttpException] is wire knowledge:
- * `app/util` imports nothing of the project's or the HTTP stack's, so the error type stays pure
+ * `common/util` imports nothing of the project's or the HTTP stack's, so the error type stays pure
  * while its interpretation sits with the wire.
  */
 fun Throwable.toAppError(): AppError = when (this) {

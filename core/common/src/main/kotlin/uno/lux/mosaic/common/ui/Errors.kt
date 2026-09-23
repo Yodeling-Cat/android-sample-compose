@@ -8,11 +8,11 @@ import uno.lux.mosaic.common.util.catchErrors
 
 /**
  * Runs [block], writing any non-[CancellationException] into [errorSink] as an [AppError].
- * Convenience overload of [ignoreErrors] for the common ViewModel pattern of storing a typed
+ * Convenience wrapper over [catchErrors] for the common ViewModel pattern of storing a typed
  * error alongside a reactive combine chain.
  *
- * Not in `app/util` with the other `ignoreErrors` shapes because turning the exception into an
- * [AppError] needs [toAppError], which lives with the wire — and `app/util` imports nothing of
+ * Not in `common/util` with [catchErrors] because turning the exception into an
+ * [AppError] needs [toAppError], which lives with the wire — and `common/util` imports nothing of
  * the project's.
  */
 suspend fun ignoreErrors(errorSink: MutableStateFlow<AppError?>, block: suspend () -> Unit) =
