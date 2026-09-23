@@ -59,10 +59,6 @@ data class CommentThread(
  * descriptions, spent by sending [PostDetailUiEvent.FailedActionShown],
  * [PostDetailUiEvent.ScrolledToComment] and [PostDetailUiEvent.CommentSent] back once done.
  * State with a spend, which a rotation cannot replay and a test can assert on directly.
- *
- * [eventSink] is one instance for the page's whole life, held across every `copy` of this state.
- * A fresh lambda per emission would make every state unequal to the last and quietly defeat the
- * [kotlinx.coroutines.flow.StateFlow] conflation the rest of this design leans on.
  */
 data class PostDetailUiState(
     val content: Content,
@@ -72,7 +68,6 @@ data class PostDetailUiState(
     val commentSend: CommentSendState = CommentSendState.IDLE,
     val reportSend: ReportSendState = ReportSendState.IDLE,
     val failedAction: FailedAction? = null,
-    val eventSink: (PostDetailUiEvent) -> Unit,
 ) {
 
     sealed interface Content {

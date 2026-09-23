@@ -51,9 +51,9 @@ import uno.lux.mosaic.user.data.domain.User
  * absent post can't simply mean [Content.NotFound]: "not asked yet", "the server says it's gone"
  * and "the request failed" are three different screens, and [PostFetch] tells them apart.
  *
- * Intent arrives as one [PostDetailUiEvent] through [onEvent], which the screen reaches through
- * [PostDetailUiState.eventSink]. [postId] is a runtime argument wired through [Factory] /
- * assisted injection, so every opened post gets its own ViewModel, scoped to its back-stack entry.
+ * Intent arrives as one [PostDetailUiEvent] through [onEvent]. [postId] is a runtime argument
+ * wired through [Factory] / assisted injection, so every opened post gets its own ViewModel,
+ * scoped to its back-stack entry.
  */
 @HiltViewModel(assistedFactory = PostDetailViewModel.Factory::class)
 class PostDetailViewModel @AssistedInject constructor(
@@ -99,7 +99,6 @@ class PostDetailViewModel @AssistedInject constructor(
         PostDetailUiState(
             content = content(),
             composerUser = currentUser,
-            eventSink = ::onEvent,
         ),
     )
 

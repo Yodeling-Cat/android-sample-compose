@@ -106,26 +106,30 @@ fun PostDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    PostDetailScreen(uiState = uiState, modifier = modifier)
+    PostDetailScreen(
+        uiState = uiState,
+        onEvent = viewModel::onEvent,
+        modifier = modifier,
+    )
 }
 
 /**
  * Stateless post detail screen — the post, its comment thread, and a sticky composer at the
  * bottom.
  *
- * Every control on this page reports through the one [PostDetailUiState.eventSink]. The leaf
+ * Every control on this page reports a [PostDetailUiEvent] through [onEvent]. The leaf
  * components keep their own callbacks and are adapted at the call site, so they stay callable
- * from a screen that has no sink at all.
+ * from a screen that sends different events, or none at all.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun PostDetailScreen(
     uiState: PostDetailUiState,
+    onEvent: (PostDetailUiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val eventSink = uiState.eventSink
     val loaded = uiState.content as? Content.Loaded
-    val deletePost: () -> Unit = { eventSink(PostDetailUiEvent.Delete) }
+    val deletePost: () -> Unit = { onEvent(PostDetailUiEvent.Delete) }
     val listState = rememberLazyListState()
     val elevated = listState.canScrollBackward
     val snackbarHostState = remember { SnackbarHostState() }
@@ -134,7 +138,7 @@ internal fun PostDetailScreen(
 
     // A delete or comment whose request failed after its dialog already closed.
     FailedActionEffect(uiState.failedAction, snackbarHostState) {
-        eventSink(PostDetailUiEvent.FailedActionShown)
+        onEvent(PostDetailUiEvent.FailedActionShown)
     }
 
     Scaffold(
@@ -158,7 +162,7 @@ internal fun PostDetailScreen(
                 navigationIcon = {
                     AppBarAction(
                         icon = CommonR.drawable.ic_arrow_back,
-                        onClick = { eventSink(PostDetailUiEvent.GoBack) },
+                        onClick = { onEvent(PostDetailUiEvent.GoBack) },
                         contentDescription = stringResource(CommonR.string.navigate_back),
                     )
                 },
@@ -168,11 +172,11 @@ internal fun PostDetailScreen(
                             post = loaded.post,
                             author = loaded.author,
                             reportSend = uiState.reportSend,
-                            onToggleBookmark = { eventSink(PostDetailUiEvent.ToggleBookmark) },
+                            onToggleBookmark = { onEvent(PostDetailUiEvent.ToggleBookmark) },
                             onReport = { reason, details ->
-                                eventSink(PostDetailUiEvent.Report(reason, details))
+                                onEvent(PostDetailUiEvent.Report(reason, details))
                             },
-                            onReportClosed = { eventSink(PostDetailUiEvent.CloseReport) },
+                            onReportClosed = { onEvent(PostDetailUiEvent.CloseReport) },
                             onDelete = deletePost.takeIf { loaded.isOwn },
                         )
                     }
@@ -186,8 +190,8 @@ internal fun PostDetailScreen(
                 CommentComposer(
                     user = uiState.composerUser,
                     sendState = uiState.commentSend,
-                    onSend = { text -> eventSink(PostDetailUiEvent.AddComment(text)) },
-                    onSent = { eventSink(PostDetailUiEvent.CommentSent) },
+                    onSend = { text -> onEvent(PostDetailUiEvent.AddComment(text)) },
+                    onSent = { onEvent(PostDetailUiEvent.CommentSent) },
                 )
             }
         },
@@ -213,7 +217,7 @@ internal fun PostDetailScreen(
 
             is Content.Error -> FullScreenError(
                 message = content.error.asText(),
-                onRetry = { eventSink(PostDetailUiEvent.Retry) },
+                onRetry = { onEvent(PostDetailUiEvent.Retry) },
                 modifier = Modifier.padding(contentPadding),
             )
 
@@ -223,7 +227,7 @@ internal fun PostDetailScreen(
                 content = content,
                 thread = uiState.commentThread,
                 listState = listState,
-                eventSink = eventSink,
+                onEvent = onEvent,
                 modifier = Modifier.padding(contentPadding),
             )
         }
@@ -245,7 +249,7 @@ private fun PostDetailContent(
     content: Content.Loaded,
     thread: CommentThread,
     listState: LazyListState,
-    eventSink: (PostDetailUiEvent) -> Unit,
+    onEvent: (PostDetailUiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
@@ -259,7 +263,7 @@ private fun PostDetailContent(
         listState = listState,
         endReached = thread.endReached || thread.isLoading || thread.error != null,
         loadMoreFailed = thread.loadMoreFailed,
-        onLoadMore = { eventSink(PostDetailUiEvent.LoadMoreComments) },
+        onLoadMore = { onEvent(PostDetailUiEvent.LoadMoreComments) },
     )
 
     // Bring the comment the user just sent into view — the row after the header, offset by where
@@ -272,7 +276,7 @@ private fun PostDetailContent(
         if (position >= 0 && thread.error == null && !thread.isLoading) {
             listState.animateScrollToItem(COMMENTS_HEADER_INDEX + 1 + position)
         }
-        eventSink(PostDetailUiEvent.ScrolledToComment)
+        onEvent(PostDetailUiEvent.ScrolledToComment)
     }
 
     LazyColumn(state = listState, modifier = modifier.fillMaxSize()) {
@@ -280,13 +284,13 @@ private fun PostDetailContent(
             DetailPostCard(
                 post = post,
                 author = author,
-                onOpenProfile = { eventSink(PostDetailUiEvent.OpenProfile(author.id)) },
-                onOpenVideo = { video -> eventSink(PostDetailUiEvent.OpenVideo(video)) },
+                onOpenProfile = { onEvent(PostDetailUiEvent.OpenProfile(author.id)) },
+                onOpenVideo = { video -> onEvent(PostDetailUiEvent.OpenVideo(video)) },
                 onOpenAlbum = { urls, index ->
-                    eventSink(PostDetailUiEvent.OpenAlbum(urls, index))
+                    onEvent(PostDetailUiEvent.OpenAlbum(urls, index))
                 },
-                onToggleLike = { eventSink(PostDetailUiEvent.ToggleLike) },
-                onToggleBookmark = { eventSink(PostDetailUiEvent.ToggleBookmark) },
+                onToggleLike = { onEvent(PostDetailUiEvent.ToggleLike) },
+                onToggleBookmark = { onEvent(PostDetailUiEvent.ToggleBookmark) },
                 onScrollToComments = {
                     scope.launch { listState.animateScrollToItem(COMMENTS_HEADER_INDEX) }
                 },
@@ -297,7 +301,7 @@ private fun PostDetailContent(
             item(key = "comments_error") {
                 CommentsError(
                     error = thread.error,
-                    onRetry = { eventSink(PostDetailUiEvent.RetryComments) },
+                    onRetry = { onEvent(PostDetailUiEvent.RetryComments) },
                 )
             }
         } else if (thread.isLoading) {
@@ -310,10 +314,10 @@ private fun PostDetailContent(
                     CommentRow(
                         comment = comment,
                         onLike = {
-                            eventSink(PostDetailUiEvent.ToggleCommentLike(comment.id))
+                            onEvent(PostDetailUiEvent.ToggleCommentLike(comment.id))
                         },
                         onOpenProfile = {
-                            eventSink(PostDetailUiEvent.OpenProfile(comment.author.id))
+                            onEvent(PostDetailUiEvent.OpenProfile(comment.author.id))
                         },
                     )
                 }
@@ -321,7 +325,7 @@ private fun PostDetailContent(
                     item(key = "comments_loading_more") {
                         LoadMoreFooter(
                             failed = thread.loadMoreFailed,
-                            onRetry = { eventSink(PostDetailUiEvent.LoadMoreComments) },
+                            onRetry = { onEvent(PostDetailUiEvent.LoadMoreComments) },
                         )
                     }
                 }
@@ -654,7 +658,7 @@ private fun PostDetailLoadingPreview() {
     PostDetailPreview(Content.Loading)
 }
 
-/** The screen with its sink stubbed, so each preview supplies only the state it shows. */
+/** The screen with its events ignored, so each preview supplies only the state it shows. */
 @Composable
 private fun PostDetailPreview(
     content: PostDetailUiState.Content,
@@ -666,8 +670,8 @@ private fun PostDetailPreview(
                 content = content,
                 composerUser = SampleUsers.first(),
                 commentThread = thread,
-                eventSink = {},
             ),
+            onEvent = {},
         )
     }
 }

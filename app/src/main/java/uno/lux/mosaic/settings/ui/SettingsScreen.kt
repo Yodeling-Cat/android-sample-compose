@@ -47,12 +47,11 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
-    val eventSink = viewModel::eventSink
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     SettingsScreen(
-        eventSink = eventSink,
-        state = state,
+        uiState = uiState,
+        onEvent = viewModel::onEvent,
         modifier = modifier,
     )
 }
@@ -60,8 +59,8 @@ fun SettingsScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun SettingsScreen(
-    eventSink: (SettingsUiEvent) -> Unit,
-    state: SettingsUiState,
+    uiState: SettingsUiState,
+    onEvent: (SettingsUiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LightStatusBarIcons()
@@ -76,19 +75,19 @@ internal fun SettingsScreen(
                 navigationIcon = {
                     AppBarAction(
                         icon = CommonR.drawable.ic_arrow_back,
-                        onClick = { eventSink(SettingsUiEvent.GoBack) },
+                        onClick = { onEvent(SettingsUiEvent.GoBack) },
                         contentDescription = stringResource(CommonR.string.navigate_back),
                     )
                 },
             )
         },
     ) { contentPadding ->
-        when (state) {
+        when (uiState) {
             SettingsUiState.Loading -> Unit
 
             is SettingsUiState.Content -> SettingsScreenContent(
-                eventSink = eventSink,
-                state = state,
+                uiState = uiState,
+                onEvent = onEvent,
                 modifier = Modifier
                     .padding(contentPadding),
             )
@@ -98,8 +97,8 @@ internal fun SettingsScreen(
 
 @Composable
 private fun SettingsScreenContent(
-    eventSink: (SettingsUiEvent) -> Unit,
-    state: SettingsUiState.Content,
+    uiState: SettingsUiState.Content,
+    onEvent: (SettingsUiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -112,8 +111,8 @@ private fun SettingsScreenContent(
         SettingsSection(title = stringResource(R.string.settings_language)) {
             SingleChoiceRow(
                 options = AppLanguage.entries,
-                selected = state.language,
-                onSelected = { eventSink(SettingsUiEvent.SetLanguage(it)) },
+                selected = uiState.language,
+                onSelected = { onEvent(SettingsUiEvent.SetLanguage(it)) },
                 label = { stringResource(it.labelRes()) },
             )
         }
@@ -121,8 +120,8 @@ private fun SettingsScreenContent(
         SettingsSection(title = stringResource(R.string.settings_appearance)) {
             SingleChoiceRow(
                 options = ThemeMode.entries,
-                selected = state.themeMode,
-                onSelected = { eventSink(SettingsUiEvent.SetThemeMode(it)) },
+                selected = uiState.themeMode,
+                onSelected = { onEvent(SettingsUiEvent.SetThemeMode(it)) },
                 label = { stringResource(it.labelRes()) },
             )
         }
@@ -131,8 +130,8 @@ private fun SettingsScreenContent(
             SwitchRow(
                 label = stringResource(R.string.settings_autoplay_videos),
                 supportingText = stringResource(R.string.settings_autoplay_videos_description),
-                checked = state.autoPlayVideos,
-                onCheckedChange = { eventSink(SettingsUiEvent.SetAutoPlayVideos(it)) },
+                checked = uiState.autoPlayVideos,
+                onCheckedChange = { onEvent(SettingsUiEvent.SetAutoPlayVideos(it)) },
             )
         }
     }
@@ -235,12 +234,12 @@ private fun AppLanguage.labelRes(): Int = when (this) {
 private fun SettingsScreenPreview() {
     MosaicTheme {
         SettingsScreen(
-            eventSink = {},
-            state = SettingsUiState.Content(
+            uiState = SettingsUiState.Content(
                 themeMode = ThemeMode.SYSTEM,
                 autoPlayVideos = true,
                 language = AppLanguage.ENGLISH,
             ),
+            onEvent = {},
         )
     }
 }

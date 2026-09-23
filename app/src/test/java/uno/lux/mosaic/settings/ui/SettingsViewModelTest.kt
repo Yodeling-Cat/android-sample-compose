@@ -50,7 +50,7 @@ class SettingsViewModelTest : ViewModelTest() {
     fun `SetThemeMode updates the exposed theme`() = runTest {
         val viewModel = collecting(viewModel())
 
-        viewModel.eventSink(SettingsUiEvent.SetThemeMode(ThemeMode.LIGHT))
+        viewModel.onEvent(SettingsUiEvent.SetThemeMode(ThemeMode.LIGHT))
 
         assertEquals(ThemeMode.LIGHT, viewModel.content.themeMode)
     }
@@ -67,7 +67,7 @@ class SettingsViewModelTest : ViewModelTest() {
     fun `SetAutoPlayVideos updates the exposed preference`() = runTest {
         val viewModel = collecting(viewModel())
 
-        viewModel.eventSink(SettingsUiEvent.SetAutoPlayVideos(true))
+        viewModel.onEvent(SettingsUiEvent.SetAutoPlayVideos(true))
 
         assertEquals(true, viewModel.content.autoPlayVideos)
     }
@@ -76,7 +76,7 @@ class SettingsViewModelTest : ViewModelTest() {
     fun `SetThemeMode leaves auto-play alone`() = runTest {
         val viewModel = collecting(viewModel(InMemorySettingsRepository(initialAutoPlayVideos = true)))
 
-        viewModel.eventSink(SettingsUiEvent.SetThemeMode(ThemeMode.DARK))
+        viewModel.onEvent(SettingsUiEvent.SetThemeMode(ThemeMode.DARK))
 
         val expected = SettingsUiState.Content(
             themeMode = ThemeMode.DARK,
@@ -106,14 +106,14 @@ class SettingsViewModelTest : ViewModelTest() {
     fun `SetLanguage updates the exposed language`() = runTest {
         val viewModel = collecting(viewModel())
 
-        viewModel.eventSink(SettingsUiEvent.SetLanguage(AppLanguage.CZECH))
+        viewModel.onEvent(SettingsUiEvent.SetLanguage(AppLanguage.CZECH))
 
         assertEquals(AppLanguage.CZECH, viewModel.content.language)
     }
 
     @Test
     fun `GoBack pops the settings page`() {
-        viewModel().eventSink(SettingsUiEvent.GoBack)
+        viewModel().onEvent(SettingsUiEvent.GoBack)
 
         assertEquals(listOf(Screen.Shell), backStack.screens())
     }

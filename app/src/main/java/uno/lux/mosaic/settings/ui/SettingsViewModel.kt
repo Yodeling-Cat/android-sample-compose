@@ -28,7 +28,7 @@ class SettingsViewModel @Inject constructor(
             )
         }.stateInWhileSubscribed(viewModelScope, SettingsUiState.Loading)
 
-    fun eventSink(event: SettingsUiEvent) {
+    fun onEvent(event: SettingsUiEvent) {
         when (event) {
             is SettingsUiEvent.SetThemeMode -> {
                 setThemeMode(event.mode)
