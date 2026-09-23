@@ -1,4 +1,4 @@
-package uno.lux.mosaic.feed.ui
+package uno.lux.mosaic.home.ui
 
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -20,8 +20,6 @@ import uno.lux.mosaic.feed.data.FakeFeedDataSource
 import uno.lux.mosaic.feed.data.FeedDataSource
 import uno.lux.mosaic.feed.data.FeedPage
 import uno.lux.mosaic.feed.data.FeedRepository
-import uno.lux.mosaic.home.ui.HomeUiState
-import uno.lux.mosaic.home.ui.HomeViewModel
 import uno.lux.mosaic.post.data.FakePostDataSource
 import uno.lux.mosaic.post.data.PostRepository
 import uno.lux.mosaic.post.data.domain.Post
