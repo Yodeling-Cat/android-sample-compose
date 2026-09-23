@@ -157,6 +157,23 @@ class ArchitectureTest {
     }
 
     @Test
+    fun `a screen's ViewModel takes intent only through onEvent`() {
+        PRODUCTION
+            .filter { it.root !in NON_CONCERNS && it.pkg.endsWith(".ui") }
+            .flatMap { it.classes(includeNested = false) }
+            .filter { it.name.endsWith("ViewModel") }
+            .assertTrue(additionalMessage = VIEW_MODEL_MESSAGE) { viewModel ->
+                // Overrides are judged by the supertype check instead: an `override` with no
+                // modifier written inherits its visibility, so `onCleared` reads as public here.
+                viewModel.parents().all { it.name == "ViewModel" } &&
+                    viewModel
+                        .functions(includeNested = false, includeLocal = false)
+                        .filter { it.hasPublicOrDefaultModifier && !it.hasOverrideModifier }
+                        .all { it.name == "onEvent" }
+            }
+    }
+
+    @Test
     fun `a repository behind no interface stays plain-JVM`() {
         PRODUCTION.assertTrue(additionalMessage = REPOSITORY_MESSAGE) { file ->
             file.classes().none { it.name.endsWith("Repository") && it.parents().isEmpty() } ||
@@ -201,6 +218,14 @@ private const val DESIGN_SYSTEM_MESSAGE =
         "reusable only while it knows nothing — which is also why it is the one module every " +
         "other may depend on while it depends on none. A branded control that grew a `Post` " +
         "parameter is post UI: file it in `post/ui`, or take the plain type it really needs."
+
+private const val VIEW_MODEL_MESSAGE =
+    "A screen's ViewModel has a public function other than `onEvent`, or implements something " +
+        "besides ViewModel. Every intent is a case of the screen's sealed `<Screen>UiEvent`, and " +
+        "`onEvent` is the one way in, so the stateless screen takes a single `onEvent` and a test " +
+        "can record exactly what it sent. Add a case to the event type and handle it in " +
+        "`onEvent`'s `when`, keeping the handler private — not a method on an actions interface. " +
+        "`app/ui`'s MainViewModel is outside this rule, since it backs the activity, not a screen."
 
 private const val REPOSITORY_MESSAGE =
     "A repository with no interface above it imported the Android framework, which makes it " +
