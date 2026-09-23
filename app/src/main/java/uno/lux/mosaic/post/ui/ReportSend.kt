@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.Job
 import uno.lux.mosaic.common.util.catchErrors
 import uno.lux.mosaic.common.util.launchIfIdle
+import uno.lux.mosaic.post.data.domain.PostId
 import kotlin.reflect.KMutableProperty0
 
 /**
@@ -16,6 +17,19 @@ enum class ReportSendState {
     SENT,
     FAILED,
 }
+
+/** The send of a report on one post in a list; `null` means no report is in flight. */
+data class PostReportSend(
+    val postId: PostId,
+    val state: ReportSendState,
+)
+
+/**
+ * Every post but the reported one reads [ReportSendState.IDLE], so a change to the send state
+ * reaches only the card whose dialog is waiting for it.
+ */
+fun PostReportSend?.sendStateFor(postId: PostId): ReportSendState =
+    if (this != null && this.postId == postId) state else ReportSendState.IDLE
 
 fun ViewModel.launchReport(
     jobRef: KMutableProperty0<Job?>,

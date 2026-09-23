@@ -18,6 +18,7 @@ import uno.lux.mosaic.common.ui.FailedAction
 import uno.lux.mosaic.post.data.FakePostDataSource
 import uno.lux.mosaic.post.data.PostRepository
 import uno.lux.mosaic.post.data.domain.Post
+import uno.lux.mosaic.post.ui.PostReportSend
 import uno.lux.mosaic.post.ui.ReportSendState
 import uno.lux.mosaic.profile.data.FakeProfileDataSource
 import uno.lux.mosaic.profile.data.PostsPage
@@ -166,7 +167,7 @@ class ProfileViewModelTest : ViewModelTest() {
             dataSource.reports,
         )
         assertEquals(before, (viewModel.uiState.value as ProfileUiState.Loaded).data.posts)
-        assertEquals(ReportSendState.SENT, viewModel.reportSend.value)
+        assertEquals(PostReportSend("p1", ReportSendState.SENT), viewModel.reportSend.value)
     }
 
     // The profile's report is held in the same state the feed's and the detail page's are, so
@@ -178,7 +179,7 @@ class ProfileViewModelTest : ViewModelTest() {
 
         viewModel.onEvent(ProfileUiEvent.Report("p1", ReportReason.MISINFORMATION, ""))
 
-        assertEquals(ReportSendState.FAILED, viewModel.reportSend.value)
+        assertEquals(PostReportSend("p1", ReportSendState.FAILED), viewModel.reportSend.value)
         assertNull(viewModel.failedAction.value)
     }
 
@@ -189,7 +190,7 @@ class ProfileViewModelTest : ViewModelTest() {
 
         viewModel.onEvent(ProfileUiEvent.CloseReport)
 
-        assertEquals(ReportSendState.IDLE, viewModel.reportSend.value)
+        assertNull(viewModel.reportSend.value)
     }
 
     @Test

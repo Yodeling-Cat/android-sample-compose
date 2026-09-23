@@ -94,7 +94,8 @@ import uno.lux.mosaic.designsystem.theme.MosaicElevations
 import uno.lux.mosaic.designsystem.theme.MosaicGradients
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.post.ui.PostCard
-import uno.lux.mosaic.post.ui.ReportSendState
+import uno.lux.mosaic.post.ui.PostReportSend
+import uno.lux.mosaic.post.ui.sendStateFor
 import uno.lux.mosaic.profile.data.domain.Profile
 import uno.lux.mosaic.user.data.domain.User
 import uno.lux.mosaic.user.data.domain.UserId
@@ -135,7 +136,7 @@ internal fun ProfileScreen(
     uiState: UiState,
     isRefreshing: Boolean,
     failedAction: FailedAction?,
-    reportSend: ReportSendState,
+    reportSend: PostReportSend?,
     onEvent: (UiEvent) -> Unit,
     modifier: Modifier = Modifier,
     showBackButton: Boolean = false,
@@ -208,7 +209,7 @@ private fun ProfileContent(
     data: ProfileScreenData,
     isCurrentUser: Boolean,
     isRefreshing: Boolean,
-    reportSend: ReportSendState,
+    reportSend: PostReportSend?,
     onEvent: (UiEvent) -> Unit,
     onBack: (() -> Unit)?,
 ) {
@@ -619,7 +620,7 @@ private fun ProfileTabs(
 
 private fun LazyListScope.postItems(
     screenData: ProfileScreenData,
-    reportSend: ReportSendState,
+    reportSend: PostReportSend?,
     onEvent: (UiEvent) -> Unit,
     isCurrentUser: Boolean,
 ) {
@@ -634,7 +635,7 @@ private fun LazyListScope.postItems(
         PostCard(
             post = post,
             author = author,
-            reportSend = reportSend,
+            reportSend = reportSend.sendStateFor(post.id),
             onToggleLike = { onEvent(UiEvent.ToggleLike(post.id)) },
             onToggleBookmark = { onEvent(UiEvent.ToggleBookmark(post.id)) },
             // Already on this author's profile — tapping the header again is a no-op.
@@ -681,7 +682,7 @@ private fun LazyListScope.onDemandTabItems(
     loadFailed: Boolean,
     onFirstLoad: () -> Unit,
     onLoadMore: () -> Unit,
-    reportSend: ReportSendState,
+    reportSend: PostReportSend?,
     onEvent: (UiEvent) -> Unit,
     keyPrefix: String,
     @StringRes emptyMessageRes: Int,
@@ -705,7 +706,7 @@ private fun LazyListScope.onDemandTabItems(
         PostCard(
             post = data.post,
             author = data.author,
-            reportSend = reportSend,
+            reportSend = reportSend.sendStateFor(postId),
             onToggleLike = { onEvent(UiEvent.ToggleLike(postId)) },
             onToggleBookmark = { onEvent(UiEvent.ToggleBookmark(postId)) },
             // A saved or liked post can be by anyone, so its header opens that author's profile.
@@ -843,7 +844,7 @@ private fun ProfileScreenPreview() {
             uiState = UiState.Loaded(sampleProfileData(), isCurrentUser = true),
             isRefreshing = false,
             failedAction = null,
-            reportSend = ReportSendState.IDLE,
+            reportSend = null,
             onEvent = {},
         )
     }
@@ -857,7 +858,7 @@ private fun ProfileScreenOtherUserPreview() {
             uiState = UiState.Loaded(sampleProfileData(), isCurrentUser = false),
             isRefreshing = false,
             failedAction = null,
-            reportSend = ReportSendState.IDLE,
+            reportSend = null,
             onEvent = {},
         )
     }

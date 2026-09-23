@@ -26,7 +26,7 @@ import uno.lux.mosaic.feed.data.FeedState
 import uno.lux.mosaic.post.data.PostRepository
 import uno.lux.mosaic.post.data.domain.PostId
 import uno.lux.mosaic.post.ui.PostCardData
-import uno.lux.mosaic.post.ui.ReportSendState
+import uno.lux.mosaic.post.ui.PostReportSend
 import uno.lux.mosaic.post.ui.dropReport
 import uno.lux.mosaic.post.ui.launchReport
 import uno.lux.mosaic.settings.data.SettingsRepository
@@ -89,9 +89,9 @@ class HomeViewModel @Inject constructor(
 
     val failedAction: StateFlow<FailedAction?> = _failedAction.asStateFlow()
 
-    private val _reportSend = MutableStateFlow(ReportSendState.IDLE)
+    private val _reportSend = MutableStateFlow<PostReportSend?>(null)
 
-    val reportSend: StateFlow<ReportSendState> = _reportSend.asStateFlow()
+    val reportSend: StateFlow<PostReportSend?> = _reportSend.asStateFlow()
 
     val autoPlayVideos: StateFlow<Boolean> = settingsRepository.autoPlayVideos
         .stateInWhileSubscribed(viewModelScope, DEFAULT_AUTO_PLAY_VIDEOS)
@@ -142,7 +142,7 @@ class HomeViewModel @Inject constructor(
         }
 
         UiEvent.CloseReport -> {
-            dropReport(::reportJob, ::setReportSend)
+            dropReport(::reportJob) { _reportSend.value = null }
         }
 
         UiEvent.OpenSettings -> {
@@ -204,15 +204,11 @@ class HomeViewModel @Inject constructor(
         postId: PostId,
         reason: ReportReason,
         details: String,
-    ) = launchReport(::reportJob, ::setReportSend) {
+    ) = launchReport(::reportJob, setState = { _reportSend.value = PostReportSend(postId, it) }) {
         postRepository.report(postId, reason, details)
     }
 
     private fun setFailedAction(action: FailedAction) {
         _failedAction.value = action
-    }
-
-    private fun setReportSend(state: ReportSendState) {
-        _reportSend.value = state
     }
 }

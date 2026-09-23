@@ -24,6 +24,7 @@ import uno.lux.mosaic.post.data.FakePostDataSource
 import uno.lux.mosaic.post.data.PostRepository
 import uno.lux.mosaic.post.data.domain.Post
 import uno.lux.mosaic.post.ui.PostCardData
+import uno.lux.mosaic.post.ui.PostReportSend
 import uno.lux.mosaic.post.ui.ReportSendState
 import uno.lux.mosaic.settings.data.InMemorySettingsRepository
 import uno.lux.mosaic.settings.data.SettingsRepository
@@ -239,7 +240,7 @@ class HomeViewModelTest : ViewModelTest() {
 
         viewModel.onEvent(HomeUiEvent.Report("p1", ReportReason.VIOLENCE, ""))
 
-        assertEquals(ReportSendState.FAILED, viewModel.reportSend.value)
+        assertEquals(PostReportSend("p1", ReportSendState.FAILED), viewModel.reportSend.value)
         assertNull(viewModel.failedAction.value)
     }
 
@@ -247,11 +248,11 @@ class HomeViewModelTest : ViewModelTest() {
     fun `a report the server takes reaches SENT, and closing the dialog spends it`() = runTest {
         val viewModel = viewModel()
         viewModel.onEvent(HomeUiEvent.Report("p1", ReportReason.VIOLENCE, ""))
-        assertEquals(ReportSendState.SENT, viewModel.reportSend.value)
+        assertEquals(PostReportSend("p1", ReportSendState.SENT), viewModel.reportSend.value)
 
         viewModel.onEvent(HomeUiEvent.CloseReport)
 
-        assertEquals(ReportSendState.IDLE, viewModel.reportSend.value)
+        assertNull(viewModel.reportSend.value)
     }
 
     @Test

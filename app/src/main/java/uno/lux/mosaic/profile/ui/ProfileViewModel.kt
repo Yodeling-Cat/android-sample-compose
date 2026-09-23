@@ -32,7 +32,7 @@ import uno.lux.mosaic.common.util.stateInWhileSubscribed
 import uno.lux.mosaic.post.data.PostRepository
 import uno.lux.mosaic.post.data.domain.PostId
 import uno.lux.mosaic.post.ui.PostCardData
-import uno.lux.mosaic.post.ui.ReportSendState
+import uno.lux.mosaic.post.ui.PostReportSend
 import uno.lux.mosaic.post.ui.dropReport
 import uno.lux.mosaic.post.ui.launchReport
 import uno.lux.mosaic.profile.data.PostList
@@ -161,9 +161,9 @@ class ProfileViewModel @AssistedInject constructor(
 
     val failedAction: StateFlow<FailedAction?> = _failedAction.asStateFlow()
 
-    private val _reportSend = MutableStateFlow(ReportSendState.IDLE)
+    private val _reportSend = MutableStateFlow<PostReportSend?>(null)
 
-    val reportSend: StateFlow<ReportSendState> = _reportSend.asStateFlow()
+    val reportSend: StateFlow<PostReportSend?> = _reportSend.asStateFlow()
 
     private var loadJob: Job? = null
     private var loadMorePostsJob: Job? = null
@@ -201,7 +201,7 @@ class ProfileViewModel @AssistedInject constructor(
         }
 
         UiEvent.CloseReport -> {
-            dropReport(::reportJob, ::setReportSend)
+            dropReport(::reportJob) { _reportSend.value = null }
         }
 
         UiEvent.ToggleFollow -> {
@@ -308,7 +308,7 @@ class ProfileViewModel @AssistedInject constructor(
         postId: PostId,
         reason: ReportReason,
         details: String,
-    ) = launchReport(::reportJob, ::setReportSend) {
+    ) = launchReport(::reportJob, setState = { _reportSend.value = PostReportSend(postId, it) }) {
         postRepository.report(postId, reason, details)
     }
 
@@ -318,10 +318,6 @@ class ProfileViewModel @AssistedInject constructor(
 
     private fun setFailedAction(action: FailedAction) {
         _failedAction.value = action
-    }
-
-    private fun setReportSend(state: ReportSendState) {
-        _reportSend.value = state
     }
 
     private fun loadMorePosts() = launchIfIdle(::loadMorePostsJob) {

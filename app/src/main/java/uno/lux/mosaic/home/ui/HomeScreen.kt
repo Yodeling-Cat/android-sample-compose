@@ -56,7 +56,8 @@ import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.post.ui.PostCard
 import uno.lux.mosaic.post.ui.PostCardData
-import uno.lux.mosaic.post.ui.ReportSendState
+import uno.lux.mosaic.post.ui.PostReportSend
+import uno.lux.mosaic.post.ui.sendStateFor
 import uno.lux.mosaic.video.data.domain.Video
 import uno.lux.mosaic.video.ui.LocalVideoPlayback
 import uno.lux.mosaic.common.R as CommonR
@@ -92,7 +93,7 @@ internal fun HomeScreen(
     isRefreshing: Boolean,
     autoPlayVideos: Boolean,
     failedAction: FailedAction?,
-    reportSend: ReportSendState,
+    reportSend: PostReportSend?,
     onEvent: (UiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -212,7 +213,7 @@ private fun FeedList(
     endReached: Boolean,
     loadMoreFailed: Boolean,
     autoPlayVideos: Boolean,
-    reportSend: ReportSendState,
+    reportSend: PostReportSend?,
     listState: LazyListState,
     onEvent: (UiEvent) -> Unit,
     modifier: Modifier = Modifier,
@@ -260,7 +261,7 @@ private fun FeedList(
             PostCard(
                 post = data.post,
                 author = data.author,
-                reportSend = reportSend,
+                reportSend = reportSend.sendStateFor(postId),
                 onToggleLike = { onEvent(UiEvent.ToggleLike(postId)) },
                 onToggleBookmark = { onEvent(UiEvent.ToggleBookmark(postId)) },
                 onOpenProfile = { onEvent(UiEvent.OpenProfile(authorId)) },
@@ -362,7 +363,7 @@ private fun HomeFeedPreview() {
             isRefreshing = false,
             autoPlayVideos = true,
             failedAction = null,
-            reportSend = ReportSendState.IDLE,
+            reportSend = null,
             onEvent = {},
         )
     }
@@ -377,7 +378,7 @@ private fun HomeEmptyPreview() {
             isRefreshing = false,
             autoPlayVideos = true,
             failedAction = null,
-            reportSend = ReportSendState.IDLE,
+            reportSend = null,
             onEvent = {},
         )
     }

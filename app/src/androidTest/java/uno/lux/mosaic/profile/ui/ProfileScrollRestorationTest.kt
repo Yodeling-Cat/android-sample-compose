@@ -17,7 +17,6 @@ import uno.lux.mosaic.R
 import uno.lux.mosaic.app.fixtures.SamplePosts
 import uno.lux.mosaic.app.fixtures.SampleUsers
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
-import uno.lux.mosaic.post.ui.ReportSendState
 import uno.lux.mosaic.profile.data.domain.Profile
 
 @RunWith(AndroidJUnit4::class)
@@ -35,7 +34,7 @@ class ProfileScrollRestorationTest {
                     uiState = ProfileUiState.Loaded(profileData(), isCurrentUser = true),
                     isRefreshing = false,
                     failedAction = null,
-                    reportSend = ReportSendState.IDLE,
+                    reportSend = null,
                     onEvent = {},
                 )
             }
