@@ -1,6 +1,8 @@
 package uno.lux.mosaic.feed.data
 
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -217,6 +219,71 @@ class FeedRepositoryTest {
         val loaded = repo.feedState.first() as FeedState.Loaded
         assertEquals(listOf("p1"), loaded.postIds)
         assertTrue(loaded.hasMore)
+    }
+
+    @Test
+    fun `a page that lands after a refresh restarted the feed is dropped`() = runTest {
+        val dataSource = GatedFeedDataSource()
+        val repo = feedRepo(dataSource)
+        launch { repo.refresh() }
+        runCurrent()
+        dataSource.calls[0].answer.complete(FeedPage(listOf(post("p1")), emptyList(), "c2", true))
+        runCurrent()
+
+        launch { repo.loadMore() }
+        runCurrent()
+        launch { repo.refresh() }
+        runCurrent()
+        dataSource.calls[2].answer.complete(FeedPage(listOf(post("p0"), post("p1")), emptyList(), "c3", true))
+        runCurrent()
+        dataSource.calls[1].answer.complete(FeedPage(listOf(post("p2")), emptyList(), null, false))
+        runCurrent()
+
+        val loaded = repo.feedState.first() as FeedState.Loaded
+        assertEquals(listOf("p0", "p1"), loaded.postIds)
+        assertTrue(loaded.hasMore)
+    }
+
+    @Test
+    fun `loadMore after a refresh landed mid-page continues from the refreshed cursor`() = runTest {
+        val dataSource = GatedFeedDataSource()
+        val repo = feedRepo(dataSource)
+        launch { repo.refresh() }
+        runCurrent()
+        dataSource.calls[0].answer.complete(FeedPage(listOf(post("p1")), emptyList(), "c2", true))
+        runCurrent()
+        launch { repo.loadMore() }
+        runCurrent()
+        launch { repo.refresh() }
+        runCurrent()
+        dataSource.calls[2].answer.complete(FeedPage(listOf(post("p0")), emptyList(), "c3", true))
+        runCurrent()
+        dataSource.calls[1].answer.complete(FeedPage(listOf(post("p2")), emptyList(), null, false))
+        runCurrent()
+
+        backgroundScope.launch { repo.loadMore() }
+        runCurrent()
+
+        assertEquals("c3", dataSource.calls[3].cursor)
+    }
+
+    @Test
+    fun `a post published while loadMore is on the wire stays at the head of the feed`() = runTest {
+        val dataSource = GatedFeedDataSource()
+        val repo = feedRepo(dataSource)
+        launch { repo.refresh() }
+        runCurrent()
+        dataSource.calls[0].answer.complete(FeedPage(listOf(post("p1")), emptyList(), "c2", true))
+        runCurrent()
+        launch { repo.loadMore() }
+        runCurrent()
+
+        val postId = repo.publish(NewPost(title = "Title", body = "Body"))
+        dataSource.calls[1].answer.complete(FeedPage(listOf(post("p2")), emptyList(), null, false))
+        runCurrent()
+
+        val loaded = repo.feedState.first() as FeedState.Loaded
+        assertEquals(listOf(postId, "p1", "p2"), loaded.postIds)
     }
 }
 

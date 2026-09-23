@@ -1,6 +1,8 @@
 package uno.lux.mosaic.profile.data
 
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -160,6 +162,30 @@ class ProfileRepositoryTest {
         repo.loadMorePosts("u1")
 
         assertEquals(listOf("p1", "p3"), repo.postIds("u1").first())
+    }
+
+    @Test
+    fun `a posts page that lands after a refresh restarted the list is dropped`() = runTest {
+        val p0 = post(id = "p0", authorId = "u1", createdAt = newer)
+        val p3 = post(id = "p3", authorId = "u1", createdAt = older)
+        val dataSource = GatedProfileDataSource()
+        val repo = repository(dataSource)
+        launch { repo.refresh("u1") }
+        runCurrent()
+        dataSource.refreshCalls[0].answer.complete(refreshData(listOf(adaPost), cursor = "c2", hasMore = true))
+        runCurrent()
+
+        launch { repo.loadMorePosts("u1") }
+        runCurrent()
+        launch { repo.refresh("u1") }
+        runCurrent()
+        dataSource.refreshCalls[1].answer.complete(refreshData(listOf(p0, adaPost), cursor = "c3", hasMore = true))
+        runCurrent()
+        dataSource.morePostsCalls[0].answer.complete(PostsPage(listOf(p3), emptyList(), null, false))
+        runCurrent()
+
+        assertEquals(listOf("p0", "p1"), repo.postIds("u1").first())
+        assertTrue(repo.hasMorePosts("u1").first())
     }
 
     @Test
@@ -415,6 +441,32 @@ class ProfileRepositoryTest {
 
         assertEquals(listOf("p2", "p3"), liked.ids.first())
         assertFalse(liked.hasMore.first())
+    }
+
+    @Test
+    fun `a tab page that lands after a refresh restarted the tab is dropped`() = runTest {
+        val p0 = post(id = "p0", authorId = "u3", createdAt = newer)
+        val p3 = post(id = "p3", authorId = "u3", createdAt = older)
+        val dataSource = GatedProfileDataSource()
+        val repo = repository(dataSource, currentUserId = "u1")
+        // Someone else's tab, so the list is echoed from the server rather than derived.
+        val liked = repo.liked("u2")
+        launch { liked.ensureLoaded() }
+        runCurrent()
+        dataSource.likeCalls[0].answer.complete(PostsPage(listOf(adaPost), emptyList(), "c2", true))
+        runCurrent()
+
+        launch { liked.loadMore() }
+        runCurrent()
+        launch { liked.refreshIfLoaded() }
+        runCurrent()
+        dataSource.likeCalls[2].answer.complete(PostsPage(listOf(p0, adaPost), emptyList(), "c3", true))
+        runCurrent()
+        dataSource.likeCalls[1].answer.complete(PostsPage(listOf(p3), emptyList(), null, false))
+        runCurrent()
+
+        assertEquals(listOf("p0", "p1"), liked.ids.first())
+        assertTrue(liked.hasMore.first())
     }
 
     @Test

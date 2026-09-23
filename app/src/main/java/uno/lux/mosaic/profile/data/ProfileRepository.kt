@@ -121,11 +121,17 @@ class ProfileRepository(
         }
     }
 
+    /**
+     * Appends the next page of [userId]'s posts — unless a [refresh] landed while it was on the
+     * wire. That restarted the list, which shows as a cursor that no longer matches, and the page
+     * is dropped rather than glued on, where it could repeat an ID the refreshed page holds.
+     */
     suspend fun loadMorePosts(userId: UserId) {
         val page = _postPage.value[userId] ?: return
         if (!page.hasMore) return
 
         val result = ingest(dataSource.loadMorePosts(userId, page.cursor))
+        if (_postPage.value[userId]?.cursor != page.cursor) return
 
         _postPage.update { it + (userId to PageState(result.cursor, result.hasMore)) }
         _userPostIds.update { map ->
@@ -235,20 +241,28 @@ class ProfileRepository(
                 }
             }
 
+            /**
+             * Appends the next page — unless a refresh landed while it was on the wire, which
+             * restarted the tab and shows as a cursor that no longer matches. Such a page is
+             * dropped, the way [loadMorePosts] drops one.
+             */
             override suspend fun loadMore() {
                 val current = _state.value[userId] ?: return
                 if (!current.hasMore) return
 
                 val page = ingest(fetchPage(userId, current.cursor))
 
-                _state.update {
-                    it + (
+                _state.update { states ->
+                    val latest = states[userId]
+                    if (latest == null || latest.cursor != current.cursor) return@update states
+
+                    states + (
                         userId to TabState(
-                            ids = current.ids + page.posts.map { post -> post.id },
+                            ids = latest.ids + page.posts.map { post -> post.id },
                             cursor = page.cursor,
                             hasMore = page.hasMore,
                             // An empty page moves the cursor but not the floor.
-                            oldestLoaded = page.posts.lastOrNull()?.key ?: current.oldestLoaded,
+                            oldestLoaded = page.posts.lastOrNull()?.key ?: latest.oldestLoaded,
                         )
                     )
                 }

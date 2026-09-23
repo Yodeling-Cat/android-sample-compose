@@ -13,6 +13,9 @@ import uno.lux.mosaic.user.data.UserRepository
  * Pagination state for the home feed. Starts as [NotLoaded] until the first [FeedRepository.refresh]
  * completes; transitions to [Loaded] atomically with the ingested post and user data, so the ViewModel's
  * combine never sees an inconsistent "loaded flag but no entities yet" intermediate state.
+ *
+ * [Loaded.nextCursor] rides in the same value as the IDs it continues, so the two can never be
+ * written out of step, and a page can be checked against the list it was fetched for.
  */
 sealed interface FeedState {
     data object NotLoaded : FeedState
@@ -20,6 +23,7 @@ sealed interface FeedState {
     data class Loaded(
         val postIds: List<PostId>,
         val hasMore: Boolean,
+        val nextCursor: String?,
     ) : FeedState
 }
 
@@ -38,8 +42,6 @@ class FeedRepository(
     private val _feedState = MutableStateFlow<FeedState>(FeedState.NotLoaded)
     val feedState: StateFlow<FeedState> = _feedState.asStateFlow()
 
-    private var nextCursor: String? = null
-
     fun reset() {
         _feedState.value = FeedState.NotLoaded
     }
@@ -49,9 +51,12 @@ class FeedRepository(
         val page = dataSource.fetch(cursor = null)
         postRepository.ingest(page.posts)
         userRepository.ingest(page.users)
-        nextCursor = page.nextCursor
 
-        _feedState.value = FeedState.Loaded(page.posts.map { it.id }, page.hasMore)
+        _feedState.value = FeedState.Loaded(
+            postIds = page.posts.map { it.id },
+            hasMore = page.hasMore,
+            nextCursor = page.nextCursor,
+        )
     }
 
     /**
@@ -73,22 +78,32 @@ class FeedRepository(
         return created.id
     }
 
-    /** Appends the next page. */
+    /**
+     * Appends the next page.
+     *
+     * The page is appended to the feed as it stands when the page lands, not as it stood when the
+     * request went out, so a post [publish]ed meanwhile keeps its place at the head. A refresh that
+     * landed meanwhile has restarted the feed, which shows as a cursor that no longer matches: the
+     * page no longer follows what is on screen, and is dropped rather than glued on, where it could
+     * repeat an ID the refreshed page already holds.
+     */
     suspend fun loadMore() {
         val current = _feedState.value as? FeedState.Loaded ?: return
         if (!current.hasMore) return
 
-        val page = dataSource.fetch(cursor = nextCursor)
+        val cursor = current.nextCursor
+        val page = dataSource.fetch(cursor = cursor)
         postRepository.ingest(page.posts)
         userRepository.ingest(page.users)
-        nextCursor = page.nextCursor
 
-        _feedState.value = FeedState.Loaded(
-            postIds = buildList {
-                addAll(current.postIds)
-                page.posts.mapTo(this) { it.id }
-            },
-            hasMore = page.hasMore,
-        )
+        _feedState.update { state ->
+            if (state !is FeedState.Loaded || state.nextCursor != cursor) return@update state
+
+            state.copy(
+                postIds = state.postIds + page.posts.map { it.id },
+                hasMore = page.hasMore,
+                nextCursor = page.nextCursor,
+            )
+        }
     }
 }
