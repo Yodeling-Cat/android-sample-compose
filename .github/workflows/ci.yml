@@ -26,8 +26,13 @@ jobs:
           distribution: temurin
           java-version: 21
 
+      # The action's default package list is "tools platform-tools", but the legacy "tools"
+      # package no longer exists in the SDK repository, so sdkmanager fails on it. The Gradle
+      # build installs the platforms and build-tools it needs on its own.
       - name: Set up the Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
 
       # Restores the Gradle user home (dependencies, build cache, configuration cache) and validates
       # the wrapper's checksum against the published distributions.
