@@ -1,7 +1,6 @@
 package uno.lux.mosaic.post.ui
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -13,7 +12,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import uno.lux.mosaic.app.di.CurrentUser
 import uno.lux.mosaic.app.navigation.Navigator
 import uno.lux.mosaic.app.navigation.Screen
@@ -26,6 +24,7 @@ import uno.lux.mosaic.common.ui.FailedAction
 import uno.lux.mosaic.common.ui.launchReporting
 import uno.lux.mosaic.common.util.AppError
 import uno.lux.mosaic.common.util.catchErrors
+import uno.lux.mosaic.common.util.launch
 import uno.lux.mosaic.common.util.launchCatching
 import uno.lux.mosaic.common.util.launchIfIdle
 import uno.lux.mosaic.post.data.PostRepository
@@ -200,14 +199,12 @@ class PostDetailViewModel @AssistedInject constructor(
         it.copy(failedAction = action)
     }
 
-    private fun observeStores() {
-        viewModelScope.launch {
-            combine(
-                postRepository.entities,
-                userRepository.users,
-                postRepository.deletedIds,
-            ) { _, _, _ -> }.collect { updateContent() }
-        }
+    private fun observeStores() = launch {
+        combine(
+            postRepository.entities,
+            userRepository.users,
+            postRepository.deletedIds,
+        ) { _, _, _ -> }.collect { updateContent() }
     }
 
     private fun mutateCommentThread(mutate: (CommentThread) -> CommentThread) = _uiState.update {

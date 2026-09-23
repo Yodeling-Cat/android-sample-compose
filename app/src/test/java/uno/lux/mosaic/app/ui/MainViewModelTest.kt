@@ -49,7 +49,7 @@ class MainViewModelTest : ViewModelTest() {
         val settings = InMemorySettingsRepository()
         val locales = InMemoryAppLocaleRepository(settings, systemLanguageTags = "cs-CZ,en-US")
 
-        viewModel(settings, locales).resolveInitialAppLanguage().join()
+        viewModel(settings, locales).resolveInitialAppLanguage()
 
         assertEquals(AppLanguage.CZECH, settings.language.first())
     }
@@ -59,7 +59,7 @@ class MainViewModelTest : ViewModelTest() {
         val settings = InMemorySettingsRepository(initialLanguage = AppLanguage.ENGLISH)
         val locales = InMemoryAppLocaleRepository(settings, systemLanguageTags = "cs-CZ")
 
-        viewModel(settings, locales).resolveInitialAppLanguage().join()
+        viewModel(settings, locales).resolveInitialAppLanguage()
 
         assertEquals(AppLanguage.ENGLISH, settings.language.first())
     }

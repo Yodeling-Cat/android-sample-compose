@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 import uno.lux.mosaic.app.navigation.Navigator
+import uno.lux.mosaic.common.util.launch
 import uno.lux.mosaic.common.util.stateInWhileSubscribed
 import uno.lux.mosaic.settings.data.SettingsRepository
 import uno.lux.mosaic.settings.data.domain.AppLanguage
@@ -48,15 +48,15 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private fun setThemeMode(mode: ThemeMode) {
-        viewModelScope.launch { settingsRepository.setThemeMode(mode) }
+    private fun setThemeMode(mode: ThemeMode) = launch {
+        settingsRepository.setThemeMode(mode)
     }
 
-    private fun setAutoPlayVideos(enabled: Boolean) {
-        viewModelScope.launch { settingsRepository.setAutoPlayVideos(enabled) }
+    private fun setAutoPlayVideos(enabled: Boolean) = launch {
+        settingsRepository.setAutoPlayVideos(enabled)
     }
 
-    private fun setLanguage(language: AppLanguage) {
-        viewModelScope.launch { settingsRepository.setLanguage(language) }
+    private fun setLanguage(language: AppLanguage) = launch {
+        settingsRepository.setLanguage(language)
     }
 }

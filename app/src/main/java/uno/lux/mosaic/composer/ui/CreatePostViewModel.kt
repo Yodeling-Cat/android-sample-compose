@@ -135,29 +135,27 @@ class CreatePostViewModel @Inject constructor(
      * Duration is read here, at pick time, because it is cheap (metadata only) and the thumbnail
      * badges it — the upload itself carries no duration, the server deriving that from the file.
      */
-    private fun attachVideo(uri: String) {
-        launchIfIdle(::pickVideoJob) {
-            catchErrors(
-                onError = { e ->
-                    _uiState.update { it.copy(error = CreatePostError.Failed(e.toAppError())) }
-                },
-            ) {
-                val size = fileLoader.sizeOf(uri)
+    private fun attachVideo(uri: String) = launchIfIdle(::pickVideoJob) {
+        catchErrors(
+            onError = { e ->
+                _uiState.update { it.copy(error = CreatePostError.Failed(e.toAppError())) }
+            },
+        ) {
+            val size = fileLoader.sizeOf(uri)
 
-                if (size != null && size > CREATE_POST_MAX_VIDEO_BYTES) {
-                    _uiState.update { it.copy(error = CreatePostError.VideoTooLarge) }
-                    return@catchErrors
-                }
+            if (size != null && size > CREATE_POST_MAX_VIDEO_BYTES) {
+                _uiState.update { it.copy(error = CreatePostError.VideoTooLarge) }
+                return@catchErrors
+            }
 
-                val duration = videoMetadataReader.durationSeconds(uri)
-                _uiState.update { state ->
-                    state.copy(
-                        form = state.form.copy(
-                            media = CreatePostMedia.Video(uri = uri, durationSeconds = duration),
-                        ),
-                        error = null,
-                    )
-                }
+            val duration = videoMetadataReader.durationSeconds(uri)
+            _uiState.update { state ->
+                state.copy(
+                    form = state.form.copy(
+                        media = CreatePostMedia.Video(uri = uri, durationSeconds = duration),
+                    ),
+                    error = null,
+                )
             }
         }
     }

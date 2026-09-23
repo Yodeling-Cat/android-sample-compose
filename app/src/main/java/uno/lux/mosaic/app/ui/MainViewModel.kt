@@ -5,8 +5,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.launch
 import uno.lux.mosaic.app.di.CurrentUserId
+import uno.lux.mosaic.common.util.launch
 import uno.lux.mosaic.common.util.stateInWhileSubscribed
 import uno.lux.mosaic.settings.data.AppLocaleRepository
 import uno.lux.mosaic.settings.data.SettingsRepository
@@ -33,11 +33,11 @@ class MainViewModel @Inject constructor(
      * the Activity because the locale APIs need AppCompat's delegate to
      * have attached — which is only guaranteed once `super.onCreate` has run.
      */
-    fun resolveInitialAppLanguage() = viewModelScope.launch {
+    fun resolveInitialAppLanguage() = launch {
         appLocaleRepository.resolveInitialLanguage()
     }
 
-    private fun observeAppLanguage() = viewModelScope.launch {
+    private fun observeAppLanguage() = launch {
         settingsRepository.language.filterNotNull().collect(appLocaleRepository::applyLanguage)
     }
 }

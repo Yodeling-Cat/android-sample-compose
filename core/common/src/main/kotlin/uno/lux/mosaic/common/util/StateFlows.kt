@@ -26,6 +26,16 @@ fun <T> Flow<T>.stateInWhileSubscribed(scope: CoroutineScope, initialValue: T): 
     stateIn(scope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MILLIS), initialValue)
 
 /**
+ * Launches [block] in [viewModelScope], and nothing more.
+ *
+ * Returns [Unit] rather than the [Job], as every `launch*` helper here does, so an action declared
+ * to return [Unit] can be written as an expression body instead of wrapping the launch in braces.
+ */
+fun ViewModel.launch(block: suspend () -> Unit) {
+    viewModelScope.launch { block() }
+}
+
+/**
  * Launches [block] in [viewModelScope] through [launchIfIdle], setting [refreshing] to `true` for
  * its duration. Keeps the pull-to-refresh bookkeeping out of ViewModel bodies.
  *
@@ -68,9 +78,6 @@ fun ViewModel.launchIfIdle(jobRef: KMutableProperty0<Job?>, block: suspend () ->
  * like or bookmark, which reverts the control the user just touched. A mutation whose UI is gone
  * by the time the server answers must name its failure instead, or the tap looks exactly like
  * success; `common/ui`'s `launchReporting` is that shape.
- *
- * Returns [Unit] rather than the [Job], as [launchRefresh] and [launchIfIdle] do, so an action
- * declared to return [Unit] can be written as an expression body.
  */
 fun ViewModel.launchCatching(block: suspend () -> Unit) {
     viewModelScope.launch { catchErrors(block = block) }
