@@ -10,6 +10,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import uno.lux.mosaic.testing.createApi
+import uno.lux.mosaic.user.data.domain.Gender
 
 class ProfileApiTabsTest {
 
@@ -34,11 +35,11 @@ class ProfileApiTabsTest {
          "page":{"next_cursor":"djE6MTc4NDU0NzI0MDMxNDpwMg","has_more":true},
          "included":{"users":[
            {"id":"u2","nickname":"Grace Hopper","handle":"@amazinggrace","age":85,
-            "gender":"Female","location":"Arlington, VA",
+            "gender":"Woman","location":"Arlington, VA",
             "bio":"Rear Admiral. Compiler pioneer.","avatarUrl":null,
             "followerCount":9821,"followingCount":42,"isFollowing":false},
            {"id":"u4","nickname":"Margaret Hamilton","handle":"@mhamilton","age":88,
-            "gender":"Female","location":"Cambridge, MA",
+            "gender":"Woman","location":"Cambridge, MA",
             "bio":"I coined \"software engineering\".","avatarUrl":null,
             "followerCount":7310,"followingCount":15,"isFollowing":true}]}}
         """.trimIndent()
@@ -92,7 +93,7 @@ class ProfileApiTabsTest {
         val grace = dataSource.bookmarks("u1", cursor = null).users.first()
 
         assertEquals(85, grace.age)
-        assertEquals("Female", grace.gender)
+        assertEquals(Gender.WOMAN, grace.gender)
         assertEquals("Arlington, VA", grace.location)
         assertEquals("Rear Admiral. Compiler pioneer.", grace.bio)
         assertEquals(9821, grace.followerCount)

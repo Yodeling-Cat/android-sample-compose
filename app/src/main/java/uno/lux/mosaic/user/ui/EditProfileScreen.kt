@@ -65,6 +65,7 @@ import uno.lux.mosaic.designsystem.components.AppBarAction
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.designsystem.theme.accentBarColors
 import uno.lux.mosaic.designsystem.theme.rememberAccentWash
+import uno.lux.mosaic.user.data.domain.Gender
 import uno.lux.mosaic.user.data.domain.UserId
 import uno.lux.mosaic.common.R as CommonR
 import uno.lux.mosaic.user.ui.EditProfileUiEvent as UiEvent
@@ -334,8 +335,8 @@ private fun AvatarPicker(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun GenderSelector(
-    selected: GenderOption?,
-    onSelected: (GenderOption) -> Unit,
+    selected: Gender?,
+    onSelected: (Gender) -> Unit,
     enabled: Boolean,
     modifier: Modifier = Modifier,
 ) {
@@ -347,14 +348,14 @@ private fun GenderSelector(
         )
         Spacer(Modifier.height(8.dp))
         SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-            GenderOption.entries.forEachIndexed { index, option ->
+            Gender.entries.forEachIndexed { index, option ->
                 SegmentedButton(
                     selected = option == selected,
                     onClick = { onSelected(option) },
                     enabled = enabled,
                     shape = SegmentedButtonDefaults.itemShape(
                         index = index,
-                        count = GenderOption.entries.size,
+                        count = Gender.entries.size,
                     ),
                 ) {
                     Text(stringResource(option.labelRes))

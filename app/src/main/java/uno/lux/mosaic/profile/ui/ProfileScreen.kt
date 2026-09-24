@@ -94,6 +94,7 @@ import uno.lux.mosaic.profile.data.domain.Profile
 import uno.lux.mosaic.user.data.domain.User
 import uno.lux.mosaic.user.data.domain.UserId
 import uno.lux.mosaic.user.ui.Avatar
+import uno.lux.mosaic.user.ui.labelRes
 import uno.lux.mosaic.common.R as CommonR
 import uno.lux.mosaic.profile.ui.ProfileUiEvent as UiEvent
 import uno.lux.mosaic.profile.ui.ProfileUiState as UiState
@@ -480,7 +481,7 @@ private fun FollowButton(
 private fun IdentityChips(user: User) {
     FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         user.age?.let { age -> ProfileChip(text = age.toString()) }
-        user.gender?.let { gender -> ProfileChip(text = gender) }
+        user.gender?.let { gender -> ProfileChip(text = stringResource(gender.labelRes)) }
         user.location?.let { location ->
             ProfileChip(text = location, leadingIcon = R.drawable.ic_place)
         }

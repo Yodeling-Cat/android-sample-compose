@@ -22,6 +22,7 @@ import uno.lux.mosaic.testing.backStackOf
 import uno.lux.mosaic.testing.screens
 import uno.lux.mosaic.user.data.FakeUserDataSource
 import uno.lux.mosaic.user.data.UserRepository
+import uno.lux.mosaic.user.data.domain.Gender
 import uno.lux.mosaic.user.data.domain.ProfileUpdate
 import uno.lux.mosaic.user.data.domain.User
 
@@ -33,7 +34,7 @@ class EditProfileViewModelTest : ViewModelTest() {
         nickname = "Ada Lovelace",
         handle = "@countess",
         age = 36,
-        gender = "Woman",
+        gender = Gender.WOMAN,
         bio = "Mathematician & writer.",
     )
 
@@ -87,7 +88,7 @@ class EditProfileViewModelTest : ViewModelTest() {
         val form = viewModel.form()
         assertEquals("Ada Lovelace", form.nickname)
         assertEquals("36", form.age)
-        assertEquals(GenderOption.WOMAN, form.gender)
+        assertEquals(Gender.WOMAN, form.gender)
         assertEquals("Mathematician & writer.", form.bio)
         assertNull(form.avatarUrl)
     }
@@ -107,14 +108,14 @@ class EditProfileViewModelTest : ViewModelTest() {
 
         viewModel.onEvent(EditProfileUiEvent.NicknameChanged("Ada King"))
         viewModel.onEvent(EditProfileUiEvent.AgeChanged("37"))
-        viewModel.onEvent(EditProfileUiEvent.GenderChanged(GenderOption.MAN))
+        viewModel.onEvent(EditProfileUiEvent.GenderChanged(Gender.MAN))
         viewModel.onEvent(EditProfileUiEvent.BioChanged("Countess of Lovelace"))
         viewModel.onEvent(EditProfileUiEvent.AvatarPicked("content://media/picker/1"))
 
         val form = viewModel.form()
         assertEquals("Ada King", form.nickname)
         assertEquals("37", form.age)
-        assertEquals(GenderOption.MAN, form.gender)
+        assertEquals(Gender.MAN, form.gender)
         assertEquals("Countess of Lovelace", form.bio)
         // A picked image previews via displayAvatar without overwriting the stored URL.
         assertEquals("content://media/picker/1", form.pickedAvatarUri)
@@ -175,7 +176,7 @@ class EditProfileViewModelTest : ViewModelTest() {
             "u1" to ProfileUpdate(
                 nickname = "Ada King",
                 age = 37,
-                gender = "Woman",
+                gender = Gender.WOMAN,
                 bio = null,
                 avatar = null,
             ),
@@ -206,7 +207,7 @@ class EditProfileViewModelTest : ViewModelTest() {
         // Change every field except the avatar, then save.
         viewModel.onEvent(EditProfileUiEvent.NicknameChanged("Ada King"))
         viewModel.onEvent(EditProfileUiEvent.AgeChanged("37"))
-        viewModel.onEvent(EditProfileUiEvent.GenderChanged(GenderOption.MAN))
+        viewModel.onEvent(EditProfileUiEvent.GenderChanged(Gender.MAN))
         viewModel.onEvent(EditProfileUiEvent.BioChanged("Countess of Lovelace"))
         viewModel.onEvent(EditProfileUiEvent.Save)
 

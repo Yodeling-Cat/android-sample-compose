@@ -9,6 +9,7 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uno.lux.mosaic.common.data.files.FileUpload
+import uno.lux.mosaic.user.data.domain.Gender
 import uno.lux.mosaic.user.data.domain.ProfileUpdate
 import uno.lux.mosaic.user.data.domain.User
 import java.net.UnknownHostException
@@ -51,7 +52,7 @@ class NetworkUserDataSourceTest {
         val dto = userDto("u1", "Ada").copy(
             handle = "@ada",
             age = 30,
-            gender = "Woman",
+            gender = GenderDto.WOMAN,
             location = "London",
             bio = "Mathematician",
             avatarUrl = "https://example.com/ada.jpg",
@@ -65,7 +66,7 @@ class NetworkUserDataSourceTest {
 
         assertEquals("@ada", user.handle)
         assertEquals(30, user.age)
-        assertEquals("Woman", user.gender)
+        assertEquals(Gender.WOMAN, user.gender)
         assertEquals("London", user.location)
         assertEquals("Mathematician", user.bio)
         assertEquals("https://example.com/ada.jpg", user.avatarUrl)
@@ -91,7 +92,7 @@ class NetworkUserDataSourceTest {
             ProfileUpdate(
                 nickname = "Ada King",
                 age = 37,
-                gender = "Woman",
+                gender = Gender.WOMAN,
                 bio = null,
                 avatar = null,
             ),
@@ -99,7 +100,7 @@ class NetworkUserDataSourceTest {
 
         assertEquals("Ada King", user.nickname)
         assertEquals(37, user.age)
-        assertEquals("Woman", user.gender)
+        assertEquals(Gender.WOMAN, user.gender)
         assertNull(user.bio) // sent as an empty part, cleared server-side
         assertNull("no avatar part when none was chosen", api.lastAvatarPart)
     }

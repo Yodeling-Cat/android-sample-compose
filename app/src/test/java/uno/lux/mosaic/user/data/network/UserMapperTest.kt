@@ -2,6 +2,7 @@ package uno.lux.mosaic.user.data.network
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import uno.lux.mosaic.user.data.domain.Gender
 import uno.lux.mosaic.user.data.domain.User
 
 class UserMapperTest {
@@ -13,7 +14,7 @@ class UserMapperTest {
             nickname = "Ada",
             handle = "@ada",
             age = 36,
-            gender = "female",
+            gender = GenderDto.WOMAN,
             location = "London",
             bio = "Analyst",
             avatarUrl = "https://example.com/ada.png",
@@ -27,7 +28,7 @@ class UserMapperTest {
             nickname = "Ada",
             handle = "@ada",
             age = 36,
-            gender = "female",
+            gender = Gender.WOMAN,
             location = "London",
             bio = "Analyst",
             avatarUrl = "https://example.com/ada.png",

@@ -40,7 +40,7 @@ class FakeUserApi(
             base.copy(
                 nickname = nickname.asString(),
                 age = age.asString().toIntOrNull(),
-                gender = gender.asString().ifEmpty { null },
+                gender = gender.asString().let { part -> GenderDto.entries.firstOrNull { it.wireName == part } },
                 bio = bio.asString().ifEmpty { null },
                 avatarUrl = if (avatar != null) UPLOADED_AVATAR_URL else base.avatarUrl,
             ),

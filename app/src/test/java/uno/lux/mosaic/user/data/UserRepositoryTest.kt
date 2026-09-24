@@ -7,6 +7,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import uno.lux.mosaic.common.data.files.FileUpload
+import uno.lux.mosaic.user.data.domain.Gender
 import uno.lux.mosaic.user.data.domain.ProfileUpdate
 import uno.lux.mosaic.user.data.domain.User
 
@@ -155,7 +156,7 @@ private fun user(id: String, nickname: String) = User(id = id, nickname = nickna
 private fun profileUpdate(
     nickname: String,
     age: Int? = null,
-    gender: String? = null,
+    gender: Gender? = null,
     bio: String? = null,
     avatar: FileUpload? = null,
 ) = ProfileUpdate(

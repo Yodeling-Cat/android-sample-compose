@@ -32,7 +32,11 @@ class NetworkUserDataSource(
                         ?.toString()
                         .orEmpty()
                         .asTextPart(),
-                    gender = update.gender.orEmpty().asTextPart(),
+                    gender = update.gender
+                        ?.toDto()
+                        ?.wireName
+                        .orEmpty()
+                        .asTextPart(),
                     bio = update.bio.orEmpty().asTextPart(),
                     avatar = update.avatar?.asPart("avatar"),
                 ).data

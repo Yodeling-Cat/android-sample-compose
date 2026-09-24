@@ -1,28 +1,13 @@
 package uno.lux.mosaic.user.ui
 
-import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable
-import uno.lux.mosaic.R
 import uno.lux.mosaic.common.data.files.FileUpload
 import uno.lux.mosaic.common.util.AppError
+import uno.lux.mosaic.user.data.domain.Gender
 import uno.lux.mosaic.user.data.domain.ProfileUpdate
 import uno.lux.mosaic.user.data.domain.User
 import uno.lux.mosaic.user.data.domain.UserId
-
-enum class GenderOption(
-    val storedValue: String,
-    @get:StringRes val labelRes: Int,
-) {
-    MAN("Man", R.string.gender_man),
-    WOMAN("Woman", R.string.gender_woman),
-    ;
-
-    companion object {
-        fun fromStored(value: String?): GenderOption? =
-            entries.firstOrNull { it.storedValue == value }
-    }
-}
 
 /** Mirrors the server's validation. */
 val EditProfileAgeRange = 13..120
@@ -32,7 +17,7 @@ data class EditProfileForm(
     val userId: UserId,
     val nickname: String,
     val age: String,
-    val gender: GenderOption?,
+    val gender: Gender?,
     val bio: String,
     val avatarUrl: String?,
     val pickedAvatarUri: String? = null,
@@ -54,7 +39,7 @@ data class EditProfileForm(
     fun toProfileUpdate(avatar: FileUpload?) = ProfileUpdate(
         nickname = nickname.trim(),
         age = age.toIntOrNull(),
-        gender = gender?.storedValue,
+        gender = gender,
         bio = bio.trim().ifEmpty { null },
         avatar = avatar,
     )
@@ -64,7 +49,7 @@ data class EditProfileForm(
             userId = user.id,
             nickname = user.nickname,
             age = user.age?.toString().orEmpty(),
-            gender = GenderOption.fromStored(user.gender),
+            gender = user.gender,
             bio = user.bio.orEmpty(),
             avatarUrl = user.avatarUrl,
         )

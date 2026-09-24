@@ -1,5 +1,7 @@
 package uno.lux.mosaic.user.ui
 
+import uno.lux.mosaic.user.data.domain.Gender
+
 sealed interface EditProfileUiEvent {
 
     data class NicknameChanged(
@@ -11,7 +13,7 @@ sealed interface EditProfileUiEvent {
     ) : EditProfileUiEvent
 
     data class GenderChanged(
-        val gender: GenderOption,
+        val gender: Gender,
     ) : EditProfileUiEvent
 
     data class BioChanged(

@@ -4,6 +4,7 @@ import uno.lux.mosaic.album.data.domain.Album
 import uno.lux.mosaic.comment.data.domain.Comment
 import uno.lux.mosaic.post.data.domain.Post
 import uno.lux.mosaic.post.data.domain.PostId
+import uno.lux.mosaic.user.data.domain.Gender
 import uno.lux.mosaic.user.data.domain.User
 import uno.lux.mosaic.video.data.domain.Video
 import java.time.Duration
@@ -15,7 +16,7 @@ internal val SampleUsers = listOf(
         nickname = "Ada Lovelace",
         handle = "@countess",
         age = 36,
-        gender = "Woman",
+        gender = Gender.WOMAN,
         location = "London, England",
         bio = "Mathematician & writer. The Analytical Engine weaves algebra the way the loom " +
             "weaves flowers. Poetical science, mostly.",
@@ -27,7 +28,7 @@ internal val SampleUsers = listOf(
         nickname = "Grace Hopper",
         handle = "@amazinggrace",
         age = 85,
-        gender = "Woman",
+        gender = Gender.WOMAN,
         location = "Arlington, Virginia",
         bio = "Rear Admiral. Compiler pioneer. It's easier to ask forgiveness than permission.",
         followerCount = 342_000,
@@ -38,7 +39,7 @@ internal val SampleUsers = listOf(
         nickname = "Alan Turing",
         handle = "@enigma",
         age = 41,
-        gender = "Man",
+        gender = Gender.MAN,
         location = "Manchester, England",
         bio = "Asking the only question that matters: can a machine play the imitation game?",
         followerCount = 891_000,
@@ -49,7 +50,7 @@ internal val SampleUsers = listOf(
         nickname = "Margaret Hamilton",
         handle = "@mhamilton",
         age = 88,
-        gender = "Woman",
+        gender = Gender.WOMAN,
         location = "Cambridge, Massachusetts",
         bio = "I coined \"software engineering\" so they'd take the code as seriously as the " +
             "hardware. Apollo guidance, priority scheduling.",
@@ -61,7 +62,7 @@ internal val SampleUsers = listOf(
         nickname = "Linus",
         handle = "@torvalds",
         age = 54,
-        gender = "Man",
+        gender = Gender.MAN,
         location = "Portland, Oregon",
         bio = "Just a hobby, won't be big. Talk is cheap — show me the code.",
         followerCount = 5_200_000,

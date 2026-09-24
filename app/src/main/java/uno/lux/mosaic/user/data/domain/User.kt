@@ -8,7 +8,7 @@ data class User(
     val nickname: String,
     val handle: String,
     val age: Int? = null,
-    val gender: String? = null,
+    val gender: Gender? = null,
     val location: String? = null,
     val bio: String? = null,
     val avatarUrl: String? = null,
