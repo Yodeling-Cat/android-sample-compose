@@ -8,7 +8,7 @@ class GenderDtoTest {
 
     @Test
     fun `the multipart spelling is the one the server validates`() {
-        assertEquals("Man", Gender.MAN.toDto().wireName)
-        assertEquals("Woman", Gender.WOMAN.toDto().wireName)
+        assertEquals("Man", GenderDtoMapper.map(Gender.MAN).wireName)
+        assertEquals("Woman", GenderDtoMapper.map(Gender.WOMAN).wireName)
     }
 }

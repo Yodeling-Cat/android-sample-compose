@@ -33,7 +33,7 @@ class NetworkUserDataSource(
                         .orEmpty()
                         .asTextPart(),
                     gender = update.gender
-                        ?.toDto()
+                        ?.let(GenderDtoMapper::map)
                         ?.wireName
                         .orEmpty()
                         .asTextPart(),

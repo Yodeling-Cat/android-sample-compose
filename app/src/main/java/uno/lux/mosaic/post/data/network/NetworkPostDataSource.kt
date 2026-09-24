@@ -57,7 +57,7 @@ class NetworkPostDataSource(
         api.reportPost(
             postId = postId,
             report = ReportPostRequestDto(
-                reason = reason.toDto(),
+                reason = ReportReasonDtoMapper.map(reason),
                 details = details.takeIf { it.isNotBlank() },
             ),
         )

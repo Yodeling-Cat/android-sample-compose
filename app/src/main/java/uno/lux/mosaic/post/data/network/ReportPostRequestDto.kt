@@ -2,6 +2,7 @@ package uno.lux.mosaic.post.data.network
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import tech.mappie.api.EnumMappie
 import uno.lux.mosaic.common.data.ReportReason
 
 @Serializable
@@ -32,11 +33,4 @@ enum class ReportReasonDto {
     OTHER,
 }
 
-fun ReportReason.toDto(): ReportReasonDto = when (this) {
-    ReportReason.SPAM -> ReportReasonDto.SPAM
-    ReportReason.HARASSMENT -> ReportReasonDto.HARASSMENT
-    ReportReason.HATE_SPEECH -> ReportReasonDto.HATE_SPEECH
-    ReportReason.MISINFORMATION -> ReportReasonDto.MISINFORMATION
-    ReportReason.VIOLENCE -> ReportReasonDto.VIOLENCE
-    ReportReason.OTHER -> ReportReasonDto.OTHER
-}
+object ReportReasonDtoMapper : EnumMappie<ReportReason, ReportReasonDto>()

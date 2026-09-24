@@ -2,6 +2,7 @@ package uno.lux.mosaic.user.data.network
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import tech.mappie.api.EnumMappie
 import uno.lux.mosaic.user.data.domain.Gender
 
 /** A [Gender] as the server spells it (the `inclusion` validation on `User#gender`). */
@@ -18,7 +19,4 @@ enum class GenderDto {
 val GenderDto.wireName: String
     get() = GenderDto.serializer().descriptor.getElementName(ordinal)
 
-fun Gender.toDto(): GenderDto = when (this) {
-    Gender.MAN -> GenderDto.MAN
-    Gender.WOMAN -> GenderDto.WOMAN
-}
+object GenderDtoMapper : EnumMappie<Gender, GenderDto>()
