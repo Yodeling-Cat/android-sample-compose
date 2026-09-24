@@ -432,14 +432,14 @@ Two techniques, both about shrinking the invalidated scope.
 
 ```kotlin
 @Composable
-private fun PageIndicator(pagerState: PagerState, total: Int, modifier: Modifier = Modifier) {
+private fun PageIndicator(currentPage: () -> Int, total: Int, modifier: Modifier = Modifier) {
     Box(modifier = modifier...) {
-        Text(text = "${pagerState.currentPage + 1} / $total", ...)
+        Text(text = "${currentPage() + 1} / $total", ...)
     }
 }
 ```
 
-Swiping now recomposes a pill.
+The caller passes `currentPage = { pagerState.currentPage }`, so the read still happens inside `PageIndicator`. Swiping now recomposes a pill. The lambda here does not defer the read to a later phase, because `Text` needs the string during composition. It keeps the read in the pill's scope, and the pill takes a page number rather than the whole `PagerState`, so a preview can pass `{ 2 }`.
 
 **Defer the read into a lambda.** Passing `alpha: Float` forces the caller to recompose whenever alpha changes. Passing `alpha: () -> Float` and invoking it inside `graphicsLayer` moves the read into the layer phase ([HoldToConfirmButton.kt:255](../core/design-system/src/main/kotlin/uno/lux/mosaic/designsystem/components/HoldToConfirmButton.kt#L255)):
 

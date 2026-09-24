@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -92,7 +91,7 @@ internal fun AlbumViewerScreen(
 
         if (imageUrls.size > 1) {
             PageIndicator(
-                pagerState = pagerState,
+                currentPage = { pagerState.currentPage },
                 total = imageUrls.size,
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -105,7 +104,7 @@ internal fun AlbumViewerScreen(
 
 @Composable
 private fun PageIndicator(
-    pagerState: PagerState,
+    currentPage: () -> Int,
     total: Int,
     modifier: Modifier = Modifier,
 ) {
@@ -116,7 +115,7 @@ private fun PageIndicator(
             .padding(horizontal = 14.dp, vertical = 6.dp),
     ) {
         Text(
-            text = "${pagerState.currentPage + 1} / $total",
+            text = "${currentPage() + 1} / $total",
             style = MaterialTheme.typography.labelMedium,
             color = Color.White,
         )
@@ -233,5 +232,13 @@ private fun AlbumViewerScreenPreview() {
             initialIndex = 1,
             onBack = {},
         )
+    }
+}
+
+@Preview
+@Composable
+private fun PageIndicatorPreview() {
+    MosaicTheme {
+        PageIndicator(currentPage = { 2 }, total = 5)
     }
 }
