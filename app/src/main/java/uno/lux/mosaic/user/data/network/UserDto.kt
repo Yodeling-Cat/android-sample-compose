@@ -15,4 +15,5 @@ data class UserDto(
     val followerCount: Int,
     val followingCount: Int,
     val isFollowing: Boolean,
+    val isOnline: Boolean = false,
 )

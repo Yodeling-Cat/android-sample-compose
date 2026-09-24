@@ -90,6 +90,7 @@
     <string name="profile_edit">Upravit profil</string>
     <string name="profile_follow">Sledovat</string>
     <string name="profile_following">Sledujete</string>
+    <string name="avatar_online">Online</string>
     <!-- Edit profile -->
     <string name="edit_profile_save">Uložit</string>
     <string name="edit_profile_change_avatar">Změnit profilovou fotku</string>

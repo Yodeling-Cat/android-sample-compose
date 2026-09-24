@@ -21,6 +21,7 @@ class UserMapperTest {
             followerCount = 5,
             followingCount = 1,
             isFollowing = true,
+            isOnline = true,
         )
 
         val expected = User(
@@ -35,6 +36,7 @@ class UserMapperTest {
             followerCount = 5,
             followingCount = 1,
             isFollowing = true,
+            isOnline = true,
         )
 
         assertEquals(expected, UserMapper.map(dto))

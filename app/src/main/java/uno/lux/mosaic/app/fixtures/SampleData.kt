@@ -22,6 +22,7 @@ internal val SampleUsers = listOf(
             "weaves flowers. Poetical science, mostly.",
         followerCount = 128_400,
         followingCount = 212,
+        isOnline = true,
     ),
     User(
         id = "u2",

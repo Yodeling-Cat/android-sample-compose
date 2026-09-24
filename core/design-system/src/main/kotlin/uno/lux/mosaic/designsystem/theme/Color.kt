@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.Color
 val MosaicAccent = Color(0xFF3F5BD8) // indigo
 val MosaicAccentDeep = Color(0xFF7A45D6) // violet — the far end of the brand gradient
 val MosaicLike = Color(0xFFEF4D6B) // coral like-state
+val MosaicOnline = Color(0xFF22B573) // presence green
 val MosaicOnAccent = Color(0xFFFFFFFF)
 
 // Scrims drawn behind the gesture navigation bar in edge-to-edge, per the AndroidX guidance.

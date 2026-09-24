@@ -86,6 +86,7 @@
     <string name="profile_edit">Edit profile</string>
     <string name="profile_follow">Follow</string>
     <string name="profile_following">Following</string>
+    <string name="avatar_online">Online</string>
     <!-- Edit profile -->
     <string name="edit_profile_save">Save</string>
     <string name="edit_profile_change_avatar">Change profile photo</string>

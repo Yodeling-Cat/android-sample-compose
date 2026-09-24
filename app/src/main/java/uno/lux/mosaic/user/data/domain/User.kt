@@ -15,4 +15,5 @@ data class User(
     val followerCount: Int = 0,
     val followingCount: Int = 0,
     val isFollowing: Boolean = false,
+    val isOnline: Boolean = false,
 )

@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 data class MosaicColors(
     val textTertiary: Color,
     val like: Color,
+    val online: Color,
 )
 
 val LocalMosaicColors = staticCompositionLocalOf {
@@ -22,6 +23,7 @@ internal fun mosaicColors(darkTheme: Boolean) =
     MosaicColors(
         textTertiary = if (darkTheme) MosaicDarkText3 else MosaicLightText3,
         like = MosaicLike,
+        online = MosaicOnline,
     )
 
 /** Pair with `LightStatusBarIcons()`: the bar reaches behind the status bar. */

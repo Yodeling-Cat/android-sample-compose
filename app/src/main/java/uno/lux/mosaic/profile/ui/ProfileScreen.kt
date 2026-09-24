@@ -5,6 +5,7 @@ import androidx.annotation.StringRes
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -46,6 +47,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -79,7 +81,6 @@ import uno.lux.mosaic.common.ui.LoadMoreEffect
 import uno.lux.mosaic.common.ui.LoadMoreFooter
 import uno.lux.mosaic.common.util.compactCount
 import uno.lux.mosaic.designsystem.components.ScrimIconButton
-import uno.lux.mosaic.designsystem.components.debouncedClickable
 import uno.lux.mosaic.designsystem.components.rememberDebounced
 import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
 import uno.lux.mosaic.designsystem.theme.MosaicElevations
@@ -405,11 +406,9 @@ private fun ProfileHeader(
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(start = 16.dp)
-                    .padding(top = CoverHeight - AvatarOverlap)
-                    .clip(CircleShape)
-                    .debouncedClickable(enabled = !user.avatarUrl.isNullOrEmpty(), onClick = {
-                        if (user.avatarUrl != null) onOpenAvatar(user.avatarUrl)
-                    }),
+                    .padding(top = CoverHeight - AvatarOverlap),
+                enabled = !user.avatarUrl.isNullOrEmpty(),
+                onClick = { if (user.avatarUrl != null) onOpenAvatar(user.avatarUrl) },
             )
         }
 
@@ -444,13 +443,24 @@ private fun ProfileHeader(
 @Composable
 private fun AvatarRing(
     user: User,
+    enabled: Boolean,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val debouncedClick = onClick.rememberDebounced()
+
     Box(
+        // Not clipped, so the online dot can sit on the rim: an unbounded ripple the ring's
+        // radius is what keeps the press circular instead.
         modifier = modifier
             .size(AvatarRingSize)
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surface),
+            .background(MaterialTheme.colorScheme.surface, CircleShape)
+            .clickable(
+                interactionSource = null,
+                indication = ripple(bounded = false, radius = AvatarRingSize / 2),
+                enabled = enabled,
+                onClick = debouncedClick,
+            ),
         contentAlignment = Alignment.Center,
     ) {
         Avatar(user = user, size = AvatarSize)
