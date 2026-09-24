@@ -22,7 +22,7 @@ import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.common.data.network.toAppError
 import uno.lux.mosaic.common.ui.FailedAction
 import uno.lux.mosaic.common.ui.launchReporting
-import uno.lux.mosaic.common.util.AppError
+import uno.lux.mosaic.common.util.EntityFetch
 import uno.lux.mosaic.common.util.catchErrors
 import uno.lux.mosaic.common.util.launch
 import uno.lux.mosaic.common.util.launchCatching
@@ -50,19 +50,7 @@ class PostDetailViewModel @AssistedInject constructor(
         fun create(postId: PostId): PostDetailViewModel
     }
 
-    // TODO: Extract, and generalize?
-
-    private sealed interface PostFetch {
-        data object Pending : PostFetch
-
-        data object Missing : PostFetch
-
-        data class Failed(
-            val error: AppError,
-        ) : PostFetch
-    }
-
-    private var postFetch: PostFetch = PostFetch.Pending
+    private var postFetch: EntityFetch = EntityFetch.Pending
 
     private val _uiState = MutableStateFlow(
         UiState(
@@ -200,13 +188,13 @@ class PostDetailViewModel @AssistedInject constructor(
         if (postId in postRepository.deletedIds.value) return Content.NotFound
 
         return when (val fetch = postFetch) {
-            PostFetch.Pending -> Content.Loading
-            PostFetch.Missing -> Content.NotFound
-            is PostFetch.Failed -> Content.Error(fetch.error)
+            EntityFetch.Pending -> Content.Loading
+            EntityFetch.Done -> Content.NotFound
+            is EntityFetch.Failed -> Content.Error(fetch.error)
         }
     }
 
-    private fun setPostFetch(outcome: PostFetch) {
+    private fun setPostFetch(outcome: EntityFetch) {
         postFetch = outcome
         updateContent()
     }
@@ -219,14 +207,15 @@ class PostDetailViewModel @AssistedInject constructor(
     private suspend fun loadPost() {
         if (_uiState.value.content is Content.Loaded) return
 
-        setPostFetch(PostFetch.Pending)
+        setPostFetch(EntityFetch.Pending)
         catchErrors(onError = { e ->
-            setPostFetch(PostFetch.Failed(e.toAppError()))
+            setPostFetch(EntityFetch.Failed(e.toAppError()))
         }, {
             // TODO: 404 can also mean that it doesn't exist *yet*, not that it was deleted, or perhaps its temporarily hidden from
             //  the current user by privacy settings. We might thus want to retry.
             // A 404 is the server saying the post is gone — an answer, not a failure to retry.
-            if (postRepository.load(postId) == null) setPostFetch(PostFetch.Missing)
+            postRepository.load(postId)
+            setPostFetch(EntityFetch.Done)
         })
     }
 

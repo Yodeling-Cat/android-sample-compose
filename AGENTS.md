@@ -338,7 +338,7 @@ For a page that fetches data, this means a **cold-start load**. Check whether th
 
 **An absent entity is three states, not one**, on every screen that resolves one by id. Reading "the store has no such thing" as *not found* is correct only while the store is authoritative, and that stops being true the moment the app can start directly on that page.
 
-`PostDetailViewModel.PostFetch` separates three states: `Loading`, `NotFound` (a 404, with nothing to retry), and `Error` (retryable). `PostDataSource.fetch` returns `null` for a 404 through `notFoundAsNull`, instead of throwing. `ProfileViewModel` gates `NotFound` behind `_hasLoaded`, for the same reason.
+`common/util/EntityFetch` holds the fetch's side of this: `Pending`, `Done` and `Failed`. The page reads the store first, and only an entity still absent after `Done` is `NotFound` (a 404, with nothing to retry); `Failed` is `Error` (retryable). `PostDetailViewModel` and `ProfileViewModel` both resolve through it. A retry resets it to `Pending`, so the page reads `Loading` again rather than a stale `NotFound`. `PostDataSource.fetch` returns `null` for a 404 through `notFoundAsNull`, instead of throwing.
 
 **Deletion states its result explicitly**, because absence alone is ambiguous. `PostRepository.delete` records the ID in `deletedIds` before it drops the entity. So a detail page whose post was deleted from another screen reads `NotFound`, instead of spinning on a fetch that will never come.
 

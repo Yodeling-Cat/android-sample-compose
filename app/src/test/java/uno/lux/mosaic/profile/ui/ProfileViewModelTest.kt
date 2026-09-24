@@ -324,6 +324,30 @@ class ProfileViewModelTest : ViewModelTest() {
     }
 
     @Test
+    fun `Retry after a failed load reads Loading until the fetch answers, not NotFound`() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        val viewModel = viewModel(
+            userId = "nobody",
+            userDataSource = GatedUserDataSource(gate, ada, failuresBeforeGate = 1),
+        )
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value is ProfileUiState.Error)
+
+        viewModel.onEvent(ProfileUiEvent.Retry)
+        advanceUntilIdle()
+
+        assertEquals(ProfileUiState.Loading, viewModel.uiState.value)
+
+        gate.complete(Unit)
+        advanceUntilIdle()
+
+        assertEquals(ProfileUiState.NotFound, viewModel.uiState.value)
+    }
+
+    @Test
     fun `ToggleLike likes the post through the shared entity store`() = runTest {
         // The count in the answer is the server's, so the fake is told what it started from.
         val viewModel = viewModel(
@@ -725,9 +749,14 @@ class ProfileViewModelTest : ViewModelTest() {
 private class GatedUserDataSource(
     private val gate: CompletableDeferred<Unit>,
     private val user: User,
+    private var failuresBeforeGate: Int = 0,
 ) : UserDataSource {
 
     override suspend fun fetch(userId: UserId): User? {
+        if (failuresBeforeGate > 0) {
+            failuresBeforeGate--
+            throw UnknownHostException("offline")
+        }
         gate.await()
         return user.takeIf { it.id == userId }
     }

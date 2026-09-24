@@ -20,10 +20,10 @@ import uno.lux.mosaic.app.di.CurrentUserId
 import uno.lux.mosaic.app.navigation.Navigator
 import uno.lux.mosaic.app.navigation.Screen
 import uno.lux.mosaic.common.data.ReportReason
+import uno.lux.mosaic.common.data.network.toAppError
 import uno.lux.mosaic.common.ui.FailedAction
-import uno.lux.mosaic.common.ui.ignoreErrors
 import uno.lux.mosaic.common.ui.launchReporting
-import uno.lux.mosaic.common.util.AppError
+import uno.lux.mosaic.common.util.EntityFetch
 import uno.lux.mosaic.common.util.catchErrors
 import uno.lux.mosaic.common.util.launchCatching
 import uno.lux.mosaic.common.util.launchIfIdle
@@ -57,10 +57,7 @@ class ProfileViewModel @AssistedInject constructor(
         fun create(userId: UserId): ProfileViewModel
     }
 
-    private val _loadError = MutableStateFlow<AppError?>(null)
-
-    /** Until a load has run, an absent user means "not loaded", not "no such user". */
-    private val _hasLoaded = MutableStateFlow(false)
+    private val _userFetch = MutableStateFlow<EntityFetch>(EntityFetch.Pending)
 
     private val saved = profileRepository.saved(userId)
     private val liked = profileRepository.liked(userId)
@@ -137,20 +134,15 @@ class ProfileViewModel @AssistedInject constructor(
                 )
             }
         },
-        _loadError,
-        _hasLoaded,
-    ) { state, loadError, hasLoaded ->
-        when {
-            state != null -> state
-
-            loadError != null -> UiState.Error(loadError)
-
+        _userFetch,
+    ) { state, fetch ->
+        state ?: when (fetch) {
             // Absent from the stores means "no such user" only once a fetch has actually run.
             // Before that it means nothing has asked yet — which is every cold start, since a
             // profile restored after process death begins with empty stores.
-            hasLoaded -> UiState.NotFound
-
-            else -> UiState.Loading
+            EntityFetch.Pending -> UiState.Loading
+            EntityFetch.Done -> UiState.NotFound
+            is EntityFetch.Failed -> UiState.Error(fetch.error)
         }
     }.stateInWhileSubscribed(viewModelScope, UiState.Loading)
 
@@ -266,7 +258,7 @@ class ProfileViewModel @AssistedInject constructor(
     private fun retry() = launchIfIdle(::loadJob) { load() }
 
     private suspend fun load() {
-        _loadError.value = null
+        _userFetch.value = EntityFetch.Pending
         // A refresh restarts every list it re-fetches, so a page that failed to follow the old one
         // is moot. A tab that never loaded is not re-fetched, so its failure still stands.
         val savedLoaded = saved.ids.first() != null
@@ -278,7 +270,7 @@ class ProfileViewModel @AssistedInject constructor(
             )
         }
 
-        ignoreErrors(_loadError) {
+        catchErrors(onError = { e -> _userFetch.value = EntityFetch.Failed(e.toAppError()) }) {
             coroutineScope {
                 launch { userRepository.refresh(userId) }
                 launch { profileRepository.refresh(userId) }
@@ -287,9 +279,8 @@ class ProfileViewModel @AssistedInject constructor(
                 launch { saved.refreshIfLoaded() }
                 launch { liked.refreshIfLoaded() }
             }
+            _userFetch.value = EntityFetch.Done
         }
-
-        _hasLoaded.value = true
     }
 
     private fun toggleLike(postId: PostId) = launchCatching {
