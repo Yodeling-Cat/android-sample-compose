@@ -55,6 +55,8 @@ internal fun FullscreenVideoScreen(
         }
     }
 
+    if (playback != null) WatchActiveVideo(playback.viewers)
+
     ImmersiveSystemBars()
 
     Box(

@@ -54,6 +54,8 @@ internal fun VideoPostPlayer(
     ) {
         // `isActive` already establishes playback != null, so it smart-casts inside this branch.
         if (isActive) {
+            WatchActiveVideo(playback.viewers)
+
             VideoSurface(
                 // While full screen owns the surface this one detaches, but nothing is released —
                 // the controller keeps the instance alive across the transition.

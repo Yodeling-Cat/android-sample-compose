@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
@@ -40,6 +41,8 @@ class VideoPlaybackController(
 
     var player by mutableStateOf<ExoPlayer?>(null)
         private set
+
+    val viewers = VideoViewers()
 
     private var ownedByInline = false
 
@@ -114,6 +117,11 @@ fun ProvideVideoPlayback(content: @Composable () -> Unit) {
     val activity = LocalContext.current.findActivity() as ComponentActivity
     val playback = hiltViewModel<VideoPlaybackViewModel>(activity).controller
     val lifecycleOwner = LocalLifecycleOwner.current
+
+    // Leaving for a page that shows the video elsewhere keeps it playing; any other page pauses it.
+    LaunchedEffect(playback) {
+        playback.viewers.onEachUnwatched(playback::pause)
+    }
 
     DisposableEffect(lifecycleOwner, playback) {
         val observer = LifecycleEventObserver { _, event ->
