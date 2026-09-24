@@ -46,26 +46,17 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.FloatState
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableFloatState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -93,15 +84,16 @@ import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
 import uno.lux.mosaic.designsystem.theme.MosaicElevations
 import uno.lux.mosaic.designsystem.theme.MosaicGradients
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
+import uno.lux.mosaic.post.data.domain.Post
 import uno.lux.mosaic.post.ui.PostCard
 import uno.lux.mosaic.post.ui.PostReportSend
+import uno.lux.mosaic.post.ui.ReportSendState
 import uno.lux.mosaic.post.ui.cardContentType
 import uno.lux.mosaic.post.ui.sendStateFor
 import uno.lux.mosaic.profile.data.domain.Profile
 import uno.lux.mosaic.user.data.domain.User
 import uno.lux.mosaic.user.data.domain.UserId
 import uno.lux.mosaic.user.ui.Avatar
-import kotlin.math.roundToInt
 import uno.lux.mosaic.common.R as CommonR
 import uno.lux.mosaic.profile.ui.ProfileUiEvent as UiEvent
 import uno.lux.mosaic.profile.ui.ProfileUiState as UiState
@@ -194,16 +186,6 @@ internal fun ProfileScreen(
     }
 }
 
-/**
- * A hand-written saver: `rememberSaveable { mutableFloatStateOf(…) }` resolves to the
- * `MutableState<Float>` overload and loses the [FloatState] the layout reads every frame.
- */
-private val CollapseSaver = Saver<MutableFloatState, Float>(
-    save = { it.floatValue },
-    restore = { mutableFloatStateOf(it) },
-)
-
-// TODO: Could use refactoring, breaking up into smaller functions
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ProfileContent(
@@ -220,48 +202,82 @@ private fun ProfileContent(
     }
     var selectedTab by rememberSaveable { mutableStateOf(ProfileTab.POSTS) }
     val listState = rememberLazyListState()
-
-    // A collapsing header: the cover + identity block slides up behind the app bar as you scroll,
-    // and the tab row rides up with it until it pins flush beneath the bar. The two motions are
-    // one gesture because both read the same `collapse` offset, advanced by the connection below.
-    val density = LocalDensity.current
-    val barBottomPx = with(density) {
+    // The cover and identity block collapse behind the bar; the tab row rides up with them until
+    // it pins flush beneath it.
+    val header = rememberCollapsingHeaderState()
+    val barBottomPx = with(LocalDensity.current) {
         WindowInsets.statusBars.getTop(this) + ProfileBarHeight.roundToPx()
     }
-    var headerHeightPx by remember { mutableIntStateOf(0) }
-    // Saveable, unlike the measured height above: the collapse *is* the top of this page's scroll
-    // position, and `rememberLazyListState` only remembers the part below it.
-    val collapse = rememberSaveable(saver = CollapseSaver) { mutableFloatStateOf(0f) }
-    // The header collapses until its foot reaches the bar; past that the tabs are pinned and the
-    // list takes over. Keyed off the measured height, never off `collapse`, so a scroll relayouts
-    // the header and recomposes the bar, but not this scope.
-    val maxCollapse = (headerHeightPx - barBottomPx).coerceAtLeast(0).toFloat()
 
-    val collapseConnection = remember(maxCollapse) {
-        object : NestedScrollConnection {
-            // Fold `dy` into the collapse offset, returning what it consumed (same sign).
-            fun consume(dy: Float): Offset {
-                val before = collapse.floatValue
-                collapse.floatValue = (before - dy).coerceIn(0f, maxCollapse)
-                return Offset(x = 0f, y = before - collapse.floatValue)
+    ProfileTabEffects(
+        selectedTab = selectedTab,
+        data = data,
+        listState = listState,
+        onEvent = onEvent,
+    )
+
+    // Pull-to-refresh wraps the collapse Box so its connection sits *outside* the collapse one: a
+    // downward drag re-expands the header before the refresh gesture gets the leftover.
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = { onEvent(UiEvent.Refresh) },
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(header.nestedScrollConnection),
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                ProfileHeader(
+                    user = data.user,
+                    isCurrentUser = isCurrentUser,
+                    onEditProfile = { onEvent(UiEvent.OpenEditProfile) },
+                    onToggleFollow = { onEvent(UiEvent.ToggleFollow) },
+                    onOpenAvatar = { url -> onEvent(UiEvent.OpenAvatar(url)) },
+                    modifier = Modifier.collapsingHeader(header, pinnedAtPx = barBottomPx),
+                )
+                ProfileTabs(
+                    tabs = tabs,
+                    selected = selectedTab,
+                    onSelect = { selectedTab = it },
+                )
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                ) {
+                    tabItems(
+                        selectedTab = selectedTab,
+                        data = data,
+                        isCurrentUser = isCurrentUser,
+                        reportSend = reportSend,
+                        onEvent = onEvent,
+                    )
+                    item(key = "bottom-inset") {
+                        Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
+                    }
+                }
             }
 
-            // Scrolling up collapses the header before the posts list scrolls.
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset =
-                if (available.y >= 0f) Offset.Zero else consume(available.y)
-
-            // Scrolling down re-expands the header from the leftover once the list is at its top
-            // — and, since pull-to-refresh wraps this, before the refresh sees it.
-            override fun onPostScroll(
-                consumed: Offset,
-                available: Offset,
-                source: NestedScrollSource,
-            ): Offset =
-                if (available.y <= 0f) Offset.Zero else consume(available.y)
+            ProfileTopBar(
+                userName = data.user.nickname,
+                header = header,
+                onBack = onBack,
+            )
         }
     }
+}
 
-    // Every tab pages the one posts list, so the effects follow whichever is showing.
+/** Every tab pages the one list, so only the showing tab's effects run. */
+@Composable
+private fun ProfileTabEffects(
+    selectedTab: ProfileTab,
+    data: ProfileScreenData,
+    listState: LazyListState,
+    onEvent: (UiEvent) -> Unit,
+) {
     when (selectedTab) {
         ProfileTab.POSTS -> LoadMoreEffect(
             listState = listState,
@@ -286,93 +302,44 @@ private fun ProfileContent(
             onLoadMore = { onEvent(UiEvent.LoadMoreBookmarks) },
         )
     }
+}
 
-    // Pull-to-refresh wraps the collapse Box so its connection sits *outside* the collapse one: a
-    // downward drag re-expands the header before the refresh gesture gets the leftover.
-    PullToRefreshBox(
-        isRefreshing = isRefreshing,
-        onRefresh = { onEvent(UiEvent.Refresh) },
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .nestedScroll(collapseConnection),
-        ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                ProfileHeader(
-                    user = data.user,
-                    isCurrentUser = isCurrentUser,
-                    onEditProfile = { onEvent(UiEvent.OpenEditProfile) },
-                    onToggleFollow = { onEvent(UiEvent.ToggleFollow) },
-                    onOpenAvatar = { url -> onEvent(UiEvent.OpenAvatar(url)) },
-                    // Reserve `collapse` less height and draw the header shifted up by that much,
-                    // so it slides behind the bar with no gap left below. Read in the layout pass,
-                    // so a scroll reflows the header without recomposing this screen.
-                    modifier = Modifier.layout { measurable, constraints ->
-                        val placeable = measurable.measure(constraints)
-                        if (placeable.height != headerHeightPx) headerHeightPx = placeable.height
+private fun LazyListScope.tabItems(
+    selectedTab: ProfileTab,
+    data: ProfileScreenData,
+    isCurrentUser: Boolean,
+    reportSend: PostReportSend?,
+    onEvent: (UiEvent) -> Unit,
+) {
+    when (selectedTab) {
+        ProfileTab.POSTS -> postItems(
+            screenData = data,
+            reportSend = reportSend,
+            onEvent = onEvent,
+            isCurrentUser = isCurrentUser,
+        )
 
-                        val offset = collapse.floatValue.roundToInt()
-                        layout(placeable.width, (placeable.height - offset).coerceAtLeast(0)) {
-                            placeable.place(0, -offset)
-                        }
-                    },
-                )
-                ProfileTabs(
-                    tabs = tabs,
-                    selected = selectedTab,
-                    onSelect = { selectedTab = it },
-                )
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                ) {
-                    when (selectedTab) {
-                        ProfileTab.POSTS -> postItems(
-                            screenData = data,
-                            reportSend = reportSend,
-                            onEvent = onEvent,
-                            isCurrentUser = isCurrentUser,
-                        )
+        ProfileTab.LIKES -> onDemandTabItems(
+            list = data.likes,
+            loadFailed = data.likesLoadFailed,
+            onFirstLoad = { onEvent(UiEvent.LikesTabShown) },
+            onLoadMore = { onEvent(UiEvent.LoadMoreLikes) },
+            reportSend = reportSend,
+            onEvent = onEvent,
+            keyPrefix = "likes",
+            emptyMessageRes = R.string.profile_empty_likes,
+        )
 
-                        ProfileTab.LIKES -> onDemandTabItems(
-                            list = data.likes,
-                            loadFailed = data.likesLoadFailed,
-                            onFirstLoad = { onEvent(UiEvent.LikesTabShown) },
-                            onLoadMore = { onEvent(UiEvent.LoadMoreLikes) },
-                            reportSend = reportSend,
-                            onEvent = onEvent,
-                            keyPrefix = "likes",
-                            emptyMessageRes = R.string.profile_empty_likes,
-                        )
-
-                        ProfileTab.SAVED -> onDemandTabItems(
-                            list = data.bookmarks,
-                            loadFailed = data.bookmarksLoadFailed,
-                            onFirstLoad = { onEvent(UiEvent.SavedTabShown) },
-                            onLoadMore = { onEvent(UiEvent.LoadMoreBookmarks) },
-                            reportSend = reportSend,
-                            onEvent = onEvent,
-                            keyPrefix = "saved",
-                            emptyMessageRes = R.string.profile_empty_saved,
-                        )
-                    }
-                    item(key = "bottom-inset") {
-                        Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
-                    }
-                }
-            }
-
-            ProfileTopBar(
-                userName = data.user.nickname,
-                collapse = collapse,
-                maxCollapse = maxCollapse,
-                onBack = onBack,
-            )
-        }
+        ProfileTab.SAVED -> onDemandTabItems(
+            list = data.bookmarks,
+            loadFailed = data.bookmarksLoadFailed,
+            onFirstLoad = { onEvent(UiEvent.SavedTabShown) },
+            onLoadMore = { onEvent(UiEvent.LoadMoreBookmarks) },
+            reportSend = reportSend,
+            onEvent = onEvent,
+            keyPrefix = "saved",
+            emptyMessageRes = R.string.profile_empty_saved,
+        )
     }
 }
 
@@ -595,7 +562,7 @@ private fun ProfileTabs(
     onSelect: (ProfileTab) -> Unit,
 ) {
     // Opaque so it hides the posts scrolling under it once pinned, and sits seamlessly under the
-    // bar it ends up flush beneath (see maxCollapse in ProfileContent).
+    // bar it ends up flush beneath (see CollapsingHeaderState).
     PrimaryTabRow(
         // The index into the *visible* tabs, which ownerOnly makes narrower than the enum — so
         // this is not the selected tab's ordinal.
@@ -637,21 +604,15 @@ private fun LazyListScope.postItems(
         key = { it.id },
         contentType = { it.cardContentType },
     ) { post ->
-        PostCard(
+        ProfilePostCard(
             post = post,
             author = author,
             reportSend = reportSend.sendStateFor(post.id),
-            onToggleLike = { onEvent(UiEvent.ToggleLike(post.id)) },
-            onToggleBookmark = { onEvent(UiEvent.ToggleBookmark(post.id)) },
+            // Every post here is by the profile's user, so "own post" is whose profile this is.
+            isOwn = isCurrentUser,
             // Already on this author's profile — tapping the header again is a no-op.
             onOpenProfile = {},
-            onOpenVideo = { video -> onEvent(UiEvent.OpenVideo(video)) },
-            onOpenAlbum = { urls, index -> onEvent(UiEvent.OpenAlbum(urls, index)) },
-            onOpenPost = { onEvent(UiEvent.OpenPost(post.id)) },
-            onReport = { reason, details -> onEvent(UiEvent.Report(post.id, reason, details)) },
-            onReportClosed = { onEvent(UiEvent.CloseReport) },
-            // Every post here is by the profile's user, so "own post" is whose profile this is.
-            onDelete = if (isCurrentUser) ({ onEvent(UiEvent.Delete(post.id)) }) else null,
+            onEvent = onEvent,
         )
     }
     if (!screenData.postsEndReached) {
@@ -707,31 +668,51 @@ private fun LazyListScope.onDemandTabItems(
         key = { "$keyPrefix-${it.post.id}" },
         contentType = { it.post.cardContentType },
     ) { data ->
-        // The lambdas capture the ids, never `data`: every emission rebuilds each PostCardData,
+        // The lambda captures the id, never `data`: every emission rebuilds each PostCardData,
         // and a lambda that captured one would make every row recompose.
-        val postId = data.post.id
         val authorId = data.author.id
 
-        PostCard(
+        ProfilePostCard(
             post = data.post,
             author = data.author,
-            reportSend = reportSend.sendStateFor(postId),
-            onToggleLike = { onEvent(UiEvent.ToggleLike(postId)) },
-            onToggleBookmark = { onEvent(UiEvent.ToggleBookmark(postId)) },
+            reportSend = reportSend.sendStateFor(data.post.id),
+            isOwn = data.isOwn,
             // A saved or liked post can be by anyone, so its header opens that author's profile.
             onOpenProfile = { onEvent(UiEvent.OpenProfile(authorId)) },
-            onOpenVideo = { video -> onEvent(UiEvent.OpenVideo(video)) },
-            onOpenAlbum = { urls, index -> onEvent(UiEvent.OpenAlbum(urls, index)) },
-            onOpenPost = { onEvent(UiEvent.OpenPost(postId)) },
-            onReport = { reason, details -> onEvent(UiEvent.Report(postId, reason, details)) },
-            onReportClosed = { onEvent(UiEvent.CloseReport) },
-            onDelete = if (data.isOwn) ({ onEvent(UiEvent.Delete(postId)) }) else null,
+            onEvent = onEvent,
         )
     }
 
     if (!list.endReached) {
         item(key = "$keyPrefix-loading-more") { LoadMoreFooter(failed = loadFailed, onRetry = onLoadMore) }
     }
+}
+
+@Composable
+private fun ProfilePostCard(
+    post: Post,
+    author: User,
+    reportSend: ReportSendState,
+    isOwn: Boolean,
+    onOpenProfile: () -> Unit,
+    onEvent: (UiEvent) -> Unit,
+) {
+    val postId = post.id
+
+    PostCard(
+        post = post,
+        author = author,
+        reportSend = reportSend,
+        onToggleLike = { onEvent(UiEvent.ToggleLike(postId)) },
+        onToggleBookmark = { onEvent(UiEvent.ToggleBookmark(postId)) },
+        onOpenProfile = onOpenProfile,
+        onOpenVideo = { video -> onEvent(UiEvent.OpenVideo(video)) },
+        onOpenAlbum = { urls, index -> onEvent(UiEvent.OpenAlbum(urls, index)) },
+        onOpenPost = { onEvent(UiEvent.OpenPost(postId)) },
+        onReport = { reason, details -> onEvent(UiEvent.Report(postId, reason, details)) },
+        onReportClosed = { onEvent(UiEvent.CloseReport) },
+        onDelete = if (isOwn) ({ onEvent(UiEvent.Delete(postId)) }) else null,
+    )
 }
 
 @Composable
@@ -774,15 +755,10 @@ private const val BAR_FILL_FRACTION = 0.5f
 @Composable
 private fun ProfileTopBar(
     userName: String,
-    collapse: FloatState,
-    maxCollapse: Float,
+    header: CollapsingHeaderState,
     onBack: (() -> Unit)?,
 ) {
-    val collapsed = if (maxCollapse > 0f) {
-        (collapse.floatValue / maxCollapse).coerceIn(0f, 1f)
-    } else {
-        0f
-    }
+    val collapsed = header.collapsedFraction
     val progress = (collapsed / BAR_FILL_FRACTION).coerceIn(0f, 1f)
     // `collapsed` reaches exactly 1f at full collapse, so this is the true pinned state.
     val pinned by animateFloatAsState(if (collapsed >= 1f) 1f else 0f, label = "appBarPinned")
