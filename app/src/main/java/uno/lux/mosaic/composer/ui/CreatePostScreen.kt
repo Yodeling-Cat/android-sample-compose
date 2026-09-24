@@ -3,7 +3,8 @@ package uno.lux.mosaic.composer.ui
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.contract.ActivityResultContracts.PickMultipleVisualMedia
+import androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
@@ -78,7 +79,7 @@ fun CreatePostScreen(
     val pickImages = rememberLauncherForActivityResult(
         // The picker caps the selection itself, so the user can't overshoot the album limit;
         // the ViewModel still trims, since a second trip through the picker could push it over.
-        ActivityResultContracts.PickMultipleVisualMedia(CREATE_POST_MAX_IMAGES),
+        PickMultipleVisualMedia(CREATE_POST_MAX_IMAGES),
     ) { uris ->
         // The picker's session-scoped read grant is enough — the bytes are read and uploaded
         // on publish, so no persistable permission is needed.
@@ -88,7 +89,7 @@ fun CreatePostScreen(
     }
 
     val pickVideo = rememberLauncherForActivityResult(
-        ActivityResultContracts.PickVisualMedia(),
+        PickVisualMedia(),
     ) { uri ->
         if (uri != null) viewModel.onEvent(UiEvent.VideoPicked(uri.toString()))
     }
@@ -102,12 +103,12 @@ fun CreatePostScreen(
         onEvent = viewModel::onEvent,
         onPickImages = {
             pickImages.launch(
-                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly),
+                PickVisualMediaRequest(PickVisualMedia.ImageOnly),
             )
         },
         onPickVideo = {
             pickVideo.launch(
-                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly),
+                PickVisualMediaRequest(PickVisualMedia.VideoOnly),
             )
         },
         modifier = modifier,
@@ -138,7 +139,7 @@ internal fun CreatePostScreen(
     }
 
     Scaffold(
-        // The page colour and its wash are painted here rather than handed to the container,
+        // The page color and its wash are painted here rather than handed to the container,
         // because they have to span the window: put on the form they would stop at the content
         // padding and leave the inset strips showing through. The container is then transparent,
         // since a Scaffold paints its own over anything the modifier drew.

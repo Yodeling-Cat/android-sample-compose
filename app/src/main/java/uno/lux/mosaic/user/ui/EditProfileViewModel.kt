@@ -33,7 +33,7 @@ class EditProfileViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val fileLoader: FileLoader,
     private val navigator: Navigator,
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     @param:CurrentUserId private val userId: UserId,
 ) : ViewModel() {
 

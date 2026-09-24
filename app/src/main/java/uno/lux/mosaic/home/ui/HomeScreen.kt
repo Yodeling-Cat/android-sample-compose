@@ -99,10 +99,8 @@ internal fun HomeScreen(
 ) {
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
-    // A refresh that failed over a feed already on screen — announced without taking the posts
-    // away. The duration is stated because Material's default is Indefinite whenever an action
-    // label is given: right for a decision the user must make, wrong for a feed that is still
-    // perfectly readable behind it.
+    // The duration is explicit because Material makes a snackbar with an action Indefinite,
+    // and the feed behind this one is still readable.
     val refreshErrorMessage = (uiState as? UiState.Feed)?.refreshError?.asText()
     val retryLabel = stringResource(CommonR.string.error_retry)
 
@@ -114,13 +112,11 @@ internal fun HomeScreen(
             actionLabel = retryLabel,
             duration = SnackbarDuration.Long,
         )
-        // Spent, whether it was acted on or waited out — neither the message nor a rotation
-        // rebuilding this composition should say it twice.
+        // Spent either way, so a rotation cannot show it twice.
         onEvent(UiEvent.RefreshErrorShown)
         if (result == SnackbarResult.ActionPerformed) onEvent(UiEvent.Refresh)
     }
 
-    // A delete whose request failed after its dialog already closed.
     FailedActionEffect(failedAction, snackbarHostState) { onEvent(UiEvent.FailedActionShown) }
 
     ReportHost(
@@ -134,9 +130,7 @@ internal fun HomeScreen(
         modifier = modifier,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            // The bar is pinned; its shadow shows while the list is scrolled away from the top.
-            // canScrollBackward only changes when crossing the top, so it needs no derivedStateOf,
-            // and reading it here keeps the invalidation inside this slot.
+            // Read here, not above, so a flip invalidates only this slot.
             FeedTopBar(
                 elevated = listState.canScrollBackward,
                 onOpenSettings = { onEvent(UiEvent.OpenSettings) },
@@ -224,20 +218,15 @@ private fun FeedList(
     modifier: Modifier = Modifier,
 ) {
     val playback = LocalVideoPlayback.current
-    // Read the latest posts inside the collector without keying the effect on them: a like or
-    // bookmark toggle replaces the list instance but never changes which posts carry a video or
-    // where they sit, so restarting the autoplay collector on every toggle is wasted work. A
-    // change that actually matters (scroll, refresh) re-lays out the list and re-emits layoutInfo.
+    // Not a key: a like replaces the list but moves no video, and a change that does re-emits
+    // layoutInfo anyway.
     val currentPosts by rememberUpdatedState(posts)
 
-    // autoPlayVideos *is* a key: it changes only when the user flips the setting, and restarting
-    // the collector re-reads the current layout, so turning auto-play on plays the video already
-    // on screen instead of waiting for the next scroll.
+    // autoPlayVideos is a key so that switching it on plays the video already on screen.
     LaunchedEffect(listState, playback, autoPlayVideos) {
         snapshotFlow { listState.layoutInfo }.collect { layoutInfo ->
             if (playback == null || playback.isFullscreen) return@collect
-            // With auto-play off and nothing playing there is neither a video to start nor one to
-            // stop, so the per-frame visibility scan below would be pure waste.
+            // Nothing to start and nothing to stop, so skip the per-frame scan.
             if (!autoPlayVideos && playback.activeVideoUrl == null) return@collect
 
             val posts = currentPosts
@@ -255,7 +244,7 @@ private fun FeedList(
                 autoPlayVideos = autoPlayVideos,
             )
 
-            // This runs on every scroll frame; the controller only needs to hear about a change.
+            // Runs every scroll frame; tell the controller only about a change.
             when {
                 url == activeUrl -> Unit
                 url != null -> playback.playInline(url)
@@ -277,8 +266,7 @@ private fun FeedList(
             key = { it.post.id },
             contentType = { it.post.cardContentType },
         ) { data ->
-            // The lambdas capture the ids, never `data`: every emission rebuilds each
-            // PostCardData, and a lambda that captured one would make every row recompose.
+            // Capture the ids, not `data`, which every emission rebuilds.
             val postId = data.post.id
             val authorId = data.author.id
 

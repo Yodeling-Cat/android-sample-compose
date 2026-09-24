@@ -34,8 +34,8 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    val BASE_URL: String = BuildConfig.BASE_URL
-    private val API_URL = "${BASE_URL}/api/"
+    const val BASE_URL: String = BuildConfig.BASE_URL
+    private const val API_URL = "${BASE_URL}/api/"
 
     const val CONNECT_TIMEOUT_SECONDS = 10L
     const val READ_TIMEOUT_SECONDS = 30L
