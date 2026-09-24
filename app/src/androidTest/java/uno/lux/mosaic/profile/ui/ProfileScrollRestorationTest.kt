@@ -34,7 +34,7 @@ class ProfileScrollRestorationTest {
                     uiState = ProfileUiState.Loaded(profileData(), isCurrentUser = true),
                     isRefreshing = false,
                     failedAction = null,
-                    reportSend = null,
+                    report = null,
                     onEvent = {},
                 )
             }

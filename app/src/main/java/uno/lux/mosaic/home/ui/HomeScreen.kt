@@ -56,9 +56,9 @@ import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.post.ui.PostCard
 import uno.lux.mosaic.post.ui.PostCardData
-import uno.lux.mosaic.post.ui.PostReportSend
+import uno.lux.mosaic.post.ui.PostReport
+import uno.lux.mosaic.post.ui.ReportHost
 import uno.lux.mosaic.post.ui.cardContentType
-import uno.lux.mosaic.post.ui.sendStateFor
 import uno.lux.mosaic.video.ui.LocalVideoPlayback
 import uno.lux.mosaic.common.R as CommonR
 import uno.lux.mosaic.home.ui.HomeUiEvent as UiEvent
@@ -73,14 +73,14 @@ fun HomeScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
     val autoPlayVideos by viewModel.autoPlayVideos.collectAsStateWithLifecycle()
     val failedAction by viewModel.failedAction.collectAsStateWithLifecycle()
-    val reportSend by viewModel.reportSend.collectAsStateWithLifecycle()
+    val report by viewModel.report.collectAsStateWithLifecycle()
 
     HomeScreen(
         uiState = uiState,
         isRefreshing = isRefreshing,
         autoPlayVideos = autoPlayVideos,
         failedAction = failedAction,
-        reportSend = reportSend,
+        report = report,
         onEvent = viewModel::onEvent,
         modifier = modifier,
     )
@@ -93,7 +93,7 @@ internal fun HomeScreen(
     isRefreshing: Boolean,
     autoPlayVideos: Boolean,
     failedAction: FailedAction?,
-    reportSend: PostReportSend?,
+    report: PostReport?,
     onEvent: (UiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -122,6 +122,13 @@ internal fun HomeScreen(
 
     // A delete whose request failed after its dialog already closed.
     FailedActionEffect(failedAction, snackbarHostState) { onEvent(UiEvent.FailedActionShown) }
+
+    ReportHost(
+        report = report,
+        onSend = { reason, details -> onEvent(UiEvent.SendReport(reason, details)) },
+        onClose = { onEvent(UiEvent.CloseReport) },
+        onSentShown = { onEvent(UiEvent.ReportSentShown) },
+    )
 
     Scaffold(
         modifier = modifier,
@@ -164,7 +171,6 @@ internal fun HomeScreen(
                             endReached = uiState.endReached,
                             loadMoreFailed = uiState.loadMoreFailed,
                             autoPlayVideos = autoPlayVideos,
-                            reportSend = reportSend,
                             listState = listState,
                             onEvent = onEvent,
                         )
@@ -213,7 +219,6 @@ private fun FeedList(
     endReached: Boolean,
     loadMoreFailed: Boolean,
     autoPlayVideos: Boolean,
-    reportSend: PostReportSend?,
     listState: LazyListState,
     onEvent: (UiEvent) -> Unit,
     modifier: Modifier = Modifier,
@@ -280,7 +285,6 @@ private fun FeedList(
             PostCard(
                 post = data.post,
                 author = data.author,
-                reportSend = reportSend.sendStateFor(postId),
                 onToggleLike = { onEvent(UiEvent.ToggleLike(postId)) },
                 onToggleBookmark = { onEvent(UiEvent.ToggleBookmark(postId)) },
                 onOpenProfile = { onEvent(UiEvent.OpenProfile(authorId)) },
@@ -289,10 +293,7 @@ private fun FeedList(
                     onEvent(UiEvent.OpenAlbum(urls, index))
                 },
                 onOpenPost = { onEvent(UiEvent.OpenPost(postId)) },
-                onReport = { reason, details ->
-                    onEvent(UiEvent.Report(postId, reason, details))
-                },
-                onReportClosed = { onEvent(UiEvent.CloseReport) },
+                onReport = { onEvent(UiEvent.OpenReport(postId)) },
                 onDelete = if (data.isOwn) ({ onEvent(UiEvent.Delete(postId)) }) else null,
             )
         }
@@ -390,7 +391,7 @@ private fun HomeFeedPreview() {
             isRefreshing = false,
             autoPlayVideos = true,
             failedAction = null,
-            reportSend = null,
+            report = null,
             onEvent = {},
         )
     }
@@ -405,7 +406,7 @@ private fun HomeEmptyPreview() {
             isRefreshing = false,
             autoPlayVideos = true,
             failedAction = null,
-            reportSend = null,
+            report = null,
             onEvent = {},
         )
     }

@@ -24,7 +24,7 @@ import uno.lux.mosaic.post.data.FakePostDataSource
 import uno.lux.mosaic.post.data.PostRepository
 import uno.lux.mosaic.post.data.domain.Post
 import uno.lux.mosaic.post.ui.PostCardData
-import uno.lux.mosaic.post.ui.PostReportSend
+import uno.lux.mosaic.post.ui.PostReport
 import uno.lux.mosaic.post.ui.ReportSendState
 import uno.lux.mosaic.settings.data.InMemorySettingsRepository
 import uno.lux.mosaic.settings.data.SettingsRepository
@@ -214,7 +214,7 @@ class HomeViewModelTest : ViewModelTest() {
     // Reporting from the feed reports the card that was tapped and leaves the feed alone —
     // the post is still there, and still says what it said.
     @Test
-    fun `Report reports the post without changing the feed`() = runTest {
+    fun `a report sends for the card it was opened on without changing the feed`() = runTest {
         val dataSource = FakePostDataSource()
         val viewModel = viewModel(postDataSource = dataSource)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -222,37 +222,28 @@ class HomeViewModelTest : ViewModelTest() {
         }
         val before = (viewModel.uiState.value as HomeUiState.Feed).posts
 
-        viewModel.onEvent(HomeUiEvent.Report("p1", ReportReason.VIOLENCE, ""))
+        viewModel.onEvent(HomeUiEvent.OpenReport("p1"))
+        viewModel.onEvent(HomeUiEvent.SendReport(ReportReason.VIOLENCE, ""))
 
         assertEquals(
             listOf(FakePostDataSource.Report("p1", ReportReason.VIOLENCE, "")),
             dataSource.reports,
         )
+        assertEquals(PostReport.Sent, viewModel.report.value)
         assertEquals(before, (viewModel.uiState.value as HomeUiState.Feed).posts)
     }
 
-    // The feed's report goes through the same send state the detail page's does, so the card's
-    // dialog can stay up for it — and a failure stays out of the screen's snackbar.
+    // A failure stays in the dialog, which is still up, and out of the screen's snackbar.
     @Test
-    fun `a failed report is a state for the card's dialog, not an announcement`() = runTest {
+    fun `a failed report fails in the dialog, not as an announcement`() = runTest {
         val dataSource = FakePostDataSource().apply { reportError = UnknownHostException("offline") }
         val viewModel = viewModel(postDataSource = dataSource)
 
-        viewModel.onEvent(HomeUiEvent.Report("p1", ReportReason.VIOLENCE, ""))
+        viewModel.onEvent(HomeUiEvent.OpenReport("p1"))
+        viewModel.onEvent(HomeUiEvent.SendReport(ReportReason.VIOLENCE, ""))
 
-        assertEquals(PostReportSend("p1", ReportSendState.FAILED), viewModel.reportSend.value)
+        assertEquals(PostReport.Open("p1", ReportSendState.FAILED), viewModel.report.value)
         assertNull(viewModel.failedAction.value)
-    }
-
-    @Test
-    fun `a report the server takes reaches SENT, and closing the dialog spends it`() = runTest {
-        val viewModel = viewModel()
-        viewModel.onEvent(HomeUiEvent.Report("p1", ReportReason.VIOLENCE, ""))
-        assertEquals(PostReportSend("p1", ReportSendState.SENT), viewModel.reportSend.value)
-
-        viewModel.onEvent(HomeUiEvent.CloseReport)
-
-        assertNull(viewModel.reportSend.value)
     }
 
     @Test

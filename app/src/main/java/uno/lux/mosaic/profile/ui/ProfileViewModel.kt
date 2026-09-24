@@ -19,7 +19,6 @@ import kotlinx.coroutines.launch
 import uno.lux.mosaic.app.di.CurrentUserId
 import uno.lux.mosaic.app.navigation.Navigator
 import uno.lux.mosaic.app.navigation.Screen
-import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.common.data.network.toAppError
 import uno.lux.mosaic.common.ui.FailedAction
 import uno.lux.mosaic.common.ui.launchReporting
@@ -32,9 +31,8 @@ import uno.lux.mosaic.common.util.stateInWhileSubscribed
 import uno.lux.mosaic.post.data.PostRepository
 import uno.lux.mosaic.post.data.domain.PostId
 import uno.lux.mosaic.post.ui.PostCardData
-import uno.lux.mosaic.post.ui.PostReportSend
-import uno.lux.mosaic.post.ui.dropReport
-import uno.lux.mosaic.post.ui.launchReport
+import uno.lux.mosaic.post.ui.PostReport
+import uno.lux.mosaic.post.ui.PostReporter
 import uno.lux.mosaic.profile.data.PostList
 import uno.lux.mosaic.profile.data.ProfileRepository
 import uno.lux.mosaic.user.data.UserRepository
@@ -153,15 +151,14 @@ class ProfileViewModel @AssistedInject constructor(
 
     val failedAction: StateFlow<FailedAction?> = _failedAction.asStateFlow()
 
-    private val _reportSend = MutableStateFlow<PostReportSend?>(null)
+    private val reporter = PostReporter(viewModelScope, postRepository)
 
-    val reportSend: StateFlow<PostReportSend?> = _reportSend.asStateFlow()
+    val report: StateFlow<PostReport?> = reporter.report
 
     private var loadJob: Job? = null
     private var loadMorePostsJob: Job? = null
     private var bookmarksJob: Job? = null
     private var likesJob: Job? = null
-    private var reportJob: Job? = null
 
     init {
         retry()
@@ -188,12 +185,20 @@ class ProfileViewModel @AssistedInject constructor(
             delete(event.postId)
         }
 
-        is UiEvent.Report -> {
-            report(event.postId, event.reason, event.details)
+        is UiEvent.OpenReport -> {
+            reporter.open(event.postId)
+        }
+
+        is UiEvent.SendReport -> {
+            reporter.send(event.reason, event.details)
         }
 
         UiEvent.CloseReport -> {
-            dropReport(::reportJob) { _reportSend.value = null }
+            reporter.close()
+        }
+
+        UiEvent.ReportSentShown -> {
+            reporter.sentShown()
         }
 
         UiEvent.ToggleFollow -> {
@@ -293,14 +298,6 @@ class ProfileViewModel @AssistedInject constructor(
 
     private fun delete(postId: PostId) = launchReporting(FailedAction.DELETE_POST, ::setFailedAction) {
         postRepository.delete(postId)
-    }
-
-    private fun report(
-        postId: PostId,
-        reason: ReportReason,
-        details: String,
-    ) = launchReport(::reportJob, setState = { _reportSend.value = PostReportSend(postId, it) }) {
-        postRepository.report(postId, reason, details)
     }
 
     private fun toggleFollow() = launchReporting(FailedAction.FOLLOW, ::setFailedAction) {

@@ -107,9 +107,11 @@ fun PostDetailScreen(
         ),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val report by viewModel.report.collectAsStateWithLifecycle()
 
     PostDetailScreen(
         uiState = uiState,
+        report = report,
         onEvent = viewModel::onEvent,
         modifier = modifier,
     )
@@ -119,6 +121,7 @@ fun PostDetailScreen(
 @Composable
 internal fun PostDetailScreen(
     uiState: UiState,
+    report: PostReport?,
     onEvent: (UiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -134,6 +137,13 @@ internal fun PostDetailScreen(
     FailedActionEffect(uiState.failedAction, snackbarHostState) {
         onEvent(UiEvent.FailedActionShown)
     }
+
+    ReportHost(
+        report = report,
+        onSend = { reason, details -> onEvent(UiEvent.SendReport(reason, details)) },
+        onClose = { onEvent(UiEvent.CloseReport) },
+        onSentShown = { onEvent(UiEvent.ReportSentShown) },
+    )
 
     Scaffold(
         modifier = modifier.imePadding(),
@@ -165,12 +175,8 @@ internal fun PostDetailScreen(
                         PostOverflowMenu(
                             post = loaded.post,
                             author = loaded.author,
-                            reportSend = uiState.reportSend,
                             onToggleBookmark = { onEvent(UiEvent.ToggleBookmark) },
-                            onReport = { reason, details ->
-                                onEvent(UiEvent.Report(reason, details))
-                            },
-                            onReportClosed = { onEvent(UiEvent.CloseReport) },
+                            onReport = { onEvent(UiEvent.OpenReport) },
                             onDelete = deletePost.takeIf { loaded.isOwn },
                         )
                     }
@@ -215,8 +221,8 @@ internal fun PostDetailScreen(
                 modifier = Modifier.padding(contentPadding),
             )
 
-            // The thread is passed separately rather than as the whole state, so a report or a
-            // failed delete moving does not recompose the list under the reader.
+            // The thread is passed separately rather than as the whole state, so a comment send or
+            // a failed delete moving does not recompose the list under the reader.
             is Content.Loaded -> PostDetailContent(
                 content = content,
                 thread = uiState.commentThread,
@@ -648,6 +654,7 @@ private fun PostDetailPreview(
                 composerUser = SampleUsers.first(),
                 commentThread = thread,
             ),
+            report = null,
             onEvent = {},
         )
     }

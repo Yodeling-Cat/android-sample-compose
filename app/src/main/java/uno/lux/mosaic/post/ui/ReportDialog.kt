@@ -28,12 +28,15 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,6 +47,30 @@ import uno.lux.mosaic.designsystem.theme.MosaicTheme
 
 /** Mirrors the server's `PostsService::REPORT_DETAILS_MAX_LENGTH`. */
 const val REPORT_DETAILS_MAX_LENGTH = 1000
+
+@Composable
+internal fun ReportHost(
+    report: PostReport?,
+    onSend: (reason: ReportReason, details: String) -> Unit,
+    onClose: () -> Unit,
+    onSentShown: () -> Unit,
+) {
+    val context = LocalContext.current
+
+    when (report) {
+        null -> Unit
+
+        // Keyed so a dialog for another post never inherits the reason picked for this one.
+        is PostReport.Open -> key(report.postId) {
+            ReportPostDialog(sendState = report.send, onDismiss = onClose, onSubmit = onSend)
+        }
+
+        PostReport.Sent -> LaunchedEffect(Unit) {
+            context.toast(R.string.report_sent)
+            onSentShown()
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -15,7 +15,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import uno.lux.mosaic.app.fixtures.SamplePosts
 import uno.lux.mosaic.app.fixtures.SampleUsers
-import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.post.data.domain.Post
 import uno.lux.mosaic.user.data.domain.User
@@ -44,15 +43,13 @@ val Post.cardContentType: PostCardContentType
 internal fun PostCard(
     post: Post,
     author: User,
-    reportSend: ReportSendState,
     onToggleLike: () -> Unit,
     onToggleBookmark: () -> Unit,
     onOpenProfile: () -> Unit,
     onOpenVideo: (Video) -> Unit,
     onOpenAlbum: (List<String>, initialIndex: Int) -> Unit,
     onOpenPost: () -> Unit,
-    onReport: (reason: ReportReason, details: String) -> Unit,
-    onReportClosed: () -> Unit,
+    onReport: () -> Unit,
     modifier: Modifier = Modifier,
     onDelete: (() -> Unit)? = null,
 ) {
@@ -74,10 +71,8 @@ internal fun PostCard(
                 PostOverflowMenu(
                     post = post,
                     author = author,
-                    reportSend = reportSend,
                     onToggleBookmark = onToggleBookmark,
                     onReport = onReport,
-                    onReportClosed = onReportClosed,
                     onDelete = onDelete,
                 )
             },
@@ -110,15 +105,13 @@ private fun PostCardPreview() {
         PostCard(
             post = post,
             author = users.getValue(post.authorId),
-            reportSend = ReportSendState.IDLE,
             onToggleLike = {},
             onToggleBookmark = {},
             onOpenProfile = {},
             onOpenVideo = {},
             onOpenAlbum = { _, _ -> },
             onOpenPost = {},
-            onReport = { _, _ -> },
-            onReportClosed = {},
+            onReport = {},
             modifier = Modifier.background(MaterialTheme.colorScheme.background),
         )
     }

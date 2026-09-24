@@ -29,13 +29,18 @@ sealed interface HomeUiEvent {
         val postId: PostId,
     ) : HomeUiEvent
 
-    data class Report(
+    data class OpenReport(
         val postId: PostId,
+    ) : HomeUiEvent
+
+    data class SendReport(
         val reason: ReportReason,
         val details: String,
     ) : HomeUiEvent
 
     data object CloseReport : HomeUiEvent
+
+    data object ReportSentShown : HomeUiEvent
 
     data object OpenSettings : HomeUiEvent
 

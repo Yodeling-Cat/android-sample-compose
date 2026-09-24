@@ -18,7 +18,7 @@ import uno.lux.mosaic.common.ui.FailedAction
 import uno.lux.mosaic.post.data.FakePostDataSource
 import uno.lux.mosaic.post.data.PostRepository
 import uno.lux.mosaic.post.data.domain.Post
-import uno.lux.mosaic.post.ui.PostReportSend
+import uno.lux.mosaic.post.ui.PostReport
 import uno.lux.mosaic.post.ui.ReportSendState
 import uno.lux.mosaic.profile.data.FakeProfileDataSource
 import uno.lux.mosaic.profile.data.PostsPage
@@ -150,7 +150,7 @@ class ProfileViewModelTest : ViewModelTest() {
     // Someone else's profile is where a post is most likely to be reported, and reporting one
     // must leave the profile showing exactly what it showed.
     @Test
-    fun `Report reports the post and leaves the profile as it was`() = runTest {
+    fun `a report sends for the post it was opened on and leaves the profile as it was`() = runTest {
         val dataSource = FakePostDataSource()
         val viewModel = viewModel(postDataSource = dataSource)
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -158,7 +158,8 @@ class ProfileViewModelTest : ViewModelTest() {
         }
         val before = (viewModel.uiState.value as ProfileUiState.Loaded).data.posts
 
-        viewModel.onEvent(ProfileUiEvent.Report("p1", ReportReason.MISINFORMATION, "None of this is true"))
+        viewModel.onEvent(ProfileUiEvent.OpenReport("p1"))
+        viewModel.onEvent(ProfileUiEvent.SendReport(ReportReason.MISINFORMATION, "None of this is true"))
 
         assertEquals(
             listOf(
@@ -167,30 +168,19 @@ class ProfileViewModelTest : ViewModelTest() {
             dataSource.reports,
         )
         assertEquals(before, (viewModel.uiState.value as ProfileUiState.Loaded).data.posts)
-        assertEquals(PostReportSend("p1", ReportSendState.SENT), viewModel.reportSend.value)
+        assertEquals(PostReport.Sent, viewModel.report.value)
     }
 
-    // The profile's report is held in the same state the feed's and the detail page's are, so
-    // the card's dialog stays up for it rather than closing on a report that never landed.
     @Test
-    fun `a failed report is a state for the card's dialog, not an announcement`() = runTest {
+    fun `a failed report fails in the dialog, not as an announcement`() = runTest {
         val dataSource = FakePostDataSource().apply { reportError = UnknownHostException("offline") }
         val viewModel = viewModel(postDataSource = dataSource)
 
-        viewModel.onEvent(ProfileUiEvent.Report("p1", ReportReason.MISINFORMATION, ""))
+        viewModel.onEvent(ProfileUiEvent.OpenReport("p1"))
+        viewModel.onEvent(ProfileUiEvent.SendReport(ReportReason.MISINFORMATION, ""))
 
-        assertEquals(PostReportSend("p1", ReportSendState.FAILED), viewModel.reportSend.value)
+        assertEquals(PostReport.Open("p1", ReportSendState.FAILED), viewModel.report.value)
         assertNull(viewModel.failedAction.value)
-    }
-
-    @Test
-    fun `CloseReport drops the outcome the dialog has acted on`() = runTest {
-        val viewModel = viewModel()
-        viewModel.onEvent(ProfileUiEvent.Report("p1", ReportReason.MISINFORMATION, ""))
-
-        viewModel.onEvent(ProfileUiEvent.CloseReport)
-
-        assertNull(viewModel.reportSend.value)
     }
 
     @Test

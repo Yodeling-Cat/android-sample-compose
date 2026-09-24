@@ -1,6 +1,7 @@
 package uno.lux.mosaic.post.ui
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
@@ -18,7 +19,6 @@ import uno.lux.mosaic.app.navigation.Screen
 import uno.lux.mosaic.comment.data.CommentRepository
 import uno.lux.mosaic.comment.data.domain.Comment
 import uno.lux.mosaic.comment.data.domain.CommentId
-import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.common.data.network.toAppError
 import uno.lux.mosaic.common.ui.FailedAction
 import uno.lux.mosaic.common.ui.launchReporting
@@ -61,10 +61,13 @@ class PostDetailViewModel @AssistedInject constructor(
 
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
+    private val reporter = PostReporter(viewModelScope, postRepository)
+
+    val report: StateFlow<PostReport?> = reporter.report
+
     private var loadJob: Job? = null
     private var commentsJob: Job? = null
     private var loadMoreJob: Job? = null
-    private var reportJob: Job? = null
 
     init {
         observeStores()
@@ -102,12 +105,20 @@ class PostDetailViewModel @AssistedInject constructor(
             delete()
         }
 
-        is UiEvent.Report -> {
-            report(event.reason, event.details)
+        UiEvent.OpenReport -> {
+            reporter.open(postId)
+        }
+
+        is UiEvent.SendReport -> {
+            reporter.send(event.reason, event.details)
         }
 
         UiEvent.CloseReport -> {
-            dropReport(::reportJob, ::setReportSend)
+            reporter.close()
+        }
+
+        UiEvent.ReportSentShown -> {
+            reporter.sentShown()
         }
 
         UiEvent.Retry -> {
@@ -145,10 +156,6 @@ class PostDetailViewModel @AssistedInject constructor(
 
     private fun setCommentSend(state: CommentSendState) = _uiState.update {
         it.copy(commentSend = state)
-    }
-
-    private fun setReportSend(state: ReportSendState) = _uiState.update {
-        it.copy(reportSend = state)
     }
 
     private fun setFailedAction(action: FailedAction) = _uiState.update {
@@ -232,11 +239,6 @@ class PostDetailViewModel @AssistedInject constructor(
         postRepository.delete(postId)
         navigator.goBack()
     }
-
-    private fun report(reason: ReportReason, details: String) =
-        launchReport(::reportJob, ::setReportSend) {
-            postRepository.report(postId, reason, details)
-        }
 
     private fun retryComments() = launchIfIdle(::commentsJob) { loadComments() }
 

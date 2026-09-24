@@ -28,12 +28,16 @@ sealed interface PostDetailUiEvent {
 
     data object Delete : PostDetailUiEvent
 
-    data class Report(
+    data object OpenReport : PostDetailUiEvent
+
+    data class SendReport(
         val reason: ReportReason,
         val details: String,
     ) : PostDetailUiEvent
 
     data object CloseReport : PostDetailUiEvent
+
+    data object ReportSentShown : PostDetailUiEvent
 
     data object Retry : PostDetailUiEvent
 

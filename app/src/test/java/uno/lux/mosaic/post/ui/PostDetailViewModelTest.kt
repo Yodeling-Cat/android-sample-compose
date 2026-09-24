@@ -171,93 +171,32 @@ class PostDetailViewModelTest : ViewModelTest() {
     // A report is about the post, not on it: unlike a deletion it changes nothing the page
     // shows, and leaves the reporter reading what they reported.
     @Test
-    fun `Report reports the post and keeps the page open`() = runTest {
+    fun `a report sends for this post and keeps the page open`() = runTest {
         val dataSource = FakePostDataSource()
         val viewModel = viewModel(postDataSource = dataSource)
 
-        viewModel.onEvent(PostDetailUiEvent.Report(ReportReason.HARASSMENT, "Second time this week"))
+        viewModel.onEvent(PostDetailUiEvent.OpenReport)
+        viewModel.onEvent(PostDetailUiEvent.SendReport(ReportReason.HARASSMENT, "Second time this week"))
 
         assertEquals(
             listOf(FakePostDataSource.Report("p1", ReportReason.HARASSMENT, "Second time this week")),
             dataSource.reports,
         )
+        assertEquals(PostReport.Sent, viewModel.report.value)
         assertTrue(viewModel.uiState.value.content is Content.Loaded)
         assertEquals(listOf(Screen.Shell, Screen.PostDetail("p1")), backStack.screens())
     }
 
-    // The dialog is the whole point of these states: it stays up for the send, disables Send off
-    // SENDING, and closes on SENT — which is the moment the thanks stops being a guess.
-    @Test
-    fun `a report is SENDING while it is out and SENT once the server has it`() = runTest {
-        val dataSource = FakePostDataSource()
-        val viewModel = viewModel(postDataSource = dataSource)
-        var whileOut: ReportSendState? = null
-        dataSource.whileInFlight = { whileOut = viewModel.uiState.value.reportSend }
-
-        viewModel.onEvent(PostDetailUiEvent.Report(ReportReason.HARASSMENT, ""))
-
-        assertEquals(ReportSendState.SENDING, whileOut)
-        assertEquals(ReportSendState.SENT, viewModel.uiState.value.reportSend)
-    }
-
-    // A report the server refused has to fail *in* the dialog: the reporter is still reading it,
-    // and a snackbar would be announced behind its scrim.
     @Test
     fun `a failed report fails in the dialog rather than in a snackbar`() = runTest {
         val dataSource = FakePostDataSource().apply { reportError = UnknownHostException("offline") }
         val viewModel = viewModel(postDataSource = dataSource)
 
-        viewModel.onEvent(PostDetailUiEvent.Report(ReportReason.HARASSMENT, ""))
+        viewModel.onEvent(PostDetailUiEvent.OpenReport)
+        viewModel.onEvent(PostDetailUiEvent.SendReport(ReportReason.HARASSMENT, ""))
 
-        assertEquals(ReportSendState.FAILED, viewModel.uiState.value.reportSend)
+        assertEquals(PostReport.Open("p1", ReportSendState.FAILED), viewModel.report.value)
         assertNull(viewModel.uiState.value.failedAction)
-    }
-
-    // What the user picked is still in the dialog after a failure, so Send is one tap away —
-    // and the second attempt must not be turned away as a duplicate of the first.
-    @Test
-    fun `a report can be sent again after it failed`() = runTest {
-        val dataSource = FakePostDataSource().apply { reportError = UnknownHostException("offline") }
-        val viewModel = viewModel(postDataSource = dataSource)
-        viewModel.onEvent(PostDetailUiEvent.Report(ReportReason.HARASSMENT, ""))
-        dataSource.reportError = null
-
-        viewModel.onEvent(PostDetailUiEvent.Report(ReportReason.HARASSMENT, ""))
-
-        assertEquals(ReportSendState.SENT, viewModel.uiState.value.reportSend)
-        assertEquals(
-            listOf(FakePostDataSource.Report("p1", ReportReason.HARASSMENT, "")),
-            dataSource.reports,
-        )
-    }
-
-    @Test
-    fun `CloseReport drops the outcome the dialog has acted on`() = runTest {
-        val viewModel = viewModel()
-        viewModel.onEvent(PostDetailUiEvent.Report(ReportReason.HARASSMENT, ""))
-
-        viewModel.onEvent(PostDetailUiEvent.CloseReport)
-
-        assertEquals(ReportSendState.IDLE, viewModel.uiState.value.reportSend)
-    }
-
-    // Dismissing mid-send abandons the report along with the dialog. Without the cancellation
-    // its answer would still land in the state, and the *next* dialog would open on the outcome
-    // of a report the user walked away from — thanking them for it, or failing at them.
-    @Test
-    fun `a report dismissed while it is out cannot settle behind the dialog`() = runTest {
-        val dataSource = FakePostDataSource()
-        val viewModel = viewModel(postDataSource = dataSource)
-        val held = CompletableDeferred<Unit>()
-        dataSource.whileInFlight = { held.await() }
-
-        viewModel.onEvent(PostDetailUiEvent.Report(ReportReason.HARASSMENT, ""))
-        viewModel.onEvent(PostDetailUiEvent.CloseReport)
-        held.complete(Unit)
-        advanceUntilIdle()
-
-        assertEquals(ReportSendState.IDLE, viewModel.uiState.value.reportSend)
-        assertEquals(emptyList<FakePostDataSource.Report>(), dataSource.reports)
     }
 
     @Test

@@ -23,13 +23,18 @@ sealed interface ProfileUiEvent {
         val postId: PostId,
     ) : ProfileUiEvent
 
-    data class Report(
+    data class OpenReport(
         val postId: PostId,
+    ) : ProfileUiEvent
+
+    data class SendReport(
         val reason: ReportReason,
         val details: String,
     ) : ProfileUiEvent
 
     data object CloseReport : ProfileUiEvent
+
+    data object ReportSentShown : ProfileUiEvent
 
     data object ToggleFollow : ProfileUiEvent
 

@@ -24,7 +24,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -44,7 +43,6 @@ import kotlinx.coroutines.launch
 import uno.lux.mosaic.R
 import uno.lux.mosaic.app.fixtures.SamplePosts
 import uno.lux.mosaic.app.fixtures.SampleUsers
-import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.designsystem.components.debouncedClickable
 import uno.lux.mosaic.designsystem.components.rememberDebounced
 import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
@@ -57,17 +55,13 @@ import uno.lux.mosaic.user.ui.Avatar
 internal fun PostOverflowMenu(
     post: Post,
     author: User,
-    reportSend: ReportSendState,
     onToggleBookmark: () -> Unit,
-    onReport: (reason: ReportReason, details: String) -> Unit,
-    onReportClosed: () -> Unit,
+    onReport: () -> Unit,
     modifier: Modifier = Modifier,
     onDelete: (() -> Unit)? = null,
 ) {
-    val context = LocalContext.current
     // Saveable so an open sheet or dialog survives the activity recreation a rotation causes.
     var showSheet by rememberSaveable { mutableStateOf(false) }
-    var showReportDialog by rememberSaveable { mutableStateOf(false) }
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
 
     IconButton(onClick = ({ showSheet = true }).rememberDebounced(), modifier = modifier) {
@@ -84,7 +78,7 @@ internal fun PostOverflowMenu(
             author = author,
             onDismiss = { showSheet = false },
             onToggleBookmark = onToggleBookmark,
-            onReport = { showReportDialog = true },
+            onReport = onReport,
             onDelete = onDelete?.let { { showDeleteDialog = true } },
         )
     }
@@ -96,27 +90,6 @@ internal fun PostOverflowMenu(
                 showDeleteDialog = false
                 onDelete?.invoke()
             },
-        )
-    }
-
-    if (showReportDialog) {
-        // The thanks says a server has the report, so it waits until one does. A report that
-        // failed keeps the dialog, and says so in it, rather than thanking the user for nothing.
-        LaunchedEffect(reportSend) {
-            if (reportSend != ReportSendState.SENT) return@LaunchedEffect
-
-            context.toast(R.string.report_sent)
-            showReportDialog = false
-            onReportClosed()
-        }
-
-        ReportPostDialog(
-            sendState = reportSend,
-            onDismiss = {
-                showReportDialog = false
-                onReportClosed()
-            },
-            onSubmit = onReport,
         )
     }
 }
@@ -268,7 +241,7 @@ private fun copyPostLink(context: Context, post: Post) {
     }
 }
 
-private fun Context.toast(
+internal fun Context.toast(
     @StringRes messageRes: Int,
 ) {
     Toast.makeText(this, messageRes, Toast.LENGTH_SHORT).show()

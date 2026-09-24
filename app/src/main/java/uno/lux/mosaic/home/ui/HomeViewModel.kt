@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.combine
 import uno.lux.mosaic.app.di.CurrentUserId
 import uno.lux.mosaic.app.navigation.Navigator
 import uno.lux.mosaic.app.navigation.Screen
-import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.common.ui.FailedAction
 import uno.lux.mosaic.common.ui.ignoreErrors
 import uno.lux.mosaic.common.ui.launchReporting
@@ -26,9 +25,8 @@ import uno.lux.mosaic.feed.data.FeedState
 import uno.lux.mosaic.post.data.PostRepository
 import uno.lux.mosaic.post.data.domain.PostId
 import uno.lux.mosaic.post.ui.PostCardData
-import uno.lux.mosaic.post.ui.PostReportSend
-import uno.lux.mosaic.post.ui.dropReport
-import uno.lux.mosaic.post.ui.launchReport
+import uno.lux.mosaic.post.ui.PostReport
+import uno.lux.mosaic.post.ui.PostReporter
 import uno.lux.mosaic.settings.data.SettingsRepository
 import uno.lux.mosaic.settings.data.domain.DEFAULT_AUTO_PLAY_VIDEOS
 import uno.lux.mosaic.user.data.UserRepository
@@ -89,16 +87,15 @@ class HomeViewModel @Inject constructor(
 
     val failedAction: StateFlow<FailedAction?> = _failedAction.asStateFlow()
 
-    private val _reportSend = MutableStateFlow<PostReportSend?>(null)
+    private val reporter = PostReporter(viewModelScope, postRepository)
 
-    val reportSend: StateFlow<PostReportSend?> = _reportSend.asStateFlow()
+    val report: StateFlow<PostReport?> = reporter.report
 
     val autoPlayVideos: StateFlow<Boolean> = settingsRepository.autoPlayVideos
         .stateInWhileSubscribed(viewModelScope, DEFAULT_AUTO_PLAY_VIDEOS)
 
     private var loadJob: Job? = null
     private var loadMoreJob: Job? = null
-    private var reportJob: Job? = null
 
     init {
         retry()
@@ -137,12 +134,20 @@ class HomeViewModel @Inject constructor(
             delete(event.postId)
         }
 
-        is UiEvent.Report -> {
-            report(event.postId, event.reason, event.details)
+        is UiEvent.OpenReport -> {
+            reporter.open(event.postId)
+        }
+
+        is UiEvent.SendReport -> {
+            reporter.send(event.reason, event.details)
         }
 
         UiEvent.CloseReport -> {
-            dropReport(::reportJob) { _reportSend.value = null }
+            reporter.close()
+        }
+
+        UiEvent.ReportSentShown -> {
+            reporter.sentShown()
         }
 
         UiEvent.OpenSettings -> {
@@ -198,14 +203,6 @@ class HomeViewModel @Inject constructor(
 
     private fun delete(postId: PostId) = launchReporting(FailedAction.DELETE_POST, ::setFailedAction) {
         postRepository.delete(postId)
-    }
-
-    private fun report(
-        postId: PostId,
-        reason: ReportReason,
-        details: String,
-    ) = launchReport(::reportJob, setState = { _reportSend.value = PostReportSend(postId, it) }) {
-        postRepository.report(postId, reason, details)
     }
 
     private fun setFailedAction(action: FailedAction) {

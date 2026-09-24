@@ -30,7 +30,6 @@ data class PostDetailUiState(
     val composerUser: User,
     val commentThread: CommentThread = CommentThread(),
     val commentSend: CommentSendState = CommentSendState.IDLE,
-    val reportSend: ReportSendState = ReportSendState.IDLE,
     val failedAction: FailedAction? = null,
 ) {
 
