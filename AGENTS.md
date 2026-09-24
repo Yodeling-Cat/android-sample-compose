@@ -34,7 +34,7 @@ The shell is Windows PowerShell. Invoke the wrapper as `.\gradlew.bat`.
 - Compose stability reports: `.\gradlew.bat -Pmosaic.composeReports compileRemoteReleaseKotlin --rerun compileReleaseKotlin --rerun`. It writes `*-classes.txt` and `*-composables.txt` to each module's `build/compose-reports/`. Both task names are needed, for the same reason as the unit tests. Keep each `--rerun`: the reports are not a tracked output, so a compile task that is up to date or restored from the build cache writes none. See *Compose performance* for when to run it and what to look for.
 - Instrumented tests (need a device): `.\gradlew.bat connectedRemoteDebugAndroidTest`. For one class, add `-Pandroid.testInstrumentationRunnerArguments.class=…`.
 
-**CI** (`.github/workflows/ci.yml`) runs `ktlintCheck`, `lintRemoteDebug lintDebug`, and `testRemoteDebugUnitTest testDebugUnitTest` on every push to main and every pull request. It uploads the reports as artifacts. These three JVM-only checks are the checks that gate a change.
+**CI** (`.github/workflows/ci.yml`) runs `ktlintCheck`, `lintRemoteDebug lintDebug`, and `testRemoteDebugUnitTest testDebugUnitTest` on every push to main and every pull request, then compiles the instrumented suite with `compileRemoteDebugAndroidTestKotlin` without running it — nothing else type-checks `androidTest`. It uploads the reports as artifacts. These JVM-only checks are the checks that gate a change.
 
 **There is no emulator job.** No automatic process runs the instrumented suite. A change to process-death or back-stack behavior needs the user to run it.
 

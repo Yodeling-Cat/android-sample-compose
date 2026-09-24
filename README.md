@@ -15,6 +15,7 @@ The top level is **slices, not layers** — layers are the shape *inside* a slic
 ├── video/        ─┘
 │
 ├── feed/         ─┐
+├── home/          │
 ├── profile/       │
 ├── composer/      ├─ features and read models: they own no entity
 ├── settings/      │
@@ -149,7 +150,7 @@ The app talks to a Rails backend at `https://mosaic.tree-among-shrubs.com/api/`,
 
 Tests are the primary consumer of this codebase — the architecture is shaped by what a test needs to drive. The JVM suite covers repositories, ViewModels and formatters with hand-written fakes and no mocking framework; instrumented tests cover the two things a JVM test cannot reach, saved-state restoration and process death.
 
-Seven of the assertions are **architecture rules**. `ArchitectureTest` (Konsist) reads every import in the project and fails the build if one crosses a line the layout forbids — the design system reaching into a slice, HTTP escaping the network layer, the domain layer picking up a platform type, or a repository behind no interface taking an Android dependency. Every rule is derived from the package path rather than a list of names, so adding a slice needs no edit to the test, and Konsist reads all three modules. Kotlin has no package-private, and `internal` only reaches a module boundary — so *within* `:app`, where every concern still lives, a package layout is a convention until something checks it. This is that something.
+Eight of the assertions are **architecture rules**. `ArchitectureTest` (Konsist) reads every import in the project and fails the build if one crosses a line the layout forbids — the design system reaching into a slice, HTTP escaping the network layer, the domain layer picking up a platform type, or a repository behind no interface taking an Android dependency. Every rule is derived from the package path rather than a list of names, so adding a slice needs no edit to the test, and Konsist reads all three modules. Kotlin has no package-private, and `internal` only reaches a module boundary — so *within* `:app`, where every concern still lives, a package layout is a convention until something checks it. This is that something.
 
 ```bash
 ./gradlew ktlintCheck lintRemoteDebug lintDebug testRemoteDebugUnitTest testDebugUnitTest
