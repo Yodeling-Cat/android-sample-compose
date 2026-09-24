@@ -129,6 +129,8 @@ dependencies {
     // Instrumented ViewModel tests drive viewModelScope the same way the JVM ones do.
     androidTestImplementation(libs.kotlinx.coroutines.test)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+    // Installs itself through a manifest provider, so it needs no code and never reaches a release build.
+    debugImplementation(libs.leakcanary.android)
 }
 
 // Opens the adb reverse tunnel the `local` flavor's default host relies on, after every local
