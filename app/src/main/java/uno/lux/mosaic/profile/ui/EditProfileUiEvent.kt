@@ -1,4 +1,4 @@
-package uno.lux.mosaic.user.ui
+package uno.lux.mosaic.profile.ui
 
 import uno.lux.mosaic.user.data.domain.Gender
 

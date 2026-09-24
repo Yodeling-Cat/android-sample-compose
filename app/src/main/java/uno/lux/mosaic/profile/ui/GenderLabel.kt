@@ -1,4 +1,4 @@
-package uno.lux.mosaic.user.ui
+package uno.lux.mosaic.profile.ui
 
 import androidx.annotation.StringRes
 import uno.lux.mosaic.R

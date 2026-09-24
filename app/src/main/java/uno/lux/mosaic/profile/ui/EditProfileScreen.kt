@@ -1,4 +1,4 @@
-package uno.lux.mosaic.user.ui
+package uno.lux.mosaic.profile.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -67,9 +67,10 @@ import uno.lux.mosaic.designsystem.theme.accentBarColors
 import uno.lux.mosaic.designsystem.theme.rememberAccentWash
 import uno.lux.mosaic.user.data.domain.Gender
 import uno.lux.mosaic.user.data.domain.UserId
+import uno.lux.mosaic.user.ui.Avatar
 import uno.lux.mosaic.common.R as CommonR
-import uno.lux.mosaic.user.ui.EditProfileUiEvent as UiEvent
-import uno.lux.mosaic.user.ui.EditProfileUiState as UiState
+import uno.lux.mosaic.profile.ui.EditProfileUiEvent as UiEvent
+import uno.lux.mosaic.profile.ui.EditProfileUiState as UiState
 
 @Composable
 fun EditProfileScreen(

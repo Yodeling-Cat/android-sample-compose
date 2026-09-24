@@ -37,14 +37,14 @@ import uno.lux.mosaic.post.data.PostRepository
 import uno.lux.mosaic.post.data.domain.NewPost
 import uno.lux.mosaic.post.data.domain.PostId
 import uno.lux.mosaic.post.data.domain.PostWithUsers
+import uno.lux.mosaic.profile.ui.EditProfileUiEvent
+import uno.lux.mosaic.profile.ui.EditProfileUiState
+import uno.lux.mosaic.profile.ui.EditProfileViewModel
 import uno.lux.mosaic.user.data.UserDataSource
 import uno.lux.mosaic.user.data.UserRepository
 import uno.lux.mosaic.user.data.domain.ProfileUpdate
 import uno.lux.mosaic.user.data.domain.User
 import uno.lux.mosaic.user.data.domain.UserId
-import uno.lux.mosaic.user.ui.EditProfileUiEvent
-import uno.lux.mosaic.user.ui.EditProfileUiState
-import uno.lux.mosaic.user.ui.EditProfileViewModel
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)

@@ -1,4 +1,4 @@
-package uno.lux.mosaic.user.ui
+package uno.lux.mosaic.profile.ui
 
 import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.ExperimentalCoroutinesApi

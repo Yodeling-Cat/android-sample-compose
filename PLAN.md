@@ -51,7 +51,7 @@ Are the visuals of the predictive back gesture customizable? Is that what this i
 ## Code quality
 
 - **`EditProfileViewModel` uses the array-overload `combine` with unchecked casts**
-  (`args[0] as EditProfileForm?`, `user/ui/EditProfileViewModel.kt`) while `ProfileViewModel` solved
+  (`args[0] as EditProfileForm?`, `profile/ui/EditProfileViewModel.kt`) while `ProfileViewModel` solved
   the same arity problem with a typed pairing class (`LazyTabs`). The typed approach is the one worth
   showing off.
 - **`Modifier.composed` in `debouncedClickable`** (`designsystem/components/ClickDebounce.kt`) — the Compose team

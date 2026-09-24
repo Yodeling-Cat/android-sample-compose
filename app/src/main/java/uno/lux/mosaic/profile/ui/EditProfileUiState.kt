@@ -1,4 +1,4 @@
-package uno.lux.mosaic.user.ui
+package uno.lux.mosaic.profile.ui
 
 import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable

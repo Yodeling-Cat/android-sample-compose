@@ -95,7 +95,6 @@ import uno.lux.mosaic.profile.data.domain.Profile
 import uno.lux.mosaic.user.data.domain.User
 import uno.lux.mosaic.user.data.domain.UserId
 import uno.lux.mosaic.user.ui.Avatar
-import uno.lux.mosaic.user.ui.labelRes
 import uno.lux.mosaic.common.R as CommonR
 import uno.lux.mosaic.profile.ui.ProfileUiEvent as UiEvent
 import uno.lux.mosaic.profile.ui.ProfileUiState as UiState

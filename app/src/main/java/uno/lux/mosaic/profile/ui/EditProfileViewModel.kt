@@ -1,4 +1,4 @@
-package uno.lux.mosaic.user.ui
+package uno.lux.mosaic.profile.ui
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -22,8 +22,8 @@ import uno.lux.mosaic.common.util.stateInWhileSubscribed
 import uno.lux.mosaic.user.data.UserRepository
 import uno.lux.mosaic.user.data.domain.UserId
 import javax.inject.Inject
-import uno.lux.mosaic.user.ui.EditProfileUiEvent as UiEvent
-import uno.lux.mosaic.user.ui.EditProfileUiState as UiState
+import uno.lux.mosaic.profile.ui.EditProfileUiEvent as UiEvent
+import uno.lux.mosaic.profile.ui.EditProfileUiState as UiState
 
 /**
  * Seeds the form once from the cached user and never re-syncs, so a refresh cannot clobber edits.
