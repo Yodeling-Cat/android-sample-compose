@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -103,7 +104,6 @@ fun ProfileScreen(
     userId: UserId,
     modifier: Modifier = Modifier,
     showBackButton: Boolean = false,
-    // The ViewModel store is per back-stack entry, so each opened profile gets its own ViewModel.
     viewModel: ProfileViewModel = hiltViewModel<ProfileViewModel, ProfileViewModel.Factory>(
         creationCallback = { factory -> factory.create(userId) },
     ),
@@ -147,7 +147,7 @@ internal fun ProfileScreen(
         when (uiState) {
             UiState.Loading -> {
                 FullScreenProgress()
-                if (onBack != null) PlainBackButton(onBack, Modifier.align(Alignment.TopStart))
+                PlainBackButton(onBack)
             }
 
             is UiState.Error -> {
@@ -155,12 +155,12 @@ internal fun ProfileScreen(
                     message = uiState.error.asText(),
                     onRetry = { onEvent(UiEvent.Retry) },
                 )
-                if (onBack != null) PlainBackButton(onBack, Modifier.align(Alignment.TopStart))
+                PlainBackButton(onBack)
             }
 
             UiState.NotFound -> {
                 CenteredMessage(stringResource(R.string.profile_not_found))
-                if (onBack != null) PlainBackButton(onBack, Modifier.align(Alignment.TopStart))
+                PlainBackButton(onBack)
             }
 
             // Draws its own TopAppBar over the cover, so it needs no PlainBackButton.
@@ -196,7 +196,6 @@ private fun ProfileContent(
     onEvent: (UiEvent) -> Unit,
     onBack: (() -> Unit)?,
 ) {
-    // Saved is the signed-in user's own private list, so it is hidden on anyone else's profile.
     val tabs = remember(isCurrentUser) {
         ProfileTab.entries.filter { isCurrentUser || !it.ownerOnly }
     }
@@ -733,11 +732,15 @@ private fun EmptyTab(
     }
 }
 
+/** Draws nothing when [onBack] is null, which is a profile that is a tab rather than a pushed page. */
 @Composable
-private fun PlainBackButton(onBack: () -> Unit, modifier: Modifier = Modifier) {
+private fun BoxScope.PlainBackButton(onBack: (() -> Unit)?) {
+    if (onBack == null) return
+
     IconButton(
         onClick = onBack.rememberDebounced(),
-        modifier = modifier
+        modifier = Modifier
+            .align(Alignment.TopStart)
             .statusBarsPadding()
             .padding(start = 4.dp, top = 4.dp),
     ) {
