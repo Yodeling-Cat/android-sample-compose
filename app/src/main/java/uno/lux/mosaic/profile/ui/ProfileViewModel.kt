@@ -83,26 +83,9 @@ class ProfileViewModel @AssistedInject constructor(
             ProfilePostList(posts = cards, endReached = !more)
         }
 
-    private data class LoadFailures(
-        val posts: Boolean = false,
-        val bookmarks: Boolean = false,
-        val likes: Boolean = false,
-    )
-
     private val _loadFailures = MutableStateFlow(LoadFailures())
 
-    private data class LazyTabs(
-        val bookmarks: ProfilePostList?,
-        val likes: ProfilePostList?,
-        val failures: LoadFailures,
-    )
-
     private val lazyTabs = combine(cardListFlow(saved), cardListFlow(liked), _loadFailures, ::LazyTabs)
-
-    private data class OwnPosts(
-        val posts: List<Post>,
-        val endReached: Boolean,
-    )
 
     private val ownPosts = combine(
         profileRepository.postIds(userId),
@@ -341,3 +324,20 @@ class ProfileViewModel @AssistedInject constructor(
         catchErrors(onError = { _loadFailures.update { it.mark(true) } }, block = block)
     }
 }
+
+private data class LoadFailures(
+    val posts: Boolean = false,
+    val bookmarks: Boolean = false,
+    val likes: Boolean = false,
+)
+
+private data class LazyTabs(
+    val bookmarks: ProfilePostList?,
+    val likes: ProfilePostList?,
+    val failures: LoadFailures,
+)
+
+private data class OwnPosts(
+    val posts: List<Post>,
+    val endReached: Boolean,
+)
