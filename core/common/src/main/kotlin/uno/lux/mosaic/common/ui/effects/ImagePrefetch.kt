@@ -1,4 +1,4 @@
-package uno.lux.mosaic.common.util
+package uno.lux.mosaic.common.ui.effects
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect

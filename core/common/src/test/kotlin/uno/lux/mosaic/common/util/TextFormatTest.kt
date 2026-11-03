@@ -1,9 +1,9 @@
-package uno.lux.mosaic.common
+package uno.lux.mosaic.common.util
 
 import org.junit.Assert
 import org.junit.Test
 
-class FormattingTest {
+class TextFormatTest {
 
     @Test
     fun `initials take the first letter of the first two words`() {

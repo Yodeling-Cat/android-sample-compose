@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import uno.lux.mosaic.R
 import uno.lux.mosaic.app.fixtures.SampleUsers
-import uno.lux.mosaic.common.initials
+import uno.lux.mosaic.common.util.initials
 import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
 import uno.lux.mosaic.designsystem.theme.Manrope
 import uno.lux.mosaic.designsystem.theme.MosaicGradients

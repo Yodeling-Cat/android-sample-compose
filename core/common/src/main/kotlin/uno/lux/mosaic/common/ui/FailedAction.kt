@@ -6,7 +6,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
-import uno.lux.mosaic.common.asText
 import uno.lux.mosaic.common.util.catchErrors
 
 // TODO: Using a global enum for this is terrible architecture. Should probably take any data class as argument instead.

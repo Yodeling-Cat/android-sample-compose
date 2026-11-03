@@ -13,7 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import uno.lux.mosaic.common.ui.OverlayBackButton
-import uno.lux.mosaic.common.util.ImmersiveSystemBars
+import uno.lux.mosaic.common.ui.effects.ImmersiveSystemBars
 import uno.lux.mosaic.common.util.findActivity
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.video.ui.FullscreenVideoUiEvent as UiEvent

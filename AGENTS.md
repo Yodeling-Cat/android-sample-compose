@@ -112,9 +112,10 @@ The top level of the package tree is **slices, not layers**. Layers are the shap
   app/fixtures/        stand-in content for previews and DI seeding
 
 :core:common
-  common/ui/           noun-free composables two or more concerns need
+  common/ui/           noun-free composables two or more concerns need, and asText() for util's buckets
+  common/ui/effects/   composables that draw nothing — system bars, image prefetch
   common/data/         wire types that describe no single aggregate, plus file loading
-  common/util/         pure functions with zero project imports, plus composables that draw nothing
+  common/util/         plain functions and types with zero project imports — nothing @Composable
 
 :core:design-system
   designsystem/theme/       the Mosaic palette, type and gradients
@@ -159,7 +160,7 @@ The feature-to-feature edges are deliberate. `home -> feed`: the Home tab is the
 **To file a new file, ask in order:**
 
 1. **Does it mention a domain noun?** No → 2. Yes → 3.
-2. Pixels → branded control → `designsystem/components`; color/font → `designsystem/theme`; needed by 2+ concerns → `common/ui`; one concern → that concern. Draws nothing → `common/util`, even when `@Composable` — **unless the design system itself needs it**, in which case it goes there, because `:core:design-system` sits below `:core:common` and cannot import it. `ClickDebounce` is the one case today. Wires the app together → `app`. Neither → `common/data`.
+2. Pixels → branded control → `designsystem/components`; color/font → `designsystem/theme`; needed by 2+ concerns → `common/ui`; one concern → that concern. Draws nothing → `common/ui/effects` when `@Composable`, `common/util` when not — **unless the design system itself needs it**, in which case it goes there, because `:core:design-system` sits below `:core:common` and cannot import it. `ClickDebounce` is the one case today. Wires the app together → `app`. Neither → `common/data`.
 3. Claimed by exactly one feature → that feature. By several → the noun's aggregate.
 
 The moment a "helper" imports `Post`, it is post code. File it in `post/`.
@@ -527,7 +528,7 @@ Each module carries the strings its own code draws, so there are three `strings.
 
 Navigation labels are `@StringRes` IDs on `ShellDestinations`. Post content in `SampleData` is stand-in data, not app chrome, so it stays literal.
 
-Computed text keeps its *logic* pure. `relativeTime()` and `compactCount()`, in `common/util`, return structured buckets with no display strings. `common/Formatting.kt`'s `asText()` resolves a bucket to a localized resource.
+Computed text keeps its *logic* pure. `relativeTime()` and `compactCount()`, in `common/util`, return structured buckets with no display strings. `common/ui/Formatting.kt`'s `asText()` resolves a bucket to a localized resource.
 
 Anything counted needs `<plurals>` and `pluralStringResource(...)`, not `%d`, because Czech buckets counts into `one`, `few`, `many`, and `other`.
 

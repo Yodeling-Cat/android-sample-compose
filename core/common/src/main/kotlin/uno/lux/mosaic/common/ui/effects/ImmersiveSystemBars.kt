@@ -1,4 +1,4 @@
-package uno.lux.mosaic.common.util
+package uno.lux.mosaic.common.ui.effects
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -7,6 +7,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import uno.lux.mosaic.common.util.findActivity
 
 @Composable
 fun ImmersiveSystemBars() {

@@ -59,13 +59,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uno.lux.mosaic.R
 import uno.lux.mosaic.app.fixtures.SamplePosts
 import uno.lux.mosaic.app.fixtures.SampleUsers
-import uno.lux.mosaic.common.asText
 import uno.lux.mosaic.common.ui.FailedAction
 import uno.lux.mosaic.common.ui.FailedActionEffect
 import uno.lux.mosaic.common.ui.FullScreenError
 import uno.lux.mosaic.common.ui.FullScreenProgress
 import uno.lux.mosaic.common.ui.LoadMoreEffect
 import uno.lux.mosaic.common.ui.LoadMoreFooter
+import uno.lux.mosaic.common.ui.asText
 import uno.lux.mosaic.designsystem.components.ScrimIconButton
 import uno.lux.mosaic.designsystem.components.rememberDebounced
 import uno.lux.mosaic.designsystem.theme.LocalMosaicColors

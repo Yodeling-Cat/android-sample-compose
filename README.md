@@ -28,8 +28,9 @@ The top level is **slices, not layers** — layers are the shape *inside* a slic
 
 :core:common  ·  uno/lux/mosaic/common/
 ├── ui/           noun-free composables two or more concerns need
+│   └── effects/  composables that draw nothing: system bars, image prefetch
 ├── data/         wire types that describe no single aggregate, plus file loading
-└── util/         pure functions with zero project imports
+└── util/         plain functions and types with zero project imports
 
 :core:design-system  ·  uno/lux/mosaic/designsystem/
 ├── theme/        the Mosaic palette, type and gradients

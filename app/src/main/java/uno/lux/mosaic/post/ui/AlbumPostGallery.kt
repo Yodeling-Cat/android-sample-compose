@@ -28,7 +28,7 @@ import uno.lux.mosaic.R
 import uno.lux.mosaic.album.domain.Album
 import uno.lux.mosaic.app.fixtures.SamplePosts
 import uno.lux.mosaic.common.ui.MediaBadge
-import uno.lux.mosaic.common.util.PrefetchNextImage
+import uno.lux.mosaic.common.ui.effects.PrefetchNextImage
 import uno.lux.mosaic.designsystem.components.debouncedClickable
 import uno.lux.mosaic.designsystem.theme.MosaicGradients
 import uno.lux.mosaic.designsystem.theme.MosaicTheme

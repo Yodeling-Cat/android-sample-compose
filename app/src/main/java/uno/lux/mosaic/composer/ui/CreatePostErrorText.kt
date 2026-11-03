@@ -3,7 +3,7 @@ package uno.lux.mosaic.composer.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import uno.lux.mosaic.R
-import uno.lux.mosaic.common.asText
+import uno.lux.mosaic.common.ui.asText
 
 @Composable
 fun CreatePostError.asText(): String = when (this) {

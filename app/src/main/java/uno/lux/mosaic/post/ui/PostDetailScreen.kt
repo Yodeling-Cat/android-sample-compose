@@ -72,14 +72,14 @@ import uno.lux.mosaic.app.fixtures.SampleComments
 import uno.lux.mosaic.app.fixtures.SamplePosts
 import uno.lux.mosaic.app.fixtures.SampleUsers
 import uno.lux.mosaic.comment.domain.Comment
-import uno.lux.mosaic.common.asText
 import uno.lux.mosaic.common.ui.FailedActionEffect
 import uno.lux.mosaic.common.ui.FullScreenError
 import uno.lux.mosaic.common.ui.FullScreenProgress
 import uno.lux.mosaic.common.ui.LoadMoreEffect
 import uno.lux.mosaic.common.ui.LoadMoreFooter
+import uno.lux.mosaic.common.ui.asText
+import uno.lux.mosaic.common.ui.effects.LightStatusBarIcons
 import uno.lux.mosaic.common.util.AppError
-import uno.lux.mosaic.common.util.LightStatusBarIcons
 import uno.lux.mosaic.common.util.relativeTime
 import uno.lux.mosaic.designsystem.components.AppBarAction
 import uno.lux.mosaic.designsystem.components.debouncedClickable

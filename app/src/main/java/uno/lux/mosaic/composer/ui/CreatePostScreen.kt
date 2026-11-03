@@ -54,11 +54,11 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import uno.lux.mosaic.R
-import uno.lux.mosaic.common.formatVideoDuration
 import uno.lux.mosaic.common.ui.DiscardChangesDialog
 import uno.lux.mosaic.common.ui.FormCard
 import uno.lux.mosaic.common.ui.MediaBadge
 import uno.lux.mosaic.common.ui.MediaRemoveButton
+import uno.lux.mosaic.common.util.formatVideoDuration
 import uno.lux.mosaic.designsystem.components.AppBarAction
 import uno.lux.mosaic.designsystem.components.HoldToConfirmButton
 import uno.lux.mosaic.designsystem.components.debouncedClickable

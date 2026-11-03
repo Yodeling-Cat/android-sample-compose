@@ -38,7 +38,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import uno.lux.mosaic.app.fixtures.SamplePosts
 import uno.lux.mosaic.common.ui.OverlayBackButton
-import uno.lux.mosaic.common.util.ImmersiveSystemBars
+import uno.lux.mosaic.common.ui.effects.ImmersiveSystemBars
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import kotlin.math.min
 import uno.lux.mosaic.album.ui.AlbumViewerUiEvent as UiEvent

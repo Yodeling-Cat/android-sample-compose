@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.dp
 import uno.lux.mosaic.R
 import uno.lux.mosaic.app.fixtures.SamplePosts
 import uno.lux.mosaic.app.fixtures.SampleUsers
-import uno.lux.mosaic.common.asText
+import uno.lux.mosaic.common.ui.asText
 import uno.lux.mosaic.common.util.compactCount
 import uno.lux.mosaic.common.util.relativeTime
 import uno.lux.mosaic.designsystem.components.debouncedClickable

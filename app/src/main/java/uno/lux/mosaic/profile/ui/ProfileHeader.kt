@@ -33,7 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import uno.lux.mosaic.R
-import uno.lux.mosaic.common.asText
+import uno.lux.mosaic.common.ui.asText
 import uno.lux.mosaic.common.util.compactCount
 import uno.lux.mosaic.designsystem.components.rememberDebounced
 import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
