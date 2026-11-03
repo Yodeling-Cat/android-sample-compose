@@ -61,9 +61,12 @@ class PostDetailViewModel @AssistedInject constructor(
 
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
-    private val reporter = PostReporter(viewModelScope, postRepository)
-
-    val report: StateFlow<PostReport?> = reporter.report
+    private val reporter = PostReporter(
+        scope = viewModelScope,
+        postRepository = postRepository,
+        current = { _uiState.value.report },
+        update = { mutate -> _uiState.update { it.copy(report = mutate(it.report)) } },
+    )
 
     private var loadJob: Job? = null
     private var commentsJob: Job? = null

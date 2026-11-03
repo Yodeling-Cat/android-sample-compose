@@ -3,6 +3,7 @@ package uno.lux.mosaic.post.ui
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -20,13 +21,16 @@ import java.net.UnknownHostException
 class PostReporterTest {
 
     private val dataSource = FakePostDataSource()
+    private val report = MutableStateFlow<PostReport?>(null)
 
     private fun CoroutineScope.reporter() =
-        PostReporter(this, PostRepository(dataSource, UserRepository(FakeUserDataSource())))
+        PostReporter(this, PostRepository(dataSource, UserRepository(FakeUserDataSource())), report)
 
     @Test
     fun `nothing is open until a post is reported`() = runTest(UnconfinedTestDispatcher()) {
-        assertNull(backgroundScope.reporter().report.value)
+        backgroundScope.reporter()
+
+        assertNull(report.value)
     }
 
     @Test
@@ -35,7 +39,7 @@ class PostReporterTest {
 
         reporter.open("p1")
 
-        assertEquals(PostReport.Open("p1", ReportSendState.IDLE), reporter.report.value)
+        assertEquals(PostReport.Open("p1", ReportSendState.IDLE), report.value)
     }
 
     // The dialog stays up for the whole request, and closes only once the server has the report —
@@ -44,13 +48,13 @@ class PostReporterTest {
     fun `a report is SENDING while it is out and Sent once the server has it`() = runTest(UnconfinedTestDispatcher()) {
         val reporter = backgroundScope.reporter()
         var whileOut: PostReport? = null
-        dataSource.whileInFlight = { whileOut = reporter.report.value }
+        dataSource.whileInFlight = { whileOut = report.value }
         reporter.open("p1")
 
         reporter.send(ReportReason.SPAM, "Four times")
 
         assertEquals(PostReport.Open("p1", ReportSendState.SENDING), whileOut)
-        assertEquals(PostReport.Sent, reporter.report.value)
+        assertEquals(PostReport.Sent, report.value)
         assertEquals(listOf(FakePostDataSource.Report("p1", ReportReason.SPAM, "Four times")), dataSource.reports)
     }
 
@@ -63,7 +67,7 @@ class PostReporterTest {
 
         reporter.send(ReportReason.SPAM, "")
 
-        assertEquals(PostReport.Open("p1", ReportSendState.FAILED), reporter.report.value)
+        assertEquals(PostReport.Open("p1", ReportSendState.FAILED), report.value)
     }
 
     @Test
@@ -76,7 +80,7 @@ class PostReporterTest {
 
         reporter.send(ReportReason.SPAM, "")
 
-        assertEquals(PostReport.Sent, reporter.report.value)
+        assertEquals(PostReport.Sent, report.value)
         assertEquals(listOf(FakePostDataSource.Report("p1", ReportReason.SPAM, "")), dataSource.reports)
     }
 
@@ -100,7 +104,7 @@ class PostReporterTest {
 
         reporter.send(ReportReason.SPAM, "")
 
-        assertNull(reporter.report.value)
+        assertNull(report.value)
         assertEquals(emptyList<FakePostDataSource.Report>(), dataSource.reports)
     }
 
@@ -111,7 +115,7 @@ class PostReporterTest {
 
         reporter.close()
 
-        assertNull(reporter.report.value)
+        assertNull(report.value)
     }
 
     // Closing mid-send abandons the report with the dialog. Otherwise its answer would still land,
@@ -128,7 +132,7 @@ class PostReporterTest {
         held.complete(Unit)
         advanceUntilIdle()
 
-        assertNull(reporter.report.value)
+        assertNull(report.value)
         assertEquals(emptyList<FakePostDataSource.Report>(), dataSource.reports)
     }
 
@@ -140,7 +144,7 @@ class PostReporterTest {
 
         reporter.sentShown()
 
-        assertNull(reporter.report.value)
+        assertNull(report.value)
     }
 
     // The thanks is spent after the dialog for the next report may already be up; spending it
@@ -154,6 +158,6 @@ class PostReporterTest {
 
         reporter.sentShown()
 
-        assertEquals(PostReport.Open("p2", ReportSendState.IDLE), reporter.report.value)
+        assertEquals(PostReport.Open("p2", ReportSendState.IDLE), report.value)
     }
 }

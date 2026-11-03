@@ -182,7 +182,7 @@ class PostDetailViewModelTest : ViewModelTest() {
             listOf(FakePostDataSource.Report("p1", ReportReason.HARASSMENT, "Second time this week")),
             dataSource.reports,
         )
-        assertEquals(PostReport.Sent, viewModel.report.value)
+        assertEquals(PostReport.Sent, viewModel.uiState.value.report)
         assertTrue(viewModel.uiState.value.content is Content.Loaded)
         assertEquals(listOf(Screen.Shell, Screen.PostDetail("p1")), backStack.screens())
     }
@@ -195,7 +195,7 @@ class PostDetailViewModelTest : ViewModelTest() {
         viewModel.onEvent(PostDetailUiEvent.OpenReport)
         viewModel.onEvent(PostDetailUiEvent.SendReport(ReportReason.HARASSMENT, ""))
 
-        assertEquals(PostReport.Open("p1", ReportSendState.FAILED), viewModel.report.value)
+        assertEquals(PostReport.Open("p1", ReportSendState.FAILED), viewModel.uiState.value.report)
         assertNull(viewModel.uiState.value.failedAction)
     }
 

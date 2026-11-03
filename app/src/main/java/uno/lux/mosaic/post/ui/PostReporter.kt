@@ -4,8 +4,6 @@ import androidx.compose.runtime.Immutable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uno.lux.mosaic.common.data.ReportReason
@@ -38,20 +36,25 @@ sealed interface PostReport {
 class PostReporter(
     private val scope: CoroutineScope,
     private val postRepository: PostRepository,
+    private val current: () -> PostReport?,
+    private val update: ((PostReport?) -> PostReport?) -> Unit,
 ) {
-    private val _report = MutableStateFlow<PostReport?>(null)
-    val report: StateFlow<PostReport?> = _report.asStateFlow()
+    constructor(
+        scope: CoroutineScope,
+        postRepository: PostRepository,
+        report: MutableStateFlow<PostReport?>,
+    ) : this(scope, postRepository, { report.value }, report::update)
 
     private var sendJob: Job? = null
 
     fun open(postId: PostId) {
         close()
-        _report.value = PostReport.Open(postId)
+        update { PostReport.Open(postId) }
     }
 
     /** A no-op with no dialog open, or while a send is already out. */
     fun send(reason: ReportReason, details: String) {
-        val open = _report.value as? PostReport.Open ?: return
+        val open = current() as? PostReport.Open ?: return
         if (sendJob?.isActive == true) return
 
         sendJob = scope.launch {
@@ -59,7 +62,7 @@ class PostReporter(
 
             catchErrors(onError = { setSend(ReportSendState.FAILED) }) {
                 postRepository.report(open.postId, reason, details)
-                _report.value = PostReport.Sent
+                update { PostReport.Sent }
             }
         }
     }
@@ -68,12 +71,12 @@ class PostReporter(
     fun close() {
         sendJob?.cancel()
         sendJob = null
-        _report.value = null
+        update { null }
     }
 
-    fun sentShown() = _report.update { if (it == PostReport.Sent) null else it }
+    fun sentShown() = update { if (it == PostReport.Sent) null else it }
 
-    private fun setSend(state: ReportSendState) = _report.update {
+    private fun setSend(state: ReportSendState) = update {
         if (it is PostReport.Open) it.copy(send = state) else it
     }
 }

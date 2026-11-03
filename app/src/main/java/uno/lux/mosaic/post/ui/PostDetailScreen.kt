@@ -107,11 +107,9 @@ fun PostDetailScreen(
         ),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val report by viewModel.report.collectAsStateWithLifecycle()
 
     PostDetailScreen(
         uiState = uiState,
-        report = report,
         onEvent = viewModel::onEvent,
         modifier = modifier,
     )
@@ -121,7 +119,6 @@ fun PostDetailScreen(
 @Composable
 internal fun PostDetailScreen(
     uiState: UiState,
-    report: PostReport?,
     onEvent: (UiEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -139,7 +136,7 @@ internal fun PostDetailScreen(
     }
 
     ReportHost(
-        report = report,
+        report = uiState.report,
         onSend = { reason, details -> onEvent(UiEvent.SendReport(reason, details)) },
         onClose = { onEvent(UiEvent.CloseReport) },
         onSentShown = { onEvent(UiEvent.ReportSentShown) },
@@ -654,7 +651,6 @@ private fun PostDetailPreview(
                 composerUser = SampleUsers.first(),
                 commentThread = thread,
             ),
-            report = null,
             onEvent = {},
         )
     }

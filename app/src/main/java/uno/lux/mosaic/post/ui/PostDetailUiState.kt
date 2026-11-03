@@ -31,6 +31,7 @@ data class PostDetailUiState(
     val commentThread: CommentThread = CommentThread(),
     val commentSend: CommentSendState = CommentSendState.IDLE,
     val failedAction: FailedAction? = null,
+    val report: PostReport? = null,
 ) {
 
     @Immutable

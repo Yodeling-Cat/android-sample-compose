@@ -138,9 +138,11 @@ class ProfileViewModel @AssistedInject constructor(
 
     val failedAction: StateFlow<FailedAction?> = _failedAction.asStateFlow()
 
-    private val reporter = PostReporter(viewModelScope, postRepository)
+    private val _report = MutableStateFlow<PostReport?>(null)
 
-    val report: StateFlow<PostReport?> = reporter.report
+    val report: StateFlow<PostReport?> = _report.asStateFlow()
+
+    private val reporter = PostReporter(viewModelScope, postRepository, _report)
 
     private var loadJob: Job? = null
     private var loadMorePostsJob: Job? = null

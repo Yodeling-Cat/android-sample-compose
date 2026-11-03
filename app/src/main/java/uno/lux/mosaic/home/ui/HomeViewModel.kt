@@ -96,9 +96,11 @@ class HomeViewModel @Inject constructor(
 
     val failedAction: StateFlow<FailedAction?> = _failedAction.asStateFlow()
 
-    private val reporter = PostReporter(viewModelScope, postRepository)
+    private val _report = MutableStateFlow<PostReport?>(null)
 
-    val report: StateFlow<PostReport?> = reporter.report
+    val report: StateFlow<PostReport?> = _report.asStateFlow()
+
+    private val reporter = PostReporter(viewModelScope, postRepository, _report)
 
     val autoPlayVideos: StateFlow<Boolean> = settingsRepository.autoPlayVideos
         .stateInWhileSubscribed(viewModelScope, DEFAULT_AUTO_PLAY_VIDEOS)
