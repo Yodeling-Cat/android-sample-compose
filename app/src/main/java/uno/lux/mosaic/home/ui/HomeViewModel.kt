@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import uno.lux.mosaic.app.di.CurrentUserId
 import uno.lux.mosaic.app.navigation.Navigator
 import uno.lux.mosaic.app.navigation.Screen
@@ -100,7 +101,12 @@ class HomeViewModel @Inject constructor(
 
     val report: StateFlow<PostReport?> = _report.asStateFlow()
 
-    private val reporter = PostReporter(viewModelScope, postRepository, _report)
+    private val reporter = PostReporter(
+        scope = viewModelScope,
+        postRepository = postRepository,
+        current = { _report.value },
+        update = _report::update,
+    )
 
     val autoPlayVideos: StateFlow<Boolean> = settingsRepository.autoPlayVideos
         .stateInWhileSubscribed(viewModelScope, DEFAULT_AUTO_PLAY_VIDEOS)

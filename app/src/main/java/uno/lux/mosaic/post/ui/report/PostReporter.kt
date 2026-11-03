@@ -3,8 +3,6 @@ package uno.lux.mosaic.post.ui.report
 import androidx.compose.runtime.Immutable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.common.util.catchErrors
@@ -39,12 +37,6 @@ class PostReporter(
     private val current: () -> PostReport?,
     private val update: ((PostReport?) -> PostReport?) -> Unit,
 ) {
-    constructor(
-        scope: CoroutineScope,
-        postRepository: PostRepository,
-        report: MutableStateFlow<PostReport?>,
-    ) : this(scope, postRepository, { report.value }, report::update)
-
     private var sendJob: Job? = null
 
     fun open(postId: PostId) {

@@ -4,6 +4,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -24,7 +25,12 @@ class PostReporterTest {
     private val report = MutableStateFlow<PostReport?>(null)
 
     private fun CoroutineScope.reporter() =
-        PostReporter(this, PostRepository(dataSource, UserRepository(FakeUserDataSource())), report)
+        PostReporter(
+            scope = this,
+            postRepository = PostRepository(dataSource, UserRepository(FakeUserDataSource())),
+            current = { report.value },
+            update = report::update,
+        )
 
     @Test
     fun `nothing is open until a post is reported`() = runTest(UnconfinedTestDispatcher()) {
