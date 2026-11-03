@@ -38,10 +38,10 @@ import uno.lux.mosaic.settings.data.DataStoreSettingsRepository
 import uno.lux.mosaic.settings.data.SettingsRepository
 import uno.lux.mosaic.user.data.UserDataSource
 import uno.lux.mosaic.user.data.UserRepository
-import uno.lux.mosaic.user.data.domain.User
-import uno.lux.mosaic.user.data.domain.UserId
 import uno.lux.mosaic.user.data.network.NetworkUserDataSource
 import uno.lux.mosaic.user.data.network.UserApi
+import uno.lux.mosaic.user.domain.User
+import uno.lux.mosaic.user.domain.UserId
 import javax.inject.Singleton
 
 @Module

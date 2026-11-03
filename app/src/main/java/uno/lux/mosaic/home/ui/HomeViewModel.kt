@@ -23,14 +23,14 @@ import uno.lux.mosaic.common.util.stateInWhileSubscribed
 import uno.lux.mosaic.feed.data.FeedRepository
 import uno.lux.mosaic.feed.data.FeedState
 import uno.lux.mosaic.post.data.PostRepository
-import uno.lux.mosaic.post.data.domain.PostId
+import uno.lux.mosaic.post.domain.PostId
 import uno.lux.mosaic.post.ui.PostCardData
 import uno.lux.mosaic.post.ui.PostReport
 import uno.lux.mosaic.post.ui.PostReporter
 import uno.lux.mosaic.settings.data.SettingsRepository
-import uno.lux.mosaic.settings.data.domain.DEFAULT_AUTO_PLAY_VIDEOS
+import uno.lux.mosaic.settings.domain.DEFAULT_AUTO_PLAY_VIDEOS
 import uno.lux.mosaic.user.data.UserRepository
-import uno.lux.mosaic.user.data.domain.UserId
+import uno.lux.mosaic.user.domain.UserId
 import javax.inject.Inject
 import uno.lux.mosaic.home.ui.HomeUiEvent as UiEvent
 import uno.lux.mosaic.home.ui.HomeUiState as UiState

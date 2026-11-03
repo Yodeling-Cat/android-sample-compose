@@ -1,12 +1,12 @@
 package uno.lux.mosaic.post.ui
 
 import androidx.compose.runtime.Immutable
-import uno.lux.mosaic.comment.data.domain.Comment
-import uno.lux.mosaic.comment.data.domain.CommentId
+import uno.lux.mosaic.comment.domain.Comment
+import uno.lux.mosaic.comment.domain.CommentId
 import uno.lux.mosaic.common.ui.FailedAction
 import uno.lux.mosaic.common.util.AppError
-import uno.lux.mosaic.post.data.domain.Post
-import uno.lux.mosaic.user.data.domain.User
+import uno.lux.mosaic.post.domain.Post
+import uno.lux.mosaic.user.domain.User
 
 enum class CommentSendState {
     IDLE,

@@ -2,7 +2,7 @@ package uno.lux.mosaic.profile.ui
 
 import androidx.annotation.StringRes
 import uno.lux.mosaic.R
-import uno.lux.mosaic.user.data.domain.Gender
+import uno.lux.mosaic.user.domain.Gender
 
 @get:StringRes
 val Gender.labelRes: Int

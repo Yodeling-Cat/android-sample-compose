@@ -1,4 +1,4 @@
-package uno.lux.mosaic.settings.data.domain
+package uno.lux.mosaic.settings.domain
 
 /**
  * Deliberately has no "follow the system" entry; the device language only seeds the first choice.

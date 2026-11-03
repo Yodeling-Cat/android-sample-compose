@@ -1,9 +1,9 @@
 package uno.lux.mosaic.comment.data
 
-import uno.lux.mosaic.comment.data.domain.Comment
-import uno.lux.mosaic.comment.data.domain.CommentId
+import uno.lux.mosaic.comment.domain.Comment
+import uno.lux.mosaic.comment.domain.CommentId
 import uno.lux.mosaic.common.data.LikeState
-import uno.lux.mosaic.post.data.domain.PostId
+import uno.lux.mosaic.post.domain.PostId
 
 interface CommentDataSource {
     suspend fun loadComments(postId: PostId, cursor: String?): CommentPage

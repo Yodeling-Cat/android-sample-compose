@@ -1,4 +1,4 @@
-package uno.lux.mosaic.album.data.domain
+package uno.lux.mosaic.album.domain
 
 typealias AlbumId = String
 

@@ -6,10 +6,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import uno.lux.mosaic.common.data.ReportReason
-import uno.lux.mosaic.post.data.domain.NewPost
-import uno.lux.mosaic.post.data.domain.Post
-import uno.lux.mosaic.post.data.domain.PostId
-import uno.lux.mosaic.post.data.domain.PostWithUsers
+import uno.lux.mosaic.post.domain.NewPost
+import uno.lux.mosaic.post.domain.Post
+import uno.lux.mosaic.post.domain.PostId
+import uno.lux.mosaic.post.domain.PostWithUsers
 import uno.lux.mosaic.user.data.UserRepository
 
 class PostRepository(

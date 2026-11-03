@@ -1,9 +1,9 @@
 package uno.lux.mosaic.profile.ui
 
-import uno.lux.mosaic.post.data.domain.PostId
+import uno.lux.mosaic.post.domain.PostId
 import uno.lux.mosaic.post.ui.ReportDialogEvent
-import uno.lux.mosaic.user.data.domain.UserId
-import uno.lux.mosaic.video.data.domain.Video
+import uno.lux.mosaic.user.domain.UserId
+import uno.lux.mosaic.video.domain.Video
 
 sealed interface ProfileUiEvent {
 

@@ -7,8 +7,8 @@ import uno.lux.mosaic.post.data.network.PostMapper
 import uno.lux.mosaic.profile.data.PostsPage
 import uno.lux.mosaic.profile.data.ProfileDataSource
 import uno.lux.mosaic.profile.data.ProfileRefreshData
-import uno.lux.mosaic.user.data.domain.UserId
 import uno.lux.mosaic.user.data.network.UserMapper
+import uno.lux.mosaic.user.domain.UserId
 
 class NetworkProfileDataSource(
     private val api: ProfileApi,

@@ -10,7 +10,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import uno.lux.mosaic.R
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
-import uno.lux.mosaic.user.data.domain.User
+import uno.lux.mosaic.user.domain.User
 
 @RunWith(AndroidJUnit4::class)
 class AvatarTest {

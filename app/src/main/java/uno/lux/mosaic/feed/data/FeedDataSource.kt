@@ -1,7 +1,7 @@
 package uno.lux.mosaic.feed.data
 
-import uno.lux.mosaic.post.data.domain.Post
-import uno.lux.mosaic.user.data.domain.User
+import uno.lux.mosaic.post.domain.Post
+import uno.lux.mosaic.user.domain.User
 
 interface FeedDataSource {
     suspend fun fetch(cursor: String?): FeedPage

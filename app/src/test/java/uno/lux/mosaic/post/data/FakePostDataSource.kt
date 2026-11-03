@@ -2,12 +2,12 @@ package uno.lux.mosaic.post.data
 
 import uno.lux.mosaic.common.data.LikeState
 import uno.lux.mosaic.common.data.ReportReason
-import uno.lux.mosaic.post.data.domain.NewPost
-import uno.lux.mosaic.post.data.domain.Post
-import uno.lux.mosaic.post.data.domain.PostId
-import uno.lux.mosaic.post.data.domain.PostWithUsers
+import uno.lux.mosaic.post.domain.NewPost
+import uno.lux.mosaic.post.domain.Post
+import uno.lux.mosaic.post.domain.PostId
+import uno.lux.mosaic.post.domain.PostWithUsers
 import uno.lux.mosaic.testing.testPostUrl
-import uno.lux.mosaic.user.data.domain.User
+import uno.lux.mosaic.user.domain.User
 import java.time.Instant
 
 internal class FakePostDataSource : PostDataSource {

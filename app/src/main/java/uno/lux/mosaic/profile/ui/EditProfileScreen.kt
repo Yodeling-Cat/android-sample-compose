@@ -65,8 +65,8 @@ import uno.lux.mosaic.designsystem.components.AppBarAction
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.designsystem.theme.accentBarColors
 import uno.lux.mosaic.designsystem.theme.rememberAccentWash
-import uno.lux.mosaic.user.data.domain.Gender
-import uno.lux.mosaic.user.data.domain.UserId
+import uno.lux.mosaic.user.domain.Gender
+import uno.lux.mosaic.user.domain.UserId
 import uno.lux.mosaic.user.ui.Avatar
 import uno.lux.mosaic.common.R as CommonR
 import uno.lux.mosaic.profile.ui.EditProfileUiEvent as UiEvent

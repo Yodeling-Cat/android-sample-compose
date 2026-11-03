@@ -10,8 +10,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import uno.lux.mosaic.common.data.files.FileUpload
-import uno.lux.mosaic.post.data.domain.NewPost
-import uno.lux.mosaic.post.data.domain.NewPostMedia
+import uno.lux.mosaic.post.domain.NewPost
+import uno.lux.mosaic.post.domain.NewPostMedia
 import uno.lux.mosaic.testing.createApi
 
 class PostApiMultipartTest {

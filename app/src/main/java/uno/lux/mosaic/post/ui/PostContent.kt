@@ -50,10 +50,10 @@ import uno.lux.mosaic.common.util.relativeTime
 import uno.lux.mosaic.designsystem.components.debouncedClickable
 import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
-import uno.lux.mosaic.post.data.domain.Post
-import uno.lux.mosaic.user.data.domain.User
+import uno.lux.mosaic.post.domain.Post
+import uno.lux.mosaic.user.domain.User
 import uno.lux.mosaic.user.ui.Avatar
-import uno.lux.mosaic.video.data.domain.Video
+import uno.lux.mosaic.video.domain.Video
 import uno.lux.mosaic.video.ui.VideoPostPlayer
 
 /*

@@ -3,7 +3,7 @@ package uno.lux.mosaic.settings
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
-import uno.lux.mosaic.settings.data.domain.AppLanguage
+import uno.lux.mosaic.settings.domain.AppLanguage
 
 class AppLanguageTest {
 

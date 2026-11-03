@@ -1,6 +1,6 @@
-package uno.lux.mosaic.comment.data.domain
+package uno.lux.mosaic.comment.domain
 
-import uno.lux.mosaic.user.data.domain.User
+import uno.lux.mosaic.user.domain.User
 import java.time.Instant
 
 typealias CommentId = String

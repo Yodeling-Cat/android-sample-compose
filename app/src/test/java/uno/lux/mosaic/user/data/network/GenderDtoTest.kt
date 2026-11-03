@@ -2,7 +2,7 @@ package uno.lux.mosaic.user.data.network
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import uno.lux.mosaic.user.data.domain.Gender
+import uno.lux.mosaic.user.domain.Gender
 
 class GenderDtoTest {
 

@@ -54,7 +54,7 @@ graph LR
 
 Every concern stays inside `:app`. Splitting them further would cost the exhaustive `when` over the sealed `Screen` — feature modules cannot see each other's screens — and force the `post ↔ comment` cycle below to be resolved rather than tolerated. `internal` is the reason the two that did come out are worth it: in one module it had never meant anything narrower than "the whole app".
 
-Each slice carries its own layers: `post/data/domain/` holds the entity, `post/data/` the repository and its `DataSource` **interface**, `post/data/network/` the Retrofit service, DTOs, mapper and the `Network…DataSource`, and `post/ui/` the screens. The interface lives beside its *consumer*, not beside its implementation — which is what lets a repository compose a network and a local source without either one owning the contract.
+Each slice carries its own layers: `post/domain/` holds the entity, `post/data/` the repository and its `DataSource` **interface**, `post/data/network/` the Retrofit service, DTOs, mapper and the `Network…DataSource`, and `post/ui/` the screens. The interface lives beside its *consumer*, not beside its implementation — which is what lets a repository compose a network and a local source without either one owning the contract.
 
 ### Aggregates vs. read models
 

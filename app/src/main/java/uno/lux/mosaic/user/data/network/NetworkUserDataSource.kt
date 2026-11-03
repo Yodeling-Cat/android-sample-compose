@@ -6,9 +6,9 @@ import uno.lux.mosaic.common.data.network.asPart
 import uno.lux.mosaic.common.data.network.asTextPart
 import uno.lux.mosaic.common.data.network.notFoundAsNull
 import uno.lux.mosaic.user.data.UserDataSource
-import uno.lux.mosaic.user.data.domain.ProfileUpdate
-import uno.lux.mosaic.user.data.domain.User
-import uno.lux.mosaic.user.data.domain.UserId
+import uno.lux.mosaic.user.domain.ProfileUpdate
+import uno.lux.mosaic.user.domain.User
+import uno.lux.mosaic.user.domain.UserId
 
 class NetworkUserDataSource(
     private val api: UserApi,

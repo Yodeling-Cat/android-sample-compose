@@ -17,8 +17,8 @@ import uno.lux.mosaic.app.di.CurrentUser
 import uno.lux.mosaic.app.navigation.Navigator
 import uno.lux.mosaic.app.navigation.Screen
 import uno.lux.mosaic.comment.data.CommentRepository
-import uno.lux.mosaic.comment.data.domain.Comment
-import uno.lux.mosaic.comment.data.domain.CommentId
+import uno.lux.mosaic.comment.domain.Comment
+import uno.lux.mosaic.comment.domain.CommentId
 import uno.lux.mosaic.common.data.network.toAppError
 import uno.lux.mosaic.common.ui.FailedAction
 import uno.lux.mosaic.common.ui.launchReporting
@@ -28,10 +28,10 @@ import uno.lux.mosaic.common.util.launch
 import uno.lux.mosaic.common.util.launchCatching
 import uno.lux.mosaic.common.util.launchIfIdle
 import uno.lux.mosaic.post.data.PostRepository
-import uno.lux.mosaic.post.data.domain.PostId
+import uno.lux.mosaic.post.domain.PostId
 import uno.lux.mosaic.post.ui.PostDetailUiState.Content
 import uno.lux.mosaic.user.data.UserRepository
-import uno.lux.mosaic.user.data.domain.User
+import uno.lux.mosaic.user.domain.User
 import uno.lux.mosaic.post.ui.PostDetailUiEvent as UiEvent
 import uno.lux.mosaic.post.ui.PostDetailUiState as UiState
 

@@ -2,10 +2,10 @@ package uno.lux.mosaic.post.ui
 
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import uno.lux.mosaic.album.data.domain.Album
-import uno.lux.mosaic.post.data.domain.Post
+import uno.lux.mosaic.album.domain.Album
+import uno.lux.mosaic.post.domain.Post
 import uno.lux.mosaic.testing.testPostUrl
-import uno.lux.mosaic.video.data.domain.Video
+import uno.lux.mosaic.video.domain.Video
 import java.time.Instant
 
 class PostCardContentTypeTest {

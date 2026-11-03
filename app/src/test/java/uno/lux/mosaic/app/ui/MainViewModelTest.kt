@@ -10,8 +10,8 @@ import org.junit.Test
 import uno.lux.mosaic.settings.data.AppLocaleRepository
 import uno.lux.mosaic.settings.data.InMemoryAppLocaleRepository
 import uno.lux.mosaic.settings.data.InMemorySettingsRepository
-import uno.lux.mosaic.settings.data.domain.AppLanguage
-import uno.lux.mosaic.settings.data.domain.ThemeMode
+import uno.lux.mosaic.settings.domain.AppLanguage
+import uno.lux.mosaic.settings.domain.ThemeMode
 import uno.lux.mosaic.testing.ViewModelTest
 
 @OptIn(ExperimentalCoroutinesApi::class)

@@ -22,9 +22,9 @@ import uno.lux.mosaic.testing.backStackOf
 import uno.lux.mosaic.testing.screens
 import uno.lux.mosaic.user.data.FakeUserDataSource
 import uno.lux.mosaic.user.data.UserRepository
-import uno.lux.mosaic.user.data.domain.Gender
-import uno.lux.mosaic.user.data.domain.ProfileUpdate
-import uno.lux.mosaic.user.data.domain.User
+import uno.lux.mosaic.user.domain.Gender
+import uno.lux.mosaic.user.domain.ProfileUpdate
+import uno.lux.mosaic.user.domain.User
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class EditProfileViewModelTest : ViewModelTest() {

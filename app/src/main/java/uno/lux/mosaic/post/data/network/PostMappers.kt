@@ -1,9 +1,9 @@
 package uno.lux.mosaic.post.data.network
 
 import tech.mappie.api.ObjectMappie
-import uno.lux.mosaic.album.data.domain.Album
-import uno.lux.mosaic.post.data.domain.Post
-import uno.lux.mosaic.video.data.domain.Video
+import uno.lux.mosaic.album.domain.Album
+import uno.lux.mosaic.post.domain.Post
+import uno.lux.mosaic.video.domain.Video
 
 object AlbumMapper : ObjectMappie<AlbumDto, Album>() {
     override fun map(from: AlbumDto) = mapping()

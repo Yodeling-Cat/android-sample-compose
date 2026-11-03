@@ -18,7 +18,7 @@ import uno.lux.mosaic.feed.data.FakeFeedDataSource
 import uno.lux.mosaic.feed.data.FeedRepository
 import uno.lux.mosaic.post.data.FakePostDataSource
 import uno.lux.mosaic.post.data.PostRepository
-import uno.lux.mosaic.post.data.domain.NewPostMedia
+import uno.lux.mosaic.post.domain.NewPostMedia
 import uno.lux.mosaic.testing.ViewModelTest
 import uno.lux.mosaic.testing.backStackOf
 import uno.lux.mosaic.testing.screens

@@ -1,8 +1,8 @@
 package uno.lux.mosaic.post.ui
 
-import uno.lux.mosaic.comment.data.domain.CommentId
-import uno.lux.mosaic.user.data.domain.UserId
-import uno.lux.mosaic.video.data.domain.Video
+import uno.lux.mosaic.comment.domain.CommentId
+import uno.lux.mosaic.user.domain.UserId
+import uno.lux.mosaic.video.domain.Video
 
 sealed interface PostDetailUiEvent {
 

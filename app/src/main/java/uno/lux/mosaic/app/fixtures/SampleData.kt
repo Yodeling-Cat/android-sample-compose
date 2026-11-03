@@ -1,12 +1,12 @@
 package uno.lux.mosaic.app.fixtures
 
-import uno.lux.mosaic.album.data.domain.Album
-import uno.lux.mosaic.comment.data.domain.Comment
-import uno.lux.mosaic.post.data.domain.Post
-import uno.lux.mosaic.post.data.domain.PostId
-import uno.lux.mosaic.user.data.domain.Gender
-import uno.lux.mosaic.user.data.domain.User
-import uno.lux.mosaic.video.data.domain.Video
+import uno.lux.mosaic.album.domain.Album
+import uno.lux.mosaic.comment.domain.Comment
+import uno.lux.mosaic.post.domain.Post
+import uno.lux.mosaic.post.domain.PostId
+import uno.lux.mosaic.user.domain.Gender
+import uno.lux.mosaic.user.domain.User
+import uno.lux.mosaic.video.domain.Video
 import java.time.Duration
 import java.time.Instant
 

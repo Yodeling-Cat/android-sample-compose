@@ -32,8 +32,8 @@ import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
 import uno.lux.mosaic.designsystem.theme.Manrope
 import uno.lux.mosaic.designsystem.theme.MosaicGradients
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
-import uno.lux.mosaic.user.data.domain.User
-import uno.lux.mosaic.user.data.domain.UserId
+import uno.lux.mosaic.user.domain.User
+import uno.lux.mosaic.user.domain.UserId
 
 @Composable
 fun Avatar(

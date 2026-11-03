@@ -10,10 +10,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import uno.lux.mosaic.settings.data.domain.AppLanguage
-import uno.lux.mosaic.settings.data.domain.DEFAULT_AUTO_PLAY_VIDEOS
-import uno.lux.mosaic.settings.data.domain.Settings
-import uno.lux.mosaic.settings.data.domain.ThemeMode
+import uno.lux.mosaic.settings.domain.AppLanguage
+import uno.lux.mosaic.settings.domain.DEFAULT_AUTO_PLAY_VIDEOS
+import uno.lux.mosaic.settings.domain.Settings
+import uno.lux.mosaic.settings.domain.ThemeMode
 import java.io.IOException
 
 class DataStoreSettingsRepository(

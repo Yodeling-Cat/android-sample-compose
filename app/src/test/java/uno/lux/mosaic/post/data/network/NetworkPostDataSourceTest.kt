@@ -12,10 +12,10 @@ import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.common.data.files.FileUpload
 import uno.lux.mosaic.common.data.network.LikeStateDto
 import uno.lux.mosaic.common.data.network.SetLikeRequestDto
-import uno.lux.mosaic.post.data.domain.NewPost
-import uno.lux.mosaic.post.data.domain.NewPostMedia
-import uno.lux.mosaic.user.data.domain.User
+import uno.lux.mosaic.post.domain.NewPost
+import uno.lux.mosaic.post.domain.NewPostMedia
 import uno.lux.mosaic.user.data.network.userDto
+import uno.lux.mosaic.user.domain.User
 import java.net.UnknownHostException
 
 class NetworkPostDataSourceTest {

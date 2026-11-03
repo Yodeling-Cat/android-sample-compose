@@ -9,8 +9,8 @@ import uno.lux.mosaic.app.navigation.Navigator
 import uno.lux.mosaic.common.util.launch
 import uno.lux.mosaic.common.util.stateInWhileSubscribed
 import uno.lux.mosaic.settings.data.SettingsRepository
-import uno.lux.mosaic.settings.data.domain.AppLanguage
-import uno.lux.mosaic.settings.data.domain.ThemeMode
+import uno.lux.mosaic.settings.domain.AppLanguage
+import uno.lux.mosaic.settings.domain.ThemeMode
 import javax.inject.Inject
 import uno.lux.mosaic.settings.ui.SettingsUiEvent as UiEvent
 import uno.lux.mosaic.settings.ui.SettingsUiState as UiState

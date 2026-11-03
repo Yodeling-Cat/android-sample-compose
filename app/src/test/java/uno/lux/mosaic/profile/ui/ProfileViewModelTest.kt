@@ -17,7 +17,7 @@ import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.common.ui.FailedAction
 import uno.lux.mosaic.post.data.FakePostDataSource
 import uno.lux.mosaic.post.data.PostRepository
-import uno.lux.mosaic.post.data.domain.Post
+import uno.lux.mosaic.post.domain.Post
 import uno.lux.mosaic.post.ui.PostReport
 import uno.lux.mosaic.post.ui.ReportDialogEvent
 import uno.lux.mosaic.post.ui.ReportSendState
@@ -32,9 +32,9 @@ import uno.lux.mosaic.testing.testPostUrl
 import uno.lux.mosaic.user.data.FakeUserDataSource
 import uno.lux.mosaic.user.data.UserDataSource
 import uno.lux.mosaic.user.data.UserRepository
-import uno.lux.mosaic.user.data.domain.ProfileUpdate
-import uno.lux.mosaic.user.data.domain.User
-import uno.lux.mosaic.user.data.domain.UserId
+import uno.lux.mosaic.user.domain.ProfileUpdate
+import uno.lux.mosaic.user.domain.User
+import uno.lux.mosaic.user.domain.UserId
 import java.net.UnknownHostException
 import java.time.Instant
 

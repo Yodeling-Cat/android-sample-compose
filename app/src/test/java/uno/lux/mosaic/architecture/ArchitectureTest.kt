@@ -18,7 +18,7 @@ class ArchitectureTest {
 
         val NON_CONCERNS = setOf(APP, COMMON, DESIGN_SYSTEM)
 
-        val LAYERS = listOf(".data", ".data.domain", ".data.network", ".ui")
+        val LAYERS = listOf(".data", ".data.network", ".domain", ".ui")
 
         val KoFileDeclaration.pkg: String get() = packagee?.name.orEmpty()
 
@@ -62,14 +62,14 @@ class ArchitectureTest {
     @Test
     fun `the domain layer is pure`() {
         PRODUCTION
-            .filter { it.pkg.endsWith(".data.domain") }
+            .filter { it.pkg.endsWith(".domain") }
             .assertTrue(additionalMessage = DOMAIN_MESSAGE) { file ->
                 file.imports.none { import ->
                     import.name.startsWith("android.") ||
                         import.name.startsWith("androidx.") ||
                         import.name.startsWith("retrofit2.") ||
                         import.name.startsWith("okhttp3.") ||
-                        (ours(import.name) && import.name.contains(".data.network.")) ||
+                        CONCERNS.any { import.name.startsWith("$ROOT.$it.data.") } ||
                         (ours(import.name) && import.name.contains(".ui."))
                 }
             }
@@ -134,7 +134,7 @@ class ArchitectureTest {
 
 private const val CONVENTION_MESSAGE =
     "A concern grew a package the convention doesn't name. Every file under a concern belongs to " +
-        "one of `data`, `data/domain`, `data/network` or `ui` — including files that would " +
+        "one of `data`, `data/network`, `domain` or `ui` — including files that would " +
         "otherwise sit loose at the concern's root. This is the rule the others are built on: they " +
         "select files by matching those suffixes, so a file somewhere else is checked by none of " +
         "them. Either file it under a layer, or widen LAYERS here and say why."
@@ -146,9 +146,10 @@ private const val WIRE_MESSAGE =
         "Retrofit instance."
 
 private const val DOMAIN_MESSAGE =
-    "A domain model reached for the platform, the wire, or the screen. `data/domain` is the layer " +
-        "everything else is allowed to depend on, which it can only stay if it depends on nothing: " +
-        "the mapper in `data/network` converts a DTO into a model, never the reverse."
+    "A domain model reached for the platform, a concern's data layer, or the screen. `domain` is " +
+        "the layer everything else is allowed to depend on, which it can only stay if it depends on " +
+        "nothing: the repository returns models and the mapper in `data/network` converts a DTO " +
+        "into one, never the reverse."
 
 private const val LAYERING_MESSAGE =
     "A file under `data` imported a `ui` package. Data doesn't know who renders it — that direction " +

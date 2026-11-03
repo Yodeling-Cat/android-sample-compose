@@ -4,10 +4,10 @@ import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable
 import uno.lux.mosaic.common.data.files.FileUpload
 import uno.lux.mosaic.common.util.AppError
-import uno.lux.mosaic.user.data.domain.Gender
-import uno.lux.mosaic.user.data.domain.ProfileUpdate
-import uno.lux.mosaic.user.data.domain.User
-import uno.lux.mosaic.user.data.domain.UserId
+import uno.lux.mosaic.user.domain.Gender
+import uno.lux.mosaic.user.domain.ProfileUpdate
+import uno.lux.mosaic.user.domain.User
+import uno.lux.mosaic.user.domain.UserId
 
 /** Mirrors the server's validation. */
 val EditProfileAgeRange = 13..120

@@ -1,4 +1,4 @@
-package uno.lux.mosaic.post.data.domain
+package uno.lux.mosaic.post.domain
 
 import java.time.Instant
 

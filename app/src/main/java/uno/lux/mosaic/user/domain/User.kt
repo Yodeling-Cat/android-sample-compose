@@ -1,4 +1,4 @@
-package uno.lux.mosaic.user.data.domain
+package uno.lux.mosaic.user.domain
 
 typealias UserId = String
 

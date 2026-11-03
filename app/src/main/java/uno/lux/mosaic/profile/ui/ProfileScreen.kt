@@ -71,14 +71,14 @@ import uno.lux.mosaic.designsystem.components.rememberDebounced
 import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
 import uno.lux.mosaic.designsystem.theme.MosaicElevations
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
-import uno.lux.mosaic.post.data.domain.Post
+import uno.lux.mosaic.post.domain.Post
 import uno.lux.mosaic.post.ui.PostCard
 import uno.lux.mosaic.post.ui.PostReport
 import uno.lux.mosaic.post.ui.ReportHost
 import uno.lux.mosaic.post.ui.cardContentType
-import uno.lux.mosaic.profile.data.domain.Profile
-import uno.lux.mosaic.user.data.domain.User
-import uno.lux.mosaic.user.data.domain.UserId
+import uno.lux.mosaic.profile.domain.Profile
+import uno.lux.mosaic.user.domain.User
+import uno.lux.mosaic.user.domain.UserId
 import uno.lux.mosaic.common.R as CommonR
 import uno.lux.mosaic.profile.ui.ProfileUiEvent as UiEvent
 import uno.lux.mosaic.profile.ui.ProfileUiState as UiState

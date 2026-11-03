@@ -4,7 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import uno.lux.mosaic.settings.data.domain.ThemeMode
+import uno.lux.mosaic.settings.domain.ThemeMode
 
 class ThemeModeTest {
 

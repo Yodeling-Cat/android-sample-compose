@@ -1,4 +1,4 @@
-package uno.lux.mosaic.video.data.domain
+package uno.lux.mosaic.video.domain
 
 typealias VideoId = String
 

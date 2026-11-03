@@ -29,15 +29,15 @@ import uno.lux.mosaic.common.util.launchIfIdle
 import uno.lux.mosaic.common.util.launchRefresh
 import uno.lux.mosaic.common.util.stateInWhileSubscribed
 import uno.lux.mosaic.post.data.PostRepository
-import uno.lux.mosaic.post.data.domain.Post
-import uno.lux.mosaic.post.data.domain.PostId
+import uno.lux.mosaic.post.domain.Post
+import uno.lux.mosaic.post.domain.PostId
 import uno.lux.mosaic.post.ui.PostCardData
 import uno.lux.mosaic.post.ui.PostReport
 import uno.lux.mosaic.post.ui.PostReporter
 import uno.lux.mosaic.profile.data.PostList
 import uno.lux.mosaic.profile.data.ProfileRepository
 import uno.lux.mosaic.user.data.UserRepository
-import uno.lux.mosaic.user.data.domain.UserId
+import uno.lux.mosaic.user.domain.UserId
 import uno.lux.mosaic.profile.ui.ProfileUiEvent as UiEvent
 import uno.lux.mosaic.profile.ui.ProfileUiState as UiState
 

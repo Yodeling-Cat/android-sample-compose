@@ -71,7 +71,7 @@ import uno.lux.mosaic.R
 import uno.lux.mosaic.app.fixtures.SampleComments
 import uno.lux.mosaic.app.fixtures.SamplePosts
 import uno.lux.mosaic.app.fixtures.SampleUsers
-import uno.lux.mosaic.comment.data.domain.Comment
+import uno.lux.mosaic.comment.domain.Comment
 import uno.lux.mosaic.common.asText
 import uno.lux.mosaic.common.ui.FailedActionEffect
 import uno.lux.mosaic.common.ui.FullScreenError
@@ -87,12 +87,12 @@ import uno.lux.mosaic.designsystem.components.rememberDebounced
 import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.designsystem.theme.accentBarColors
-import uno.lux.mosaic.post.data.domain.Post
-import uno.lux.mosaic.post.data.domain.PostId
+import uno.lux.mosaic.post.domain.Post
+import uno.lux.mosaic.post.domain.PostId
 import uno.lux.mosaic.post.ui.PostDetailUiState.Content
-import uno.lux.mosaic.user.data.domain.User
+import uno.lux.mosaic.user.domain.User
 import uno.lux.mosaic.user.ui.Avatar
-import uno.lux.mosaic.video.data.domain.Video
+import uno.lux.mosaic.video.domain.Video
 import uno.lux.mosaic.common.R as CommonR
 import uno.lux.mosaic.post.ui.PostDetailUiEvent as UiEvent
 import uno.lux.mosaic.post.ui.PostDetailUiState as UiState

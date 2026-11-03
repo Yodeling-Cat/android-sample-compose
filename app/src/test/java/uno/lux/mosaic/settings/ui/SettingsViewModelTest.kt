@@ -10,8 +10,8 @@ import org.junit.Test
 import uno.lux.mosaic.app.navigation.Navigator
 import uno.lux.mosaic.app.navigation.Screen
 import uno.lux.mosaic.settings.data.InMemorySettingsRepository
-import uno.lux.mosaic.settings.data.domain.AppLanguage
-import uno.lux.mosaic.settings.data.domain.ThemeMode
+import uno.lux.mosaic.settings.domain.AppLanguage
+import uno.lux.mosaic.settings.domain.ThemeMode
 import uno.lux.mosaic.testing.ViewModelTest
 import uno.lux.mosaic.testing.backStackOf
 import uno.lux.mosaic.testing.screens

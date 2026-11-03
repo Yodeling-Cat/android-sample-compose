@@ -20,15 +20,15 @@ import uno.lux.mosaic.app.navigation.Screen
 import uno.lux.mosaic.comment.data.CommentDataSource
 import uno.lux.mosaic.comment.data.CommentRepository
 import uno.lux.mosaic.comment.data.FakeCommentDataSource
-import uno.lux.mosaic.comment.data.domain.Comment
+import uno.lux.mosaic.comment.domain.Comment
 import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.common.ui.FailedAction
 import uno.lux.mosaic.common.util.AppError
 import uno.lux.mosaic.post.data.FakePostDataSource
 import uno.lux.mosaic.post.data.PostRepository
-import uno.lux.mosaic.post.data.domain.Post
-import uno.lux.mosaic.post.data.domain.PostId
-import uno.lux.mosaic.post.data.domain.PostWithUsers
+import uno.lux.mosaic.post.domain.Post
+import uno.lux.mosaic.post.domain.PostId
+import uno.lux.mosaic.post.domain.PostWithUsers
 import uno.lux.mosaic.post.ui.PostDetailUiState.Content
 import uno.lux.mosaic.testing.ViewModelTest
 import uno.lux.mosaic.testing.backStackOf
@@ -36,7 +36,7 @@ import uno.lux.mosaic.testing.screens
 import uno.lux.mosaic.testing.testPostUrl
 import uno.lux.mosaic.user.data.FakeUserDataSource
 import uno.lux.mosaic.user.data.UserRepository
-import uno.lux.mosaic.user.data.domain.User
+import uno.lux.mosaic.user.domain.User
 import java.net.UnknownHostException
 import java.time.Instant
 

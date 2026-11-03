@@ -1,4 +1,4 @@
-package uno.lux.mosaic.settings.data.domain
+package uno.lux.mosaic.settings.domain
 
 enum class ThemeMode {
     LIGHT,

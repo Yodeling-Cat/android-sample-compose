@@ -1,6 +1,6 @@
 package uno.lux.mosaic.profile.ui
 
-import uno.lux.mosaic.user.data.domain.Gender
+import uno.lux.mosaic.user.domain.Gender
 
 sealed interface EditProfileUiEvent {
 

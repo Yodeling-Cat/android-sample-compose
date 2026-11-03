@@ -1,8 +1,8 @@
 package uno.lux.mosaic.profile.data
 
-import uno.lux.mosaic.post.data.domain.Post
-import uno.lux.mosaic.user.data.domain.User
-import uno.lux.mosaic.user.data.domain.UserId
+import uno.lux.mosaic.post.domain.Post
+import uno.lux.mosaic.user.domain.User
+import uno.lux.mosaic.user.domain.UserId
 
 interface ProfileDataSource {
     suspend fun refresh(userId: UserId): ProfileRefreshData

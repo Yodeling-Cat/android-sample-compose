@@ -10,12 +10,12 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import uno.lux.mosaic.post.data.FakePostDataSource
 import uno.lux.mosaic.post.data.PostRepository
-import uno.lux.mosaic.post.data.domain.NewPost
-import uno.lux.mosaic.post.data.domain.Post
+import uno.lux.mosaic.post.domain.NewPost
+import uno.lux.mosaic.post.domain.Post
 import uno.lux.mosaic.testing.testPostUrl
 import uno.lux.mosaic.user.data.FakeUserDataSource
 import uno.lux.mosaic.user.data.UserRepository
-import uno.lux.mosaic.user.data.domain.User
+import uno.lux.mosaic.user.domain.User
 import java.time.Instant
 
 class FeedRepositoryTest {

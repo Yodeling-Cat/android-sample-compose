@@ -1,4 +1,4 @@
-package uno.lux.mosaic.settings.data.domain
+package uno.lux.mosaic.settings.domain
 
 const val DEFAULT_AUTO_PLAY_VIDEOS = false
 

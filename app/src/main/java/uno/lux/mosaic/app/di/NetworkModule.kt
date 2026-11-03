@@ -23,8 +23,8 @@ import uno.lux.mosaic.comment.data.network.CommentApi
 import uno.lux.mosaic.feed.data.network.FeedApi
 import uno.lux.mosaic.post.data.network.PostApi
 import uno.lux.mosaic.profile.data.network.ProfileApi
-import uno.lux.mosaic.user.data.domain.UserId
 import uno.lux.mosaic.user.data.network.UserApi
+import uno.lux.mosaic.user.domain.UserId
 import java.io.File
 import java.util.concurrent.TimeUnit
 import javax.inject.Qualifier

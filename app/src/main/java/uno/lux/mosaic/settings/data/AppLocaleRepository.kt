@@ -1,7 +1,7 @@
 package uno.lux.mosaic.settings.data
 
 import kotlinx.coroutines.flow.first
-import uno.lux.mosaic.settings.data.domain.AppLanguage
+import uno.lux.mosaic.settings.domain.AppLanguage
 
 interface AppLocaleRepository {
 

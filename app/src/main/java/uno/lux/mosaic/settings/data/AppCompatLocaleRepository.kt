@@ -5,7 +5,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.ConfigurationCompat
 import androidx.core.os.LocaleListCompat
 import kotlinx.coroutines.flow.first
-import uno.lux.mosaic.settings.data.domain.AppLanguage
+import uno.lux.mosaic.settings.domain.AppLanguage
 
 /** [applyLanguage] and [resolveInitialLanguage] need an attached `AppCompatActivity`. */
 class AppCompatLocaleRepository(

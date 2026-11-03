@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import uno.lux.mosaic.settings.data.domain.AppLanguage
+import uno.lux.mosaic.settings.domain.AppLanguage
 
 class InMemoryAppLocaleRepositoryTest {
 

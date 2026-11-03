@@ -32,7 +32,7 @@ import uno.lux.mosaic.common.ui.PlayBadge
 import uno.lux.mosaic.designsystem.components.debouncedClickable
 import uno.lux.mosaic.designsystem.theme.MosaicGradients
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
-import uno.lux.mosaic.video.data.domain.Video
+import uno.lux.mosaic.video.domain.Video
 
 @Composable
 internal fun VideoPostPlayer(

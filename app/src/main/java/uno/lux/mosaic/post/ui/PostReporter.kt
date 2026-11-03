@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.common.util.catchErrors
 import uno.lux.mosaic.post.data.PostRepository
-import uno.lux.mosaic.post.data.domain.PostId
+import uno.lux.mosaic.post.domain.PostId
 
 /**
  * Unlike [CommentSendState], a failure is its own state: a snackbar would sit behind the dialog's

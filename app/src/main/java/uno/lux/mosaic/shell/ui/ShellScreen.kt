@@ -34,7 +34,7 @@ import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.home.ui.HomeScreen
 import uno.lux.mosaic.profile.ui.ProfileScreen
-import uno.lux.mosaic.user.data.domain.UserId
+import uno.lux.mosaic.user.domain.UserId
 import uno.lux.mosaic.shell.ui.ShellUiEvent as UiEvent
 
 @Composable

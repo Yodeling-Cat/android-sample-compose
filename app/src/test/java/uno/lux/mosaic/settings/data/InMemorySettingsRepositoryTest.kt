@@ -8,9 +8,9 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import uno.lux.mosaic.settings.data.domain.AppLanguage
-import uno.lux.mosaic.settings.data.domain.Settings
-import uno.lux.mosaic.settings.data.domain.ThemeMode
+import uno.lux.mosaic.settings.domain.AppLanguage
+import uno.lux.mosaic.settings.domain.Settings
+import uno.lux.mosaic.settings.domain.ThemeMode
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class InMemorySettingsRepositoryTest {

@@ -1,8 +1,8 @@
 package uno.lux.mosaic.settings.ui
 
 import androidx.compose.runtime.Immutable
-import uno.lux.mosaic.settings.data.domain.AppLanguage
-import uno.lux.mosaic.settings.data.domain.ThemeMode
+import uno.lux.mosaic.settings.domain.AppLanguage
+import uno.lux.mosaic.settings.domain.ThemeMode
 
 @Immutable
 sealed interface SettingsUiState {

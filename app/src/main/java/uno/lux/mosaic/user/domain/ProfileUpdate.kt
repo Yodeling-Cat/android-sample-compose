@@ -1,4 +1,4 @@
-package uno.lux.mosaic.user.data.domain
+package uno.lux.mosaic.user.domain
 
 import uno.lux.mosaic.common.data.files.FileUpload
 

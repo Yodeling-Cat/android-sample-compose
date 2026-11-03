@@ -20,7 +20,7 @@ import uno.lux.mosaic.common.util.restoreDraft
 import uno.lux.mosaic.common.util.saveDraft
 import uno.lux.mosaic.common.util.stateInWhileSubscribed
 import uno.lux.mosaic.user.data.UserRepository
-import uno.lux.mosaic.user.data.domain.UserId
+import uno.lux.mosaic.user.domain.UserId
 import javax.inject.Inject
 import uno.lux.mosaic.profile.ui.EditProfileUiEvent as UiEvent
 import uno.lux.mosaic.profile.ui.EditProfileUiState as UiState

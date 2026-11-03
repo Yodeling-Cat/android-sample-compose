@@ -18,7 +18,7 @@ import uno.lux.mosaic.common.util.launchIfIdle
 import uno.lux.mosaic.common.util.restoreDraft
 import uno.lux.mosaic.common.util.saveDraft
 import uno.lux.mosaic.feed.data.FeedRepository
-import uno.lux.mosaic.post.data.domain.NewPostMedia
+import uno.lux.mosaic.post.domain.NewPostMedia
 import javax.inject.Inject
 import uno.lux.mosaic.composer.ui.CreatePostUiEvent as UiEvent
 import uno.lux.mosaic.composer.ui.CreatePostUiState as UiState

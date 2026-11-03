@@ -20,7 +20,7 @@ import uno.lux.mosaic.profile.ui.EditProfileScreen
 import uno.lux.mosaic.profile.ui.ProfileScreen
 import uno.lux.mosaic.settings.ui.SettingsScreen
 import uno.lux.mosaic.shell.ui.ShellScreen
-import uno.lux.mosaic.user.data.domain.UserId
+import uno.lux.mosaic.user.domain.UserId
 import uno.lux.mosaic.video.ui.FullscreenVideoScreen
 import uno.lux.mosaic.video.ui.ProvideVideoPlayback
 

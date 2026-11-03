@@ -3,7 +3,7 @@ package uno.lux.mosaic.user.data.network
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import tech.mappie.api.EnumMappie
-import uno.lux.mosaic.user.data.domain.Gender
+import uno.lux.mosaic.user.domain.Gender
 
 /** A [Gender] as the server spells it (the `inclusion` validation on `User#gender`). */
 @Serializable

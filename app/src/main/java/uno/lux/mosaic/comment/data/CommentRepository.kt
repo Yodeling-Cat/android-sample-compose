@@ -1,7 +1,7 @@
 package uno.lux.mosaic.comment.data
 
-import uno.lux.mosaic.comment.data.domain.CommentId
-import uno.lux.mosaic.post.data.domain.PostId
+import uno.lux.mosaic.comment.domain.CommentId
+import uno.lux.mosaic.post.domain.PostId
 
 class CommentRepository(
     private val dataSource: CommentDataSource,

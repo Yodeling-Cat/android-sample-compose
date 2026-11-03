@@ -10,8 +10,8 @@ import uno.lux.mosaic.common.util.launch
 import uno.lux.mosaic.common.util.stateInWhileSubscribed
 import uno.lux.mosaic.settings.data.AppLocaleRepository
 import uno.lux.mosaic.settings.data.SettingsRepository
-import uno.lux.mosaic.settings.data.domain.ThemeMode
-import uno.lux.mosaic.user.data.domain.UserId
+import uno.lux.mosaic.settings.domain.ThemeMode
+import uno.lux.mosaic.user.domain.UserId
 import javax.inject.Inject
 
 @HiltViewModel

@@ -3,8 +3,8 @@ package uno.lux.mosaic.composer.ui
 import androidx.compose.runtime.Immutable
 import kotlinx.serialization.Serializable
 import uno.lux.mosaic.common.util.AppError
-import uno.lux.mosaic.post.data.domain.NewPost
-import uno.lux.mosaic.post.data.domain.NewPostMedia
+import uno.lux.mosaic.post.domain.NewPost
+import uno.lux.mosaic.post.domain.NewPostMedia
 
 /** These limits mirror the server's validations; change both sides together. */
 const val CREATE_POST_TITLE_MAX_LENGTH = 120

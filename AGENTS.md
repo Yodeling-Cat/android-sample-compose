@@ -126,8 +126,8 @@ The top level of the package tree is **slices, not layers**. Layers are the shap
 Inside a concern there are four layers and no fifth:
 
 ```
+<concern>/domain/          the models — pure Kotlin, no platform, no wire, no repository
 <concern>/data/            the repository and its DataSource interface
-<concern>/data/domain/     the models — pure Kotlin, no platform and no wire
 <concern>/data/network/    the service, DTOs, mappers — the only place HTTP appears
 <concern>/ui/              composables and ViewModels
 ```
@@ -178,7 +178,7 @@ Konsist scans every module, so the rules reach `:core:common` and `:core:design-
 
 1. **Every concern package follows the convention** of the four layers. The other rules select files by these layer suffixes. This rule guards against a rule silently matching nothing.
 2. **The wire stays in `data/network`.** Retrofit and OkHttp appear nowhere else, except `app/di`, for the one `Retrofit` instance.
-3. **The domain layer is pure.** `data/domain` imports no platform code, no wire type, and no screen. Mappers convert only from DTO to model.
+3. **The domain layer is pure.** `domain` imports no platform code, no concern's `data` package, and no screen. It sits beside `data` rather than inside it because `data` and `ui` both depend on it and it depends on neither. Mappers convert only from DTO to model.
 4. **`data` never depends on `ui`.**
 5. **`common` knows no concern.**
 6. **The design system knows no concern.** Gradle already stops `:core:design-system` from importing `:app`; what this rule adds is the direction Gradle cannot see — a concern dragged *into* the design system, for example a branded control that grew a `Post` parameter. `common/util` is covered by rule 5 instead, now that it lives in `common`.
@@ -380,7 +380,7 @@ Strong skipping is on, through the built-in Compose compiler in Kotlin 2.4.20. T
   - A data class of `val`s with stable types needs nothing. The compiler infers it.
   - A sealed interface is *uncertain* to the compiler, even when every case is an immutable data class. Mark it `@Immutable`. `HomeUiState`, `PostDetailUiState.Content`, `CreatePostMedia`, `AppError` and `Screen` are examples.
   - A class whose state changes, but only through snapshot state, is `@Stable`, for example `VideoPlayback`.
-  - `data/domain` may not import `androidx` (ArchitectureTest rule 3), so a domain model never carries an annotation. When one goes unstable, the cause is a field type from outside the project, and that type goes in `compose-stability.conf` at the repository root. `build-logic` hands it to every module. `java.time.Instant` and the read-only collections are there today.
+  - `domain` may not import `androidx` (ArchitectureTest rule 3), so a domain model never carries an annotation. When one goes unstable, the cause is a field type from outside the project, and that type goes in `compose-stability.conf` at the repository root. `build-logic` hands it to every module. `java.time.Instant` and the read-only collections are there today.
   - **The annotation and the config entry are promises the compiler does not check.** A false one makes a composable skip a real change. Never apply either to a type with a `var`, or one that wraps a mutable object, for example `ClickDebounceGuard` or Media3's `Player`. Instance comparison is correct for those.
 - **A lambda captures the stable values it needs, never a wrapper rebuilt on each emission.** Feed rows capture `postId` and `authorId`, not the `PostCardData` that `HomeViewModel` rebuilds for every post on every emission. The ids stay equal, so the lambdas stay the same instances.
 - **Keep screen-wide state out of the rows.** When a state concerns one row at a time, such as the report dialog, draw it once at the screen level rather than threading it into every row: a card only raises `OpenReport`, so a report changing recomposes no card at all.

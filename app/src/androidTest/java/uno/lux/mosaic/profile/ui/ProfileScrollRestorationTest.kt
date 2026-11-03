@@ -17,7 +17,7 @@ import uno.lux.mosaic.R
 import uno.lux.mosaic.app.fixtures.SamplePosts
 import uno.lux.mosaic.app.fixtures.SampleUsers
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
-import uno.lux.mosaic.profile.data.domain.Profile
+import uno.lux.mosaic.profile.domain.Profile
 
 @RunWith(AndroidJUnit4::class)
 class ProfileScrollRestorationTest {

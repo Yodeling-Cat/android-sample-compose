@@ -5,8 +5,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import uno.lux.mosaic.post.data.PostRepository
-import uno.lux.mosaic.post.data.domain.NewPost
-import uno.lux.mosaic.post.data.domain.PostId
+import uno.lux.mosaic.post.domain.NewPost
+import uno.lux.mosaic.post.domain.PostId
 import uno.lux.mosaic.user.data.UserRepository
 
 sealed interface FeedState {

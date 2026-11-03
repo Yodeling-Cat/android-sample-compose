@@ -16,9 +16,9 @@ import androidx.compose.ui.unit.dp
 import uno.lux.mosaic.app.fixtures.SamplePosts
 import uno.lux.mosaic.app.fixtures.SampleUsers
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
-import uno.lux.mosaic.post.data.domain.Post
-import uno.lux.mosaic.user.data.domain.User
-import uno.lux.mosaic.video.data.domain.Video
+import uno.lux.mosaic.post.domain.Post
+import uno.lux.mosaic.user.domain.User
+import uno.lux.mosaic.video.domain.Video
 
 private const val FEED_BODY_MAX_LINES = 5
 

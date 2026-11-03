@@ -6,8 +6,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import uno.lux.mosaic.comment.data.domain.Comment
-import uno.lux.mosaic.user.data.domain.User
+import uno.lux.mosaic.comment.domain.Comment
+import uno.lux.mosaic.user.domain.User
 import java.time.Instant
 
 class CommentRepositoryTest {

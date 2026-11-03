@@ -38,7 +38,7 @@ import uno.lux.mosaic.common.util.compactCount
 import uno.lux.mosaic.designsystem.components.rememberDebounced
 import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
 import uno.lux.mosaic.designsystem.theme.MosaicGradients
-import uno.lux.mosaic.user.data.domain.User
+import uno.lux.mosaic.user.domain.User
 import uno.lux.mosaic.user.ui.Avatar
 
 private val CoverHeight = 160.dp

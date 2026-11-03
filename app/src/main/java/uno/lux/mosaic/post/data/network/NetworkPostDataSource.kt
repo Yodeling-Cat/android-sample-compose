@@ -9,10 +9,10 @@ import uno.lux.mosaic.common.data.network.asPart
 import uno.lux.mosaic.common.data.network.asTextPart
 import uno.lux.mosaic.common.data.network.notFoundAsNull
 import uno.lux.mosaic.post.data.PostDataSource
-import uno.lux.mosaic.post.data.domain.NewPost
-import uno.lux.mosaic.post.data.domain.NewPostMedia
-import uno.lux.mosaic.post.data.domain.PostId
-import uno.lux.mosaic.post.data.domain.PostWithUsers
+import uno.lux.mosaic.post.domain.NewPost
+import uno.lux.mosaic.post.domain.NewPostMedia
+import uno.lux.mosaic.post.domain.PostId
+import uno.lux.mosaic.post.domain.PostWithUsers
 import uno.lux.mosaic.user.data.network.UserMapper
 
 class NetworkPostDataSource(

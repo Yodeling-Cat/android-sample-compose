@@ -1,7 +1,7 @@
 package uno.lux.mosaic.profile.data
 
 import kotlinx.coroutines.CompletableDeferred
-import uno.lux.mosaic.user.data.domain.UserId
+import uno.lux.mosaic.user.domain.UserId
 
 internal class GatedProfileDataSource : ProfileDataSource {
 

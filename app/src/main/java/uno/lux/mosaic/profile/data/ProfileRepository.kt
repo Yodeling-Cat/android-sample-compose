@@ -7,13 +7,13 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import uno.lux.mosaic.post.data.PostRepository
-import uno.lux.mosaic.post.data.domain.Post
-import uno.lux.mosaic.post.data.domain.PostId
-import uno.lux.mosaic.post.data.domain.PostKey
-import uno.lux.mosaic.post.data.domain.key
-import uno.lux.mosaic.profile.data.domain.Profile
+import uno.lux.mosaic.post.domain.Post
+import uno.lux.mosaic.post.domain.PostId
+import uno.lux.mosaic.post.domain.PostKey
+import uno.lux.mosaic.post.domain.key
+import uno.lux.mosaic.profile.domain.Profile
 import uno.lux.mosaic.user.data.UserRepository
-import uno.lux.mosaic.user.data.domain.UserId
+import uno.lux.mosaic.user.domain.UserId
 
 /** [ids] emits `null` until the first load lands, which tells an unopened tab from an empty one. */
 interface PostList {

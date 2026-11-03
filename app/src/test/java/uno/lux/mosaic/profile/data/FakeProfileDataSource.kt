@@ -1,6 +1,6 @@
 package uno.lux.mosaic.profile.data
 
-import uno.lux.mosaic.user.data.domain.UserId
+import uno.lux.mosaic.user.domain.UserId
 import java.net.UnknownHostException
 
 internal class FakeProfileDataSource(

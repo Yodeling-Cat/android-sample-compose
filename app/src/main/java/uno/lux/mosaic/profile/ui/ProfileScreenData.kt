@@ -1,9 +1,9 @@
 package uno.lux.mosaic.profile.ui
 
-import uno.lux.mosaic.post.data.domain.Post
+import uno.lux.mosaic.post.domain.Post
 import uno.lux.mosaic.post.ui.PostCardData
-import uno.lux.mosaic.profile.data.domain.Profile
-import uno.lux.mosaic.user.data.domain.User
+import uno.lux.mosaic.profile.domain.Profile
+import uno.lux.mosaic.user.domain.User
 
 data class ProfileScreenData(
     val user: User,

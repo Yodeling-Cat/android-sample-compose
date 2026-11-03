@@ -1,7 +1,7 @@
 package uno.lux.mosaic.settings.ui
 
-import uno.lux.mosaic.settings.data.domain.AppLanguage
-import uno.lux.mosaic.settings.data.domain.ThemeMode
+import uno.lux.mosaic.settings.domain.AppLanguage
+import uno.lux.mosaic.settings.domain.ThemeMode
 
 sealed interface SettingsUiEvent {
     data class SetThemeMode(
