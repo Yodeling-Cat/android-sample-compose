@@ -29,6 +29,7 @@ import uno.lux.mosaic.common.util.launchIfIdle
 import uno.lux.mosaic.common.util.launchRefresh
 import uno.lux.mosaic.common.util.stateInWhileSubscribed
 import uno.lux.mosaic.post.data.PostRepository
+import uno.lux.mosaic.post.data.domain.Post
 import uno.lux.mosaic.post.data.domain.PostId
 import uno.lux.mosaic.post.ui.PostCardData
 import uno.lux.mosaic.post.ui.PostReport
@@ -90,51 +91,54 @@ class ProfileViewModel @AssistedInject constructor(
 
     private val _loadFailures = MutableStateFlow(LoadFailures())
 
-    /** Bundled so the state `combine` stays within its typed arity. */
     private data class LazyTabs(
         val bookmarks: ProfilePostList?,
         val likes: ProfilePostList?,
         val failures: LoadFailures,
     )
 
-    private val lazyTabs: Flow<LazyTabs> = combine(
-        cardListFlow(saved),
-        cardListFlow(liked),
-        _loadFailures,
-    ) { savedPosts, likedPosts, failures -> LazyTabs(savedPosts, likedPosts, failures) }
+    private val lazyTabs = combine(cardListFlow(saved), cardListFlow(liked), _loadFailures, ::LazyTabs)
 
-    val uiState: StateFlow<UiState> = combine(
-        combine(
-            userRepository.user(userId),
-            profileRepository.profile(userId),
-            combine(profileRepository.postIds(userId), postRepository.entities) { ids, entities ->
-                ids.mapNotNull { entities[it] }
-            },
-            profileRepository.hasMorePosts(userId),
-            lazyTabs,
-        ) { user, profile, posts, hasMorePosts, tabs ->
-            if (user == null) {
-                null
-            } else {
-                UiState.Loaded(
-                    data = ProfileScreenData(
-                        user = user,
-                        profile = profile,
-                        posts = posts,
-                        postsEndReached = !hasMorePosts,
-                        bookmarks = tabs.bookmarks,
-                        likes = tabs.likes,
-                        postsLoadMoreFailed = tabs.failures.posts,
-                        bookmarksLoadFailed = tabs.failures.bookmarks,
-                        likesLoadFailed = tabs.failures.likes,
-                    ),
-                    isCurrentUser = userId == currentUserId,
-                )
-            }
-        },
-        _userFetch,
-    ) { state, fetch ->
-        state ?: when (fetch) {
+    private data class OwnPosts(
+        val posts: List<Post>,
+        val endReached: Boolean,
+    )
+
+    private val ownPosts = combine(
+        profileRepository.postIds(userId),
+        profileRepository.hasMorePosts(userId),
+        postRepository.entities,
+    ) { ids, hasMore, entities ->
+        OwnPosts(posts = ids.mapNotNull { entities[it] }, endReached = !hasMore)
+    }
+
+    // null until the user is in the store
+    private val loaded = combine(
+        userRepository.user(userId),
+        profileRepository.profile(userId),
+        ownPosts,
+        lazyTabs,
+    ) { user, profile, own, tabs ->
+        user?.let {
+            UiState.Loaded(
+                data = ProfileScreenData(
+                    user = it,
+                    profile = profile,
+                    posts = own.posts,
+                    postsEndReached = own.endReached,
+                    bookmarks = tabs.bookmarks,
+                    likes = tabs.likes,
+                    postsLoadMoreFailed = tabs.failures.posts,
+                    bookmarksLoadFailed = tabs.failures.bookmarks,
+                    likesLoadFailed = tabs.failures.likes,
+                ),
+                isCurrentUser = userId == currentUserId,
+            )
+        }
+    }
+
+    val uiState: StateFlow<UiState> = combine(loaded, _userFetch) { loaded, fetch ->
+        loaded ?: when (fetch) {
             // Absent from the stores means "no such user" only once a fetch has actually run.
             // Before that it means nothing has asked yet — which is every cold start, since a
             // profile restored after process death begins with empty stores.

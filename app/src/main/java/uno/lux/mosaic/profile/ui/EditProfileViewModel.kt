@@ -52,31 +52,21 @@ class EditProfileViewModel @Inject constructor(
             return form != initial
         }
 
-    val uiState: StateFlow<UiState> = combine(
-        _form,
-        _initialForm,
-        _loadError,
-        _isSaving,
-        _showDiscardConfirmation,
-        _saveError,
-    ) { args ->
-        val form = args[0] as EditProfileForm?
-        val initialForm = args[1] as EditProfileForm?
-        val loadError = args[2] as AppError?
-        val isSaving = args[3] as Boolean
-        val showDiscardConfirmation = args[4] as Boolean
-        val saveError = args[5] as AppError?
+    private val formLoad = combine(_form, _initialForm, _loadError, ::FormLoad)
 
+    private val editorStatus = combine(_isSaving, _showDiscardConfirmation, _saveError, ::EditorStatus)
+
+    val uiState: StateFlow<UiState> = combine(formLoad, editorStatus) { load, status ->
         when {
-            form != null -> UiState.Editing(
-                form = form,
-                isDirty = form != initialForm,
-                isSaving = isSaving,
-                showDiscardConfirmation = showDiscardConfirmation,
-                saveError = saveError,
+            load.form != null -> UiState.Editing(
+                form = load.form,
+                isDirty = load.form != load.initialForm,
+                isSaving = status.isSaving,
+                showDiscardConfirmation = status.showDiscardConfirmation,
+                saveError = status.saveError,
             )
 
-            loadError != null -> UiState.Error(loadError)
+            load.error != null -> UiState.Error(load.error)
 
             else -> UiState.Loading
         }
@@ -194,3 +184,15 @@ class EditProfileViewModel @Inject constructor(
 }
 
 private const val DRAFT_KEY = "edit_profile_draft"
+
+private data class FormLoad(
+    val form: EditProfileForm?,
+    val initialForm: EditProfileForm?,
+    val error: AppError?,
+)
+
+private data class EditorStatus(
+    val isSaving: Boolean,
+    val showDiscardConfirmation: Boolean,
+    val saveError: AppError?,
+)
