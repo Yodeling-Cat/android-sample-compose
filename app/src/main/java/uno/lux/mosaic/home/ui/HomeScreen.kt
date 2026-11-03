@@ -121,6 +121,7 @@ internal fun HomeScreen(
 
     ReportHost(
         report = report,
+        snackbarHostState = snackbarHostState,
         onEvent = { onEvent(UiEvent.ReportDialog(it)) },
     )
 

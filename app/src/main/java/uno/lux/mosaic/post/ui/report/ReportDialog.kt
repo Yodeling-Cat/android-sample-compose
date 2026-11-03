@@ -24,6 +24,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -36,7 +37,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,7 +44,6 @@ import androidx.compose.ui.unit.dp
 import uno.lux.mosaic.R
 import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
-import uno.lux.mosaic.post.ui.toast
 
 /** Mirrors the server's `PostsService::REPORT_DETAILS_MAX_LENGTH`. */
 const val REPORT_DETAILS_MAX_LENGTH = 1000
@@ -52,10 +51,9 @@ const val REPORT_DETAILS_MAX_LENGTH = 1000
 @Composable
 internal fun ReportHost(
     report: PostReport?,
+    snackbarHostState: SnackbarHostState,
     onEvent: (ReportDialogEvent) -> Unit,
 ) {
-    val context = LocalContext.current
-
     when (report) {
         null -> Unit
 
@@ -68,9 +66,15 @@ internal fun ReportHost(
             )
         }
 
-        PostReport.Sent -> LaunchedEffect(Unit) {
-            context.toast(R.string.report_sent)
-            onEvent(ReportDialogEvent.SentShown)
+        PostReport.Sent -> {
+            val thanks = stringResource(R.string.report_sent)
+
+            // SentShown only after the snackbar closes: sent first, it would take this effect out of
+            // composition and cancel the snackbar it just started.
+            LaunchedEffect(thanks) {
+                snackbarHostState.showSnackbar(thanks)
+                onEvent(ReportDialogEvent.SentShown)
+            }
         }
     }
 }

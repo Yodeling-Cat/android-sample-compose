@@ -138,6 +138,7 @@ internal fun PostDetailScreen(
 
     ReportHost(
         report = uiState.report,
+        snackbarHostState = snackbarHostState,
         onEvent = { onEvent(UiEvent.ReportDialog(it)) },
     )
 
