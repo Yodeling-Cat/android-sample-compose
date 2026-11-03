@@ -1,5 +1,6 @@
 package uno.lux.mosaic.post.ui.report
 
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -7,6 +8,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -43,5 +45,26 @@ class ReportDialogInputTest {
         composeRule.onNodeWithText(string(R.string.report_send)).performClick()
 
         assertEquals(ReportReason.HATE_SPEECH to "Read the third paragraph", reported)
+    }
+
+    @Test
+    fun sendsNothingUntilAReasonIsPicked() {
+        var reported: Pair<ReportReason, String>? = null
+        composeRule.setContent {
+            MosaicTheme {
+                ReportPostDialog(
+                    sendState = ReportSendState.IDLE,
+                    onDismiss = {},
+                    onSubmit = { reason, details -> reported = reason to details },
+                )
+            }
+        }
+
+        composeRule
+            .onNodeWithText(string(R.string.report_details_hint))
+            .performTextInput("No reason given")
+        composeRule.onNodeWithText(string(R.string.report_send)).assertIsNotEnabled().performClick()
+
+        assertNull(reported)
     }
 }

@@ -102,9 +102,7 @@ internal fun ReportPostDialog(
                 sendState = sendState,
                 onSelectReason = { selectedReason = it },
                 onDismiss = onDismiss,
-                onSubmit = {
-                    onSubmit(selectedReason!!, detailsState.text.toString().trim())
-                },
+                onSubmit = { reason -> onSubmit(reason, detailsState.text.toString().trim()) },
             )
         }
     }
@@ -117,7 +115,7 @@ private fun ReportPostDialogContent(
     sendState: ReportSendState,
     onSelectReason: (ReportReason) -> Unit,
     onDismiss: () -> Unit,
-    onSubmit: () -> Unit,
+    onSubmit: (ReportReason) -> Unit,
 ) {
     val isSending = sendState == ReportSendState.SENDING
 
@@ -182,7 +180,7 @@ private fun ReportPostDialogContent(
                 Text(stringResource(R.string.report_cancel))
             }
             TextButton(
-                onClick = onSubmit,
+                onClick = { selectedReason?.let(onSubmit) },
                 enabled = selectedReason != null && !isSending,
             ) {
                 Text(stringResource(R.string.report_send))
