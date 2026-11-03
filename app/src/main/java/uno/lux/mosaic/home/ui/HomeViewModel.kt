@@ -48,16 +48,15 @@ class HomeViewModel @Inject constructor(
     private val _loadError = MutableStateFlow<AppError?>(null)
     private val _loadMoreFailed = MutableStateFlow(false)
 
-    val uiState: StateFlow<UiState> = combine(
+    // null until the first page lands
+    private val feed = combine(
         feedRepository.feedState,
         postRepository.entities,
         userRepository.users,
-        _loadError,
-        _loadMoreFailed,
-    ) { feedState, entities, users, loadError, loadMoreFailed ->
+    ) { feedState, entities, users ->
         when (feedState) {
             FeedState.NotLoaded -> {
-                if (loadError != null) UiState.Error(loadError) else UiState.Loading
+                null
             }
 
             is FeedState.Loaded -> {
@@ -70,13 +69,23 @@ class HomeViewModel @Inject constructor(
                         isOwn = post.authorId == currentUserId,
                     )
                 }
-                UiState.Feed(
-                    posts = cards,
-                    endReached = !feedState.hasMore,
-                    refreshError = loadError,
-                    loadMoreFailed = loadMoreFailed,
-                )
+                ResolvedFeed(cards = cards, endReached = !feedState.hasMore)
             }
+        }
+    }
+
+    private val loadStatus = combine(_loadError, _loadMoreFailed, ::LoadStatus)
+
+    val uiState: StateFlow<UiState> = combine(feed, loadStatus) { feed, status ->
+        if (feed == null) {
+            if (status.error != null) UiState.Error(status.error) else UiState.Loading
+        } else {
+            UiState.Feed(
+                posts = feed.cards,
+                endReached = feed.endReached,
+                refreshError = status.error,
+                loadMoreFailed = status.loadMoreFailed,
+            )
         }
     }.stateInWhileSubscribed(viewModelScope, UiState.Loading)
 
@@ -209,3 +218,13 @@ class HomeViewModel @Inject constructor(
         _failedAction.value = action
     }
 }
+
+private data class ResolvedFeed(
+    val cards: List<PostCardData>,
+    val endReached: Boolean,
+)
+
+private data class LoadStatus(
+    val error: AppError?,
+    val loadMoreFailed: Boolean,
+)
