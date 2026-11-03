@@ -121,9 +121,7 @@ internal fun HomeScreen(
 
     ReportHost(
         report = report,
-        onSend = { reason, details -> onEvent(UiEvent.SendReport(reason, details)) },
-        onClose = { onEvent(UiEvent.CloseReport) },
-        onSentShown = { onEvent(UiEvent.ReportSentShown) },
+        onEvent = { onEvent(UiEvent.ReportDialog(it)) },
     )
 
     Scaffold(

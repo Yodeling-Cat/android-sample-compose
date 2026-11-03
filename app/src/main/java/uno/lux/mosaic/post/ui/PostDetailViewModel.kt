@@ -112,16 +112,8 @@ class PostDetailViewModel @AssistedInject constructor(
             reporter.open(postId)
         }
 
-        is UiEvent.SendReport -> {
-            reporter.send(event.reason, event.details)
-        }
-
-        UiEvent.CloseReport -> {
-            reporter.close()
-        }
-
-        UiEvent.ReportSentShown -> {
-            reporter.sentShown()
+        is UiEvent.ReportDialog -> {
+            reporter.onEvent(event.event)
         }
 
         UiEvent.Retry -> {

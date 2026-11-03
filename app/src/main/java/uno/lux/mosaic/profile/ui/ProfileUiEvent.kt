@@ -1,7 +1,7 @@
 package uno.lux.mosaic.profile.ui
 
-import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.post.data.domain.PostId
+import uno.lux.mosaic.post.ui.ReportDialogEvent
 import uno.lux.mosaic.user.data.domain.UserId
 import uno.lux.mosaic.video.data.domain.Video
 
@@ -27,14 +27,9 @@ sealed interface ProfileUiEvent {
         val postId: PostId,
     ) : ProfileUiEvent
 
-    data class SendReport(
-        val reason: ReportReason,
-        val details: String,
+    data class ReportDialog(
+        val event: ReportDialogEvent,
     ) : ProfileUiEvent
-
-    data object CloseReport : ProfileUiEvent
-
-    data object ReportSentShown : ProfileUiEvent
 
     data object ToggleFollow : ProfileUiEvent
 

@@ -51,9 +51,7 @@ const val REPORT_DETAILS_MAX_LENGTH = 1000
 @Composable
 internal fun ReportHost(
     report: PostReport?,
-    onSend: (reason: ReportReason, details: String) -> Unit,
-    onClose: () -> Unit,
-    onSentShown: () -> Unit,
+    onEvent: (ReportDialogEvent) -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -62,12 +60,16 @@ internal fun ReportHost(
 
         // Keyed so a dialog for another post never inherits the reason picked for this one.
         is PostReport.Open -> key(report.postId) {
-            ReportPostDialog(sendState = report.send, onDismiss = onClose, onSubmit = onSend)
+            ReportPostDialog(
+                sendState = report.send,
+                onDismiss = { onEvent(ReportDialogEvent.Close) },
+                onSubmit = { reason, details -> onEvent(ReportDialogEvent.Send(reason, details)) },
+            )
         }
 
         PostReport.Sent -> LaunchedEffect(Unit) {
             context.toast(R.string.report_sent)
-            onSentShown()
+            onEvent(ReportDialogEvent.SentShown)
         }
     }
 }

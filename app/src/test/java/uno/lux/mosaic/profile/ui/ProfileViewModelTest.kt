@@ -19,6 +19,7 @@ import uno.lux.mosaic.post.data.FakePostDataSource
 import uno.lux.mosaic.post.data.PostRepository
 import uno.lux.mosaic.post.data.domain.Post
 import uno.lux.mosaic.post.ui.PostReport
+import uno.lux.mosaic.post.ui.ReportDialogEvent
 import uno.lux.mosaic.post.ui.ReportSendState
 import uno.lux.mosaic.profile.data.FakeProfileDataSource
 import uno.lux.mosaic.profile.data.PostsPage
@@ -159,7 +160,7 @@ class ProfileViewModelTest : ViewModelTest() {
         val before = (viewModel.uiState.value as ProfileUiState.Loaded).data.posts
 
         viewModel.onEvent(ProfileUiEvent.OpenReport("p1"))
-        viewModel.onEvent(ProfileUiEvent.SendReport(ReportReason.MISINFORMATION, "None of this is true"))
+        viewModel.onEvent(ProfileUiEvent.ReportDialog(ReportDialogEvent.Send(ReportReason.MISINFORMATION, "None of this is true")))
 
         assertEquals(
             listOf(
@@ -177,7 +178,7 @@ class ProfileViewModelTest : ViewModelTest() {
         val viewModel = viewModel(postDataSource = dataSource)
 
         viewModel.onEvent(ProfileUiEvent.OpenReport("p1"))
-        viewModel.onEvent(ProfileUiEvent.SendReport(ReportReason.MISINFORMATION, ""))
+        viewModel.onEvent(ProfileUiEvent.ReportDialog(ReportDialogEvent.Send(ReportReason.MISINFORMATION, "")))
 
         assertEquals(PostReport.Open("p1", ReportSendState.FAILED), viewModel.report.value)
         assertNull(viewModel.failedAction.value)

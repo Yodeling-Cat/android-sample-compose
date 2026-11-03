@@ -1,7 +1,6 @@
 package uno.lux.mosaic.post.ui
 
 import uno.lux.mosaic.comment.data.domain.CommentId
-import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.user.data.domain.UserId
 import uno.lux.mosaic.video.data.domain.Video
 
@@ -30,14 +29,9 @@ sealed interface PostDetailUiEvent {
 
     data object OpenReport : PostDetailUiEvent
 
-    data class SendReport(
-        val reason: ReportReason,
-        val details: String,
+    data class ReportDialog(
+        val event: ReportDialogEvent,
     ) : PostDetailUiEvent
-
-    data object CloseReport : PostDetailUiEvent
-
-    data object ReportSentShown : PostDetailUiEvent
 
     data object Retry : PostDetailUiEvent
 

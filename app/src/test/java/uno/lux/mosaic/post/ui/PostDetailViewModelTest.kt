@@ -176,7 +176,7 @@ class PostDetailViewModelTest : ViewModelTest() {
         val viewModel = viewModel(postDataSource = dataSource)
 
         viewModel.onEvent(PostDetailUiEvent.OpenReport)
-        viewModel.onEvent(PostDetailUiEvent.SendReport(ReportReason.HARASSMENT, "Second time this week"))
+        viewModel.onEvent(PostDetailUiEvent.ReportDialog(ReportDialogEvent.Send(ReportReason.HARASSMENT, "Second time this week")))
 
         assertEquals(
             listOf(FakePostDataSource.Report("p1", ReportReason.HARASSMENT, "Second time this week")),
@@ -193,7 +193,7 @@ class PostDetailViewModelTest : ViewModelTest() {
         val viewModel = viewModel(postDataSource = dataSource)
 
         viewModel.onEvent(PostDetailUiEvent.OpenReport)
-        viewModel.onEvent(PostDetailUiEvent.SendReport(ReportReason.HARASSMENT, ""))
+        viewModel.onEvent(PostDetailUiEvent.ReportDialog(ReportDialogEvent.Send(ReportReason.HARASSMENT, "")))
 
         assertEquals(PostReport.Open("p1", ReportSendState.FAILED), viewModel.uiState.value.report)
         assertNull(viewModel.uiState.value.failedAction)

@@ -178,16 +178,8 @@ class ProfileViewModel @AssistedInject constructor(
             reporter.open(event.postId)
         }
 
-        is UiEvent.SendReport -> {
-            reporter.send(event.reason, event.details)
-        }
-
-        UiEvent.CloseReport -> {
-            reporter.close()
-        }
-
-        UiEvent.ReportSentShown -> {
-            reporter.sentShown()
+        is UiEvent.ReportDialog -> {
+            reporter.onEvent(event.event)
         }
 
         UiEvent.ToggleFollow -> {

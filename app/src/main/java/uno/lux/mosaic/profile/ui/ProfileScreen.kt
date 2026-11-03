@@ -125,9 +125,7 @@ internal fun ProfileScreen(
 
     ReportHost(
         report = report,
-        onSend = { reason, details -> onEvent(UiEvent.SendReport(reason, details)) },
-        onClose = { onEvent(UiEvent.CloseReport) },
-        onSentShown = { onEvent(UiEvent.ReportSentShown) },
+        onEvent = { onEvent(UiEvent.ReportDialog(it)) },
     )
 
     Box(

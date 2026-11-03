@@ -137,9 +137,7 @@ internal fun PostDetailScreen(
 
     ReportHost(
         report = uiState.report,
-        onSend = { reason, details -> onEvent(UiEvent.SendReport(reason, details)) },
-        onClose = { onEvent(UiEvent.CloseReport) },
-        onSentShown = { onEvent(UiEvent.ReportSentShown) },
+        onEvent = { onEvent(UiEvent.ReportDialog(it)) },
     )
 
     Scaffold(

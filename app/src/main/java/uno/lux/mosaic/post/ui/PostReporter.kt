@@ -52,8 +52,22 @@ class PostReporter(
         update { PostReport.Open(postId) }
     }
 
+    fun onEvent(event: ReportDialogEvent): Unit = when (event) {
+        is ReportDialogEvent.Send -> {
+            send(event.reason, event.details)
+        }
+
+        ReportDialogEvent.Close -> {
+            close()
+        }
+
+        ReportDialogEvent.SentShown -> {
+            sentShown()
+        }
+    }
+
     /** A no-op with no dialog open, or while a send is already out. */
-    fun send(reason: ReportReason, details: String) {
+    private fun send(reason: ReportReason, details: String) {
         val open = current() as? PostReport.Open ?: return
         if (sendJob?.isActive == true) return
 
@@ -68,13 +82,13 @@ class PostReporter(
     }
 
     /** Cancels a send still out, so its answer cannot land after the dialog has gone. */
-    fun close() {
+    private fun close() {
         sendJob?.cancel()
         sendJob = null
         update { null }
     }
 
-    fun sentShown() = update { if (it == PostReport.Sent) null else it }
+    private fun sentShown() = update { if (it == PostReport.Sent) null else it }
 
     private fun setSend(state: ReportSendState) = update {
         if (it is PostReport.Open) it.copy(send = state) else it

@@ -51,7 +51,7 @@ class PostReporterTest {
         dataSource.whileInFlight = { whileOut = report.value }
         reporter.open("p1")
 
-        reporter.send(ReportReason.SPAM, "Four times")
+        reporter.onEvent(ReportDialogEvent.Send(ReportReason.SPAM, "Four times"))
 
         assertEquals(PostReport.Open("p1", ReportSendState.SENDING), whileOut)
         assertEquals(PostReport.Sent, report.value)
@@ -65,7 +65,7 @@ class PostReporterTest {
         val reporter = backgroundScope.reporter()
         reporter.open("p1")
 
-        reporter.send(ReportReason.SPAM, "")
+        reporter.onEvent(ReportDialogEvent.Send(ReportReason.SPAM, ""))
 
         assertEquals(PostReport.Open("p1", ReportSendState.FAILED), report.value)
     }
@@ -75,10 +75,10 @@ class PostReporterTest {
         dataSource.reportError = UnknownHostException("offline")
         val reporter = backgroundScope.reporter()
         reporter.open("p1")
-        reporter.send(ReportReason.SPAM, "")
+        reporter.onEvent(ReportDialogEvent.Send(ReportReason.SPAM, ""))
         dataSource.reportError = null
 
-        reporter.send(ReportReason.SPAM, "")
+        reporter.onEvent(ReportDialogEvent.Send(ReportReason.SPAM, ""))
 
         assertEquals(PostReport.Sent, report.value)
         assertEquals(listOf(FakePostDataSource.Report("p1", ReportReason.SPAM, "")), dataSource.reports)
@@ -91,8 +91,8 @@ class PostReporterTest {
         val reporter = backgroundScope.reporter()
         reporter.open("p1")
 
-        reporter.send(ReportReason.SPAM, "")
-        reporter.send(ReportReason.SPAM, "")
+        reporter.onEvent(ReportDialogEvent.Send(ReportReason.SPAM, ""))
+        reporter.onEvent(ReportDialogEvent.Send(ReportReason.SPAM, ""))
         held.complete(Unit)
 
         assertEquals(listOf(FakePostDataSource.Report("p1", ReportReason.SPAM, "")), dataSource.reports)
@@ -102,7 +102,7 @@ class PostReporterTest {
     fun `Send with no dialog open sends nothing`() = runTest(UnconfinedTestDispatcher()) {
         val reporter = backgroundScope.reporter()
 
-        reporter.send(ReportReason.SPAM, "")
+        reporter.onEvent(ReportDialogEvent.Send(ReportReason.SPAM, ""))
 
         assertNull(report.value)
         assertEquals(emptyList<FakePostDataSource.Report>(), dataSource.reports)
@@ -113,7 +113,7 @@ class PostReporterTest {
         val reporter = backgroundScope.reporter()
         reporter.open("p1")
 
-        reporter.close()
+        reporter.onEvent(ReportDialogEvent.Close)
 
         assertNull(report.value)
     }
@@ -126,9 +126,9 @@ class PostReporterTest {
         dataSource.whileInFlight = { held.await() }
         val reporter = backgroundScope.reporter()
         reporter.open("p1")
-        reporter.send(ReportReason.SPAM, "")
+        reporter.onEvent(ReportDialogEvent.Send(ReportReason.SPAM, ""))
 
-        reporter.close()
+        reporter.onEvent(ReportDialogEvent.Close)
         held.complete(Unit)
         advanceUntilIdle()
 
@@ -140,9 +140,9 @@ class PostReporterTest {
     fun `SentShown spends the thanks`() = runTest(UnconfinedTestDispatcher()) {
         val reporter = backgroundScope.reporter()
         reporter.open("p1")
-        reporter.send(ReportReason.SPAM, "")
+        reporter.onEvent(ReportDialogEvent.Send(ReportReason.SPAM, ""))
 
-        reporter.sentShown()
+        reporter.onEvent(ReportDialogEvent.SentShown)
 
         assertNull(report.value)
     }
@@ -153,10 +153,10 @@ class PostReporterTest {
     fun `SentShown leaves a dialog opened since alone`() = runTest(UnconfinedTestDispatcher()) {
         val reporter = backgroundScope.reporter()
         reporter.open("p1")
-        reporter.send(ReportReason.SPAM, "")
+        reporter.onEvent(ReportDialogEvent.Send(ReportReason.SPAM, ""))
         reporter.open("p2")
 
-        reporter.sentShown()
+        reporter.onEvent(ReportDialogEvent.SentShown)
 
         assertEquals(PostReport.Open("p2", ReportSendState.IDLE), report.value)
     }

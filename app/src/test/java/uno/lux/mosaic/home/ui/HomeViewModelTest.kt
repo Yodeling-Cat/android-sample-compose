@@ -25,6 +25,7 @@ import uno.lux.mosaic.post.data.PostRepository
 import uno.lux.mosaic.post.data.domain.Post
 import uno.lux.mosaic.post.ui.PostCardData
 import uno.lux.mosaic.post.ui.PostReport
+import uno.lux.mosaic.post.ui.ReportDialogEvent
 import uno.lux.mosaic.post.ui.ReportSendState
 import uno.lux.mosaic.settings.data.InMemorySettingsRepository
 import uno.lux.mosaic.settings.data.SettingsRepository
@@ -223,7 +224,7 @@ class HomeViewModelTest : ViewModelTest() {
         val before = (viewModel.uiState.value as HomeUiState.Feed).posts
 
         viewModel.onEvent(HomeUiEvent.OpenReport("p1"))
-        viewModel.onEvent(HomeUiEvent.SendReport(ReportReason.VIOLENCE, ""))
+        viewModel.onEvent(HomeUiEvent.ReportDialog(ReportDialogEvent.Send(ReportReason.VIOLENCE, "")))
 
         assertEquals(
             listOf(FakePostDataSource.Report("p1", ReportReason.VIOLENCE, "")),
@@ -240,7 +241,7 @@ class HomeViewModelTest : ViewModelTest() {
         val viewModel = viewModel(postDataSource = dataSource)
 
         viewModel.onEvent(HomeUiEvent.OpenReport("p1"))
-        viewModel.onEvent(HomeUiEvent.SendReport(ReportReason.VIOLENCE, ""))
+        viewModel.onEvent(HomeUiEvent.ReportDialog(ReportDialogEvent.Send(ReportReason.VIOLENCE, "")))
 
         assertEquals(PostReport.Open("p1", ReportSendState.FAILED), viewModel.report.value)
         assertNull(viewModel.failedAction.value)

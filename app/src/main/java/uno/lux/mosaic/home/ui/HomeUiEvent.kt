@@ -1,7 +1,7 @@
 package uno.lux.mosaic.home.ui
 
-import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.post.data.domain.PostId
+import uno.lux.mosaic.post.ui.ReportDialogEvent
 import uno.lux.mosaic.user.data.domain.UserId
 import uno.lux.mosaic.video.data.domain.Video
 
@@ -33,14 +33,9 @@ sealed interface HomeUiEvent {
         val postId: PostId,
     ) : HomeUiEvent
 
-    data class SendReport(
-        val reason: ReportReason,
-        val details: String,
+    data class ReportDialog(
+        val event: ReportDialogEvent,
     ) : HomeUiEvent
-
-    data object CloseReport : HomeUiEvent
-
-    data object ReportSentShown : HomeUiEvent
 
     data object OpenSettings : HomeUiEvent
 
