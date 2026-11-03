@@ -37,8 +37,8 @@ private suspend fun load() {
         coroutineScope {
             launch { userRepository.refresh(userId) }
             launch { profileRepository.refresh(userId) }
-            launch { saved.refreshIfLoaded() }
-            launch { liked.refreshIfLoaded() }
+            launch { bookmarks.refreshIfLoaded() }
+            launch { likes.refreshIfLoaded() }
         }
     }
 

@@ -42,7 +42,7 @@ sealed interface ProfileUiEvent {
 
     data object LoadMorePosts : ProfileUiEvent
 
-    data object SavedTabShown : ProfileUiEvent
+    data object BookmarksTabShown : ProfileUiEvent
 
     data object LoadMoreBookmarks : ProfileUiEvent
 

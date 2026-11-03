@@ -58,8 +58,8 @@ class ProfileViewModel @AssistedInject constructor(
 
     private val _userFetch = MutableStateFlow<EntityFetch>(EntityFetch.Pending)
 
-    private val saved = profileRepository.saved(userId)
-    private val liked = profileRepository.liked(userId)
+    private val bookmarks = profileRepository.bookmarks(userId)
+    private val likes = profileRepository.likes(userId)
 
     private fun cardListFlow(list: PostList): Flow<ProfilePostList?> =
         combine(
@@ -85,7 +85,7 @@ class ProfileViewModel @AssistedInject constructor(
 
     private val _loadFailures = MutableStateFlow(LoadFailures())
 
-    private val lazyTabs = combine(cardListFlow(saved), cardListFlow(liked), _loadFailures, ::LazyTabs)
+    private val lazyTabs = combine(cardListFlow(bookmarks), cardListFlow(likes), _loadFailures, ::LazyTabs)
 
     private val ownPosts = combine(
         profileRepository.postIds(userId),
@@ -202,8 +202,8 @@ class ProfileViewModel @AssistedInject constructor(
             loadMorePosts()
         }
 
-        UiEvent.SavedTabShown -> {
-            ensureSavedLoaded()
+        UiEvent.BookmarksTabShown -> {
+            ensureBookmarksLoaded()
         }
 
         UiEvent.LoadMoreBookmarks -> {
@@ -255,12 +255,12 @@ class ProfileViewModel @AssistedInject constructor(
         _userFetch.value = EntityFetch.Pending
         // A refresh restarts every list it re-fetches, so a page that failed to follow the old one
         // is moot. A tab that never loaded is not re-fetched, so its failure still stands.
-        val savedLoaded = saved.ids.first() != null
-        val likedLoaded = liked.ids.first() != null
+        val bookmarksLoaded = bookmarks.ids.first() != null
+        val likesLoaded = likes.ids.first() != null
         _loadFailures.update {
             LoadFailures(
-                bookmarks = it.bookmarks && !savedLoaded,
-                likes = it.likes && !likedLoaded,
+                bookmarks = it.bookmarks && !bookmarksLoaded,
+                likes = it.likes && !likesLoaded,
             )
         }
 
@@ -270,8 +270,8 @@ class ProfileViewModel @AssistedInject constructor(
                 launch { profileRepository.refresh(userId) }
                 // Each is a no-op for a tab nobody opened: a profile load must not reach for a
                 // list the user has not asked to see, least of all the private one.
-                launch { saved.refreshIfLoaded() }
-                launch { liked.refreshIfLoaded() }
+                launch { bookmarks.refreshIfLoaded() }
+                launch { likes.refreshIfLoaded() }
             }
             _userFetch.value = EntityFetch.Done
         }
@@ -301,20 +301,20 @@ class ProfileViewModel @AssistedInject constructor(
         trackingFailure({ copy(posts = it) }) { profileRepository.loadMorePosts(userId) }
     }
 
-    private fun ensureSavedLoaded() = launchIfIdle(::bookmarksJob) {
-        trackingFailure({ copy(bookmarks = it) }) { saved.ensureLoaded() }
+    private fun ensureBookmarksLoaded() = launchIfIdle(::bookmarksJob) {
+        trackingFailure({ copy(bookmarks = it) }) { bookmarks.ensureLoaded() }
     }
 
     private fun loadMoreBookmarks() = launchIfIdle(::bookmarksJob) {
-        trackingFailure({ copy(bookmarks = it) }) { saved.loadMore() }
+        trackingFailure({ copy(bookmarks = it) }) { bookmarks.loadMore() }
     }
 
     private fun ensureLikesLoaded() = launchIfIdle(::likesJob) {
-        trackingFailure({ copy(likes = it) }) { liked.ensureLoaded() }
+        trackingFailure({ copy(likes = it) }) { likes.ensureLoaded() }
     }
 
     private fun loadMoreLikes() = launchIfIdle(::likesJob) {
-        trackingFailure({ copy(likes = it) }) { liked.loadMore() }
+        trackingFailure({ copy(likes = it) }) { likes.loadMore() }
     }
 
     private suspend fun trackingFailure(

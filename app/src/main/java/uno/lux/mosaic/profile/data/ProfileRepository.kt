@@ -53,7 +53,7 @@ class ProfileRepository(
 
     // The two on-demand tabs differ only in which endpoint fills them and which flag keeps a post
     // on the list, so the ordering and paging bookkeeping lives in one place.
-    private val savedPosts = OnDemandPostIds(dataSource::bookmarks, Post::isBookmarked)
+    private val bookmarkedPosts = OnDemandPostIds(dataSource::bookmarks, Post::isBookmarked)
     private val likedPosts = OnDemandPostIds(dataSource::likes, Post::isLiked)
 
     fun profile(userId: UserId): Flow<Profile> =
@@ -65,9 +65,9 @@ class ProfileRepository(
     fun hasMorePosts(userId: UserId): Flow<Boolean> =
         _postPage.map { it[userId]?.hasMore ?: false }
 
-    fun saved(userId: UserId): PostList = savedPosts.forUser(userId)
+    fun bookmarks(userId: UserId): PostList = bookmarkedPosts.forUser(userId)
 
-    fun liked(userId: UserId): PostList = likedPosts.forUser(userId)
+    fun likes(userId: UserId): PostList = likedPosts.forUser(userId)
 
     suspend fun refresh(userId: UserId) {
         val data = dataSource.refresh(userId)

@@ -214,7 +214,7 @@ class ProfileRepositoryTest {
 
         repo.refresh("u1")
 
-        assertNull(repo.saved("u1").ids.first())
+        assertNull(repo.bookmarks("u1").ids.first())
         // A profile load must not reach for a list nobody has opened.
         assertTrue(dataSource.bookmarkCalls.isEmpty())
     }
@@ -222,11 +222,11 @@ class ProfileRepositoryTest {
     @Test
     fun `loading the Saved tab populates its ids`() = runTest {
         val repo = repository(bookmarksDataSource(listOf(gracePost)))
-        val saved = repo.saved("u1")
+        val bookmarks = repo.bookmarks("u1")
 
-        saved.ensureLoaded()
+        bookmarks.ensureLoaded()
 
-        assertEquals(listOf("p2"), saved.ids.first())
+        assertEquals(listOf("p2"), bookmarks.ids.first())
     }
 
     // Loading once is the list's own decision rather than a guard every caller has to remember:
@@ -235,10 +235,10 @@ class ProfileRepositoryTest {
     fun `ensureLoaded fetches once across repeat calls`() = runTest {
         val dataSource = bookmarksDataSource(listOf(gracePost))
         val repo = repository(dataSource)
-        val saved = repo.saved("u1")
+        val bookmarks = repo.bookmarks("u1")
 
-        saved.ensureLoaded()
-        saved.ensureLoaded()
+        bookmarks.ensureLoaded()
+        bookmarks.ensureLoaded()
 
         assertEquals(1, dataSource.bookmarkCalls.size)
     }
@@ -248,20 +248,20 @@ class ProfileRepositoryTest {
         val dataSource = bookmarksDataSource(listOf(gracePost))
         val repo = repository(dataSource)
 
-        repo.saved("u1").refreshIfLoaded()
+        repo.bookmarks("u1").refreshIfLoaded()
 
         assertTrue(dataSource.bookmarkCalls.isEmpty())
-        assertNull(repo.saved("u1").ids.first())
+        assertNull(repo.bookmarks("u1").ids.first())
     }
 
     @Test
     fun `refreshIfLoaded re-fetches a tab that was opened`() = runTest {
         val dataSource = bookmarksDataSource(listOf(gracePost))
         val repo = repository(dataSource)
-        val saved = repo.saved("u1")
-        saved.ensureLoaded()
+        val bookmarks = repo.bookmarks("u1")
+        bookmarks.ensureLoaded()
 
-        saved.refreshIfLoaded()
+        bookmarks.refreshIfLoaded()
 
         assertEquals(2, dataSource.bookmarkCalls.size)
     }
@@ -271,11 +271,11 @@ class ProfileRepositoryTest {
     @Test
     fun `an empty Saved tab is loaded, not pending`() = runTest {
         val repo = repository(bookmarksDataSource(emptyList()))
-        val saved = repo.saved("u1")
+        val bookmarks = repo.bookmarks("u1")
 
-        saved.ensureLoaded()
+        bookmarks.ensureLoaded()
 
-        assertEquals(emptyList<String>(), saved.ids.first())
+        assertEquals(emptyList<String>(), bookmarks.ids.first())
     }
 
     @Test
@@ -285,7 +285,7 @@ class ProfileRepositoryTest {
         val repo =
             repository(bookmarksDataSource(listOf(gracePost), listOf(grace)), postRepo, userRepo)
 
-        repo.saved("u1").ensureLoaded()
+        repo.bookmarks("u1").ensureLoaded()
 
         assertEquals("p2", postRepo.entities.first()["p2"]?.id)
         // Saved posts are by arbitrary authors, so they arrive with the page.
@@ -304,23 +304,23 @@ class ProfileRepositoryTest {
             ),
         )
         val repo = repository(dataSource)
-        val saved = repo.saved("u1")
-        saved.ensureLoaded()
+        val bookmarks = repo.bookmarks("u1")
+        bookmarks.ensureLoaded()
 
-        saved.loadMore()
+        bookmarks.loadMore()
 
-        assertEquals(listOf("p2", "p3"), saved.ids.first())
-        assertFalse(saved.hasMore.first())
+        assertEquals(listOf("p2", "p3"), bookmarks.ids.first())
+        assertFalse(bookmarks.hasMore.first())
     }
 
     @Test
     fun `the Saved tab's loadMore is a no-op when hasMore is false`() = runTest {
         val dataSource = bookmarksDataSource(listOf(gracePost))
         val repo = repository(dataSource)
-        val saved = repo.saved("u1")
-        saved.ensureLoaded()
+        val bookmarks = repo.bookmarks("u1")
+        bookmarks.ensureLoaded()
 
-        saved.loadMore()
+        bookmarks.loadMore()
 
         assertEquals(1, dataSource.bookmarkCalls.size)
     }
@@ -329,12 +329,12 @@ class ProfileRepositoryTest {
     fun `the Saved tab's loadMore is a no-op before the first page has loaded`() = runTest {
         val dataSource = bookmarksDataSource(listOf(gracePost))
         val repo = repository(dataSource)
-        val saved = repo.saved("u1")
+        val bookmarks = repo.bookmarks("u1")
 
-        saved.loadMore()
+        bookmarks.loadMore()
 
         assertTrue(dataSource.bookmarkCalls.isEmpty())
-        assertNull(saved.ids.first())
+        assertNull(bookmarks.ids.first())
     }
 
     // The saved posts resolve through PostRepository like the profile's own, so a like
@@ -344,8 +344,8 @@ class ProfileRepositoryTest {
         val savedButUnliked = post(id = "p2", authorId = "u2", isBookmarked = true)
         val postRepo = postRepo()
         val repo = repository(bookmarksDataSource(listOf(savedButUnliked), listOf(grace)), postRepo)
-        val saved = repo.saved("u1")
-        saved.ensureLoaded()
+        val bookmarks = repo.bookmarks("u1")
+        bookmarks.ensureLoaded()
 
         postRepo.toggleLike("p2")
 
@@ -356,7 +356,7 @@ class ProfileRepositoryTest {
                 .isLiked,
         )
         // The like is not what puts a post on the Saved tab, so the row stays.
-        assertEquals(listOf("p2"), saved.ids.first())
+        assertEquals(listOf("p2"), bookmarks.ids.first())
     }
 
     // Membership moves both ways: the list is derived from the entity rather than a copy of it,
@@ -365,14 +365,14 @@ class ProfileRepositoryTest {
     fun `the Saved tab follows the bookmark flag in both directions`() = runTest {
         val postRepo = postRepo()
         val repo = repository(bookmarksDataSource(listOf(gracePost), listOf(grace)), postRepo)
-        val saved = repo.saved("u1")
-        saved.ensureLoaded()
+        val bookmarks = repo.bookmarks("u1")
+        bookmarks.ensureLoaded()
 
         postRepo.toggleBookmark("p2")
-        assertEquals(emptyList<String>(), saved.ids.first())
+        assertEquals(emptyList<String>(), bookmarks.ids.first())
 
         postRepo.toggleBookmark("p2")
-        assertEquals(listOf("p2"), saved.ids.first())
+        assertEquals(listOf("p2"), bookmarks.ids.first())
     }
 
     @Test
@@ -382,7 +382,7 @@ class ProfileRepositoryTest {
 
         repo.refresh("u1")
 
-        assertNull(repo.liked("u1").ids.first())
+        assertNull(repo.likes("u1").ids.first())
         assertTrue(dataSource.likeCalls.isEmpty())
     }
 
@@ -391,11 +391,11 @@ class ProfileRepositoryTest {
         val userRepo = userRepo()
         val repo =
             repository(likesDataSource(listOf(gracePost), listOf(grace)), userRepo = userRepo)
-        val liked = repo.liked("u1")
+        val likes = repo.likes("u1")
 
-        liked.ensureLoaded()
+        likes.ensureLoaded()
 
-        assertEquals(listOf("p2"), liked.ids.first())
+        assertEquals(listOf("p2"), likes.ids.first())
         assertEquals(grace, userRepo.users.first()["u2"])
     }
 
@@ -415,10 +415,10 @@ class ProfileRepositoryTest {
         )
         val repo = repository(dataSource)
 
-        repo.liked("u1").ensureLoaded()
+        repo.likes("u1").ensureLoaded()
 
-        assertEquals(listOf("p2"), repo.liked("u1").ids.first())
-        assertNull(repo.saved("u1").ids.first())
+        assertEquals(listOf("p2"), repo.likes("u1").ids.first())
+        assertNull(repo.bookmarks("u1").ids.first())
         assertTrue(dataSource.bookmarkCalls.isEmpty())
     }
 
@@ -434,13 +434,13 @@ class ProfileRepositoryTest {
             ),
         )
         val repo = repository(dataSource)
-        val liked = repo.liked("u1")
-        liked.ensureLoaded()
+        val likes = repo.likes("u1")
+        likes.ensureLoaded()
 
-        liked.loadMore()
+        likes.loadMore()
 
-        assertEquals(listOf("p2", "p3"), liked.ids.first())
-        assertFalse(liked.hasMore.first())
+        assertEquals(listOf("p2", "p3"), likes.ids.first())
+        assertFalse(likes.hasMore.first())
     }
 
     @Test
@@ -450,33 +450,33 @@ class ProfileRepositoryTest {
         val dataSource = GatedProfileDataSource()
         val repo = repository(dataSource, currentUserId = "u1")
         // Someone else's tab, so the list is echoed from the server rather than derived.
-        val liked = repo.liked("u2")
-        launch { liked.ensureLoaded() }
+        val likes = repo.likes("u2")
+        launch { likes.ensureLoaded() }
         runCurrent()
         dataSource.likeCalls[0].answer.complete(PostsPage(listOf(adaPost), emptyList(), "c2", true))
         runCurrent()
 
-        launch { liked.loadMore() }
+        launch { likes.loadMore() }
         runCurrent()
-        launch { liked.refreshIfLoaded() }
+        launch { likes.refreshIfLoaded() }
         runCurrent()
         dataSource.likeCalls[2].answer.complete(PostsPage(listOf(p0, adaPost), emptyList(), "c3", true))
         runCurrent()
         dataSource.likeCalls[1].answer.complete(PostsPage(listOf(p3), emptyList(), null, false))
         runCurrent()
 
-        assertEquals(listOf("p0", "p1"), liked.ids.first())
-        assertTrue(liked.hasMore.first())
+        assertEquals(listOf("p0", "p1"), likes.ids.first())
+        assertTrue(likes.hasMore.first())
     }
 
     @Test
     fun `the Likes tab's loadMore is a no-op when hasMore is false`() = runTest {
         val dataSource = likesDataSource(listOf(gracePost))
         val repo = repository(dataSource)
-        val liked = repo.liked("u1")
-        liked.ensureLoaded()
+        val likes = repo.likes("u1")
+        likes.ensureLoaded()
 
-        liked.loadMore()
+        likes.loadMore()
 
         assertEquals(1, dataSource.likeCalls.size)
     }
@@ -485,12 +485,12 @@ class ProfileRepositoryTest {
     fun `unliking drops the post from the Likes tab`() = runTest {
         val postRepo = postRepo()
         val repo = repository(likesDataSource(listOf(gracePost), listOf(grace)), postRepo)
-        val liked = repo.liked("u1")
-        liked.ensureLoaded()
+        val likes = repo.likes("u1")
+        likes.ensureLoaded()
 
         postRepo.toggleLike("p2")
 
-        assertEquals(emptyList<String>(), liked.ids.first())
+        assertEquals(emptyList<String>(), likes.ids.first())
     }
 
     // `isLiked` describes the *viewer*, so on someone else's Likes tab it says nothing about why
@@ -502,11 +502,11 @@ class ProfileRepositoryTest {
             likesDataSource(listOf(unlikedByViewer), userId = "u2"),
             currentUserId = "u1",
         )
-        val liked = repo.liked("u2")
+        val likes = repo.likes("u2")
 
-        liked.ensureLoaded()
+        likes.ensureLoaded()
 
-        assertEquals(listOf("p4"), liked.ids.first())
+        assertEquals(listOf("p4"), likes.ids.first())
     }
 
     // The point of deriving the list: a post liked anywhere else — the Posts tab, the feed — joins
@@ -521,12 +521,12 @@ class ProfileRepositoryTest {
             ),
         )
         val repo = repository(dataSource, postRepo)
-        val liked = repo.liked("u1")
-        liked.ensureLoaded()
+        val likes = repo.likes("u1")
+        likes.ensureLoaded()
 
         postRepo.toggleLike("p1")
 
-        assertEquals(listOf("p1"), liked.ids.first())
+        assertEquals(listOf("p1"), likes.ids.first())
     }
 
     // It lands in the server's own order rather than at whichever end is convenient, so the tab
@@ -547,12 +547,12 @@ class ProfileRepositoryTest {
             ),
         )
         val repo = repository(dataSource, postRepo)
-        val liked = repo.liked("u1")
-        liked.ensureLoaded()
+        val likes = repo.likes("u1")
+        likes.ensureLoaded()
 
         postRepo.toggleLike("p9")
 
-        assertEquals(listOf("p2", "p9", "p3"), liked.ids.first())
+        assertEquals(listOf("p2", "p9", "p3"), likes.ids.first())
     }
 
     // A post older than everything loaded belongs to a page the server has not sent. Slotting it
@@ -569,12 +569,12 @@ class ProfileRepositoryTest {
             ),
         )
         val repo = repository(dataSource, postRepo)
-        val liked = repo.liked("u1")
-        liked.ensureLoaded()
+        val likes = repo.likes("u1")
+        likes.ensureLoaded()
 
         postRepo.toggleLike("p9")
 
-        assertEquals(listOf("p2"), liked.ids.first())
+        assertEquals(listOf("p2"), likes.ids.first())
     }
 
     // Someone else's Likes tab is echoed as fetched: the viewer's own flags describe the viewer,
@@ -590,12 +590,12 @@ class ProfileRepositoryTest {
             ),
         )
         val repo = repository(dataSource, postRepo, currentUserId = "u1")
-        val liked = repo.liked("u2")
-        liked.ensureLoaded()
+        val likes = repo.likes("u2")
+        likes.ensureLoaded()
 
         postRepo.toggleLike("p1")
 
-        assertEquals(listOf("p2"), liked.ids.first())
+        assertEquals(listOf("p2"), likes.ids.first())
     }
 
     // The tab is handed out with its user bound, so two users' lists cannot be crossed even
@@ -609,9 +609,9 @@ class ProfileRepositoryTest {
         )
         val repo = repository(dataSource, currentUserId = "u3")
 
-        repo.liked("u2").ensureLoaded()
+        repo.likes("u2").ensureLoaded()
 
-        assertNull(repo.liked("u1").ids.first())
+        assertNull(repo.likes("u1").ids.first())
         assertEquals(listOf("u2" to null), dataSource.likeCalls)
     }
 

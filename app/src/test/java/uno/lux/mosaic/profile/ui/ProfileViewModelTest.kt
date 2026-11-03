@@ -379,21 +379,21 @@ class ProfileViewModelTest : ViewModelTest() {
     }
 
     @Test
-    fun `SavedTabShown loads the saved posts with their authors`() = runTest {
+    fun `BookmarksTabShown loads the saved posts with their authors`() = runTest {
         val viewModel = viewModel()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
 
-        viewModel.onEvent(ProfileUiEvent.SavedTabShown)
+        viewModel.onEvent(ProfileUiEvent.BookmarksTabShown)
 
-        val saved = (viewModel.uiState.value as ProfileUiState.Loaded).data.bookmarks!!
-        val card = saved.posts.single()
+        val bookmarks = (viewModel.uiState.value as ProfileUiState.Loaded).data.bookmarks!!
+        val card = bookmarks.posts.single()
         assertEquals("p2", card.post.id)
         // A saved post is usually someone else's, so the card carries that author, not the profile's.
         assertEquals(grace, card.author)
         assertFalse(card.isOwn)
-        assertTrue(saved.endReached)
+        assertTrue(bookmarks.endReached)
     }
 
     @Test
@@ -404,7 +404,7 @@ class ProfileViewModelTest : ViewModelTest() {
         }
         profileDataSource.offline = true
 
-        viewModel.onEvent(ProfileUiEvent.SavedTabShown)
+        viewModel.onEvent(ProfileUiEvent.BookmarksTabShown)
 
         val data = (viewModel.uiState.value as ProfileUiState.Loaded).data
         assertNull(data.bookmarks)
@@ -418,10 +418,10 @@ class ProfileViewModelTest : ViewModelTest() {
             viewModel.uiState.collect {}
         }
         profileDataSource.offline = true
-        viewModel.onEvent(ProfileUiEvent.SavedTabShown)
+        viewModel.onEvent(ProfileUiEvent.BookmarksTabShown)
         profileDataSource.offline = false
 
-        viewModel.onEvent(ProfileUiEvent.SavedTabShown)
+        viewModel.onEvent(ProfileUiEvent.BookmarksTabShown)
 
         val data = (viewModel.uiState.value as ProfileUiState.Loaded).data
         assertFalse(data.bookmarksLoadFailed)
@@ -457,14 +457,14 @@ class ProfileViewModelTest : ViewModelTest() {
     }
 
     @Test
-    fun `SavedTabShown fetches only once across repeat visits`() = runTest {
+    fun `BookmarksTabShown fetches only once across repeat visits`() = runTest {
         val viewModel = viewModel()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
 
-        viewModel.onEvent(ProfileUiEvent.SavedTabShown)
-        viewModel.onEvent(ProfileUiEvent.SavedTabShown)
+        viewModel.onEvent(ProfileUiEvent.BookmarksTabShown)
+        viewModel.onEvent(ProfileUiEvent.BookmarksTabShown)
 
         assertEquals(1, profileDataSource.bookmarkCalls.size)
     }
@@ -476,10 +476,10 @@ class ProfileViewModelTest : ViewModelTest() {
             viewModel.uiState.collect {}
         }
 
-        viewModel.onEvent(ProfileUiEvent.SavedTabShown)
+        viewModel.onEvent(ProfileUiEvent.BookmarksTabShown)
 
-        val saved = (viewModel.uiState.value as ProfileUiState.Loaded).data.bookmarks
-        assertEquals(emptyList<Any>(), saved?.posts)
+        val bookmarks = (viewModel.uiState.value as ProfileUiState.Loaded).data.bookmarks
+        assertEquals(emptyList<Any>(), bookmarks?.posts)
     }
 
     // The saved posts resolve through the shared entity store, so liking one from the Saved tab
@@ -493,7 +493,7 @@ class ProfileViewModelTest : ViewModelTest() {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
-        viewModel.onEvent(ProfileUiEvent.SavedTabShown)
+        viewModel.onEvent(ProfileUiEvent.BookmarksTabShown)
 
         viewModel.onEvent(ProfileUiEvent.ToggleLike("p2"))
 
@@ -523,7 +523,7 @@ class ProfileViewModelTest : ViewModelTest() {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
-        viewModel.onEvent(ProfileUiEvent.SavedTabShown)
+        viewModel.onEvent(ProfileUiEvent.BookmarksTabShown)
 
         viewModel.onEvent(ProfileUiEvent.Refresh)
 
@@ -618,7 +618,7 @@ class ProfileViewModelTest : ViewModelTest() {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
-        viewModel.onEvent(ProfileUiEvent.SavedTabShown)
+        viewModel.onEvent(ProfileUiEvent.BookmarksTabShown)
 
         viewModel.onEvent(ProfileUiEvent.ToggleBookmark("p2"))
 
@@ -635,7 +635,7 @@ class ProfileViewModelTest : ViewModelTest() {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect {}
         }
-        viewModel.onEvent(ProfileUiEvent.SavedTabShown)
+        viewModel.onEvent(ProfileUiEvent.BookmarksTabShown)
 
         viewModel.onEvent(ProfileUiEvent.ToggleLike("p2"))
 

@@ -297,11 +297,11 @@ private fun ProfileTabEffects(
             onLoadMore = { onEvent(UiEvent.LoadMoreLikes) },
         )
 
-        ProfileTab.SAVED -> OnDemandTabEffects(
+        ProfileTab.BOOKMARKS -> OnDemandTabEffects(
             listState = listState,
             list = data.bookmarks,
             loadFailed = data.bookmarksLoadFailed,
-            onShown = { onEvent(UiEvent.SavedTabShown) },
+            onShown = { onEvent(UiEvent.BookmarksTabShown) },
             onLoadMore = { onEvent(UiEvent.LoadMoreBookmarks) },
         )
     }
@@ -330,13 +330,13 @@ private fun LazyListScope.tabItems(
             emptyMessageRes = R.string.profile_empty_likes,
         )
 
-        ProfileTab.SAVED -> onDemandTabItems(
+        ProfileTab.BOOKMARKS -> onDemandTabItems(
             list = data.bookmarks,
             loadFailed = data.bookmarksLoadFailed,
-            onFirstLoad = { onEvent(UiEvent.SavedTabShown) },
+            onFirstLoad = { onEvent(UiEvent.BookmarksTabShown) },
             onLoadMore = { onEvent(UiEvent.LoadMoreBookmarks) },
             onEvent = onEvent,
-            keyPrefix = "saved",
+            keyPrefix = "bookmarks",
             emptyMessageRes = R.string.profile_empty_saved,
         )
     }
@@ -560,7 +560,7 @@ private enum class ProfileTab(
 ) {
     POSTS(R.string.profile_tab_posts),
     LIKES(R.string.profile_tab_likes),
-    SAVED(R.string.profile_tab_saved, true),
+    BOOKMARKS(R.string.profile_tab_saved, true),
 }
 
 @Composable
