@@ -1,4 +1,4 @@
-package uno.lux.mosaic.post.ui
+package uno.lux.mosaic.post.ui.report
 
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.StateRestorationTester

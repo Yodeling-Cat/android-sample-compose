@@ -18,9 +18,9 @@ import uno.lux.mosaic.common.ui.FailedAction
 import uno.lux.mosaic.post.data.FakePostDataSource
 import uno.lux.mosaic.post.data.PostRepository
 import uno.lux.mosaic.post.domain.Post
-import uno.lux.mosaic.post.ui.PostReport
-import uno.lux.mosaic.post.ui.ReportDialogEvent
-import uno.lux.mosaic.post.ui.ReportSendState
+import uno.lux.mosaic.post.ui.report.PostReport
+import uno.lux.mosaic.post.ui.report.ReportDialogEvent
+import uno.lux.mosaic.post.ui.report.ReportSendState
 import uno.lux.mosaic.profile.data.FakeProfileDataSource
 import uno.lux.mosaic.profile.data.PostsPage
 import uno.lux.mosaic.profile.data.ProfileRefreshData

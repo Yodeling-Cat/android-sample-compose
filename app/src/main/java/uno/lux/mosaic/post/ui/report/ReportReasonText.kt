@@ -1,4 +1,4 @@
-package uno.lux.mosaic.post.ui
+package uno.lux.mosaic.post.ui.report
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource

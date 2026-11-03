@@ -25,8 +25,8 @@ import uno.lux.mosaic.feed.data.FeedState
 import uno.lux.mosaic.post.data.PostRepository
 import uno.lux.mosaic.post.domain.PostId
 import uno.lux.mosaic.post.ui.PostCardData
-import uno.lux.mosaic.post.ui.PostReport
-import uno.lux.mosaic.post.ui.PostReporter
+import uno.lux.mosaic.post.ui.report.PostReport
+import uno.lux.mosaic.post.ui.report.PostReporter
 import uno.lux.mosaic.settings.data.SettingsRepository
 import uno.lux.mosaic.settings.domain.DEFAULT_AUTO_PLAY_VIDEOS
 import uno.lux.mosaic.user.data.UserRepository

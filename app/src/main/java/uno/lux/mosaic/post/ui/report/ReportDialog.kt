@@ -1,4 +1,4 @@
-package uno.lux.mosaic.post.ui
+package uno.lux.mosaic.post.ui.report
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import uno.lux.mosaic.R
 import uno.lux.mosaic.common.data.ReportReason
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
+import uno.lux.mosaic.post.ui.toast
 
 /** Mirrors the server's `PostsService::REPORT_DETAILS_MAX_LENGTH`. */
 const val REPORT_DETAILS_MAX_LENGTH = 1000

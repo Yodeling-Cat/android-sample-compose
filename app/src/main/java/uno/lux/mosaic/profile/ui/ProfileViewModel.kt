@@ -32,8 +32,8 @@ import uno.lux.mosaic.post.data.PostRepository
 import uno.lux.mosaic.post.domain.Post
 import uno.lux.mosaic.post.domain.PostId
 import uno.lux.mosaic.post.ui.PostCardData
-import uno.lux.mosaic.post.ui.PostReport
-import uno.lux.mosaic.post.ui.PostReporter
+import uno.lux.mosaic.post.ui.report.PostReport
+import uno.lux.mosaic.post.ui.report.PostReporter
 import uno.lux.mosaic.profile.data.PostList
 import uno.lux.mosaic.profile.data.ProfileRepository
 import uno.lux.mosaic.user.data.UserRepository

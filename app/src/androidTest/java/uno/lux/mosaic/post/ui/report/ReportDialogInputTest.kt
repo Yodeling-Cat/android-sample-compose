@@ -1,4 +1,4 @@
-package uno.lux.mosaic.post.ui
+package uno.lux.mosaic.post.ui.report
 
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText

@@ -1,6 +1,7 @@
 package uno.lux.mosaic.post.ui
 
 import uno.lux.mosaic.comment.domain.CommentId
+import uno.lux.mosaic.post.ui.report.ReportDialogEvent
 import uno.lux.mosaic.user.domain.UserId
 import uno.lux.mosaic.video.domain.Video
 

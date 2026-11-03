@@ -1,4 +1,4 @@
-package uno.lux.mosaic.post.ui
+package uno.lux.mosaic.post.ui.report
 
 import uno.lux.mosaic.common.data.ReportReason
 

@@ -30,6 +30,7 @@ import uno.lux.mosaic.common.util.launchIfIdle
 import uno.lux.mosaic.post.data.PostRepository
 import uno.lux.mosaic.post.domain.PostId
 import uno.lux.mosaic.post.ui.PostDetailUiState.Content
+import uno.lux.mosaic.post.ui.report.PostReporter
 import uno.lux.mosaic.user.data.UserRepository
 import uno.lux.mosaic.user.domain.User
 import uno.lux.mosaic.post.ui.PostDetailUiEvent as UiEvent

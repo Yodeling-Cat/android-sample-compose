@@ -1,4 +1,4 @@
-package uno.lux.mosaic.post.ui
+package uno.lux.mosaic.post.ui.report
 
 import androidx.compose.runtime.Immutable
 import kotlinx.coroutines.CoroutineScope

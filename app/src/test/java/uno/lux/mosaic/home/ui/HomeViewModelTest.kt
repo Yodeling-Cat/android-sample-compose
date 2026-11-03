@@ -24,9 +24,9 @@ import uno.lux.mosaic.post.data.FakePostDataSource
 import uno.lux.mosaic.post.data.PostRepository
 import uno.lux.mosaic.post.domain.Post
 import uno.lux.mosaic.post.ui.PostCardData
-import uno.lux.mosaic.post.ui.PostReport
-import uno.lux.mosaic.post.ui.ReportDialogEvent
-import uno.lux.mosaic.post.ui.ReportSendState
+import uno.lux.mosaic.post.ui.report.PostReport
+import uno.lux.mosaic.post.ui.report.ReportDialogEvent
+import uno.lux.mosaic.post.ui.report.ReportSendState
 import uno.lux.mosaic.settings.data.InMemorySettingsRepository
 import uno.lux.mosaic.settings.data.SettingsRepository
 import uno.lux.mosaic.testing.ViewModelTest

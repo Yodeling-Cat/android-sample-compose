@@ -24,6 +24,9 @@ class ArchitectureTest {
 
         val KoFileDeclaration.root: String get() = pkg.removePrefix("$ROOT.").substringBefore('.')
 
+        val KoFileDeclaration.isUiLayer: Boolean
+            get() = pkg.endsWith(".ui") || pkg.contains(".ui.")
+
         val KoFileDeclaration.isDataLayer: Boolean
             get() = pkg.removePrefix("$ROOT.").substringAfter('.', missingDelimiterValue = "").startsWith("data")
 
@@ -47,7 +50,9 @@ class ArchitectureTest {
 
         PRODUCTION
             .filter { it.root !in NON_CONCERNS }
-            .assertTrue(additionalMessage = CONVENTION_MESSAGE) { it.pkg in allowed }
+            .assertTrue(additionalMessage = CONVENTION_MESSAGE) { file ->
+                file.pkg in allowed || allowed.any { file.pkg.startsWith("$it.") && it.endsWith(".ui") }
+            }
     }
 
     @Test
@@ -107,7 +112,7 @@ class ArchitectureTest {
     @Test
     fun `a screen's ViewModel takes intent only through onEvent`() {
         PRODUCTION
-            .filter { it.root !in NON_CONCERNS && it.pkg.endsWith(".ui") }
+            .filter { it.root !in NON_CONCERNS && it.isUiLayer }
             .flatMap { it.classes(includeNested = false) }
             .filter { it.name.endsWith("ViewModel") }
             .assertTrue(additionalMessage = VIEW_MODEL_MESSAGE) { viewModel ->
@@ -137,7 +142,9 @@ private const val CONVENTION_MESSAGE =
         "one of `data`, `data/network`, `domain` or `ui` — including files that would " +
         "otherwise sit loose at the concern's root. This is the rule the others are built on: they " +
         "select files by matching those suffixes, so a file somewhere else is checked by none of " +
-        "them. Either file it under a layer, or widen LAYERS here and say why."
+        "them. `ui` alone may nest, because a concern's screens and flows grow there while its " +
+        "data layers stay flat, and every rule matches `ui` by prefix. Either file it under a " +
+        "layer, or widen LAYERS here and say why."
 
 private const val WIRE_MESSAGE =
     "Retrofit or OkHttp appeared outside a `data/network` package. Wire types and HTTP calls belong " +

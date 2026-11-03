@@ -56,9 +56,9 @@ import uno.lux.mosaic.designsystem.theme.LocalMosaicColors
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.post.ui.PostCard
 import uno.lux.mosaic.post.ui.PostCardData
-import uno.lux.mosaic.post.ui.PostReport
-import uno.lux.mosaic.post.ui.ReportHost
 import uno.lux.mosaic.post.ui.cardContentType
+import uno.lux.mosaic.post.ui.report.PostReport
+import uno.lux.mosaic.post.ui.report.ReportHost
 import uno.lux.mosaic.video.ui.LocalVideoPlayback
 import uno.lux.mosaic.common.R as CommonR
 import uno.lux.mosaic.home.ui.HomeUiEvent as UiEvent

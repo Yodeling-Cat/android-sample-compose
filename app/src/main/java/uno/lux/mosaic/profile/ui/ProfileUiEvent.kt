@@ -1,7 +1,7 @@
 package uno.lux.mosaic.profile.ui
 
 import uno.lux.mosaic.post.domain.PostId
-import uno.lux.mosaic.post.ui.ReportDialogEvent
+import uno.lux.mosaic.post.ui.report.ReportDialogEvent
 import uno.lux.mosaic.user.domain.UserId
 import uno.lux.mosaic.video.domain.Video
 

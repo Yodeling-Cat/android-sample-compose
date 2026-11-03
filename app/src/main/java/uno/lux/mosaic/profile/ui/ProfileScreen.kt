@@ -73,9 +73,9 @@ import uno.lux.mosaic.designsystem.theme.MosaicElevations
 import uno.lux.mosaic.designsystem.theme.MosaicTheme
 import uno.lux.mosaic.post.domain.Post
 import uno.lux.mosaic.post.ui.PostCard
-import uno.lux.mosaic.post.ui.PostReport
-import uno.lux.mosaic.post.ui.ReportHost
 import uno.lux.mosaic.post.ui.cardContentType
+import uno.lux.mosaic.post.ui.report.PostReport
+import uno.lux.mosaic.post.ui.report.ReportHost
 import uno.lux.mosaic.profile.domain.Profile
 import uno.lux.mosaic.user.domain.User
 import uno.lux.mosaic.user.domain.UserId

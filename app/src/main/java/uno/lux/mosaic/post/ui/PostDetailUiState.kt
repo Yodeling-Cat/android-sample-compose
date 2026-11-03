@@ -6,6 +6,7 @@ import uno.lux.mosaic.comment.domain.CommentId
 import uno.lux.mosaic.common.ui.FailedAction
 import uno.lux.mosaic.common.util.AppError
 import uno.lux.mosaic.post.domain.Post
+import uno.lux.mosaic.post.ui.report.PostReport
 import uno.lux.mosaic.user.domain.User
 
 enum class CommentSendState {

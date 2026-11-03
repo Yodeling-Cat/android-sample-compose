@@ -30,6 +30,9 @@ import uno.lux.mosaic.post.domain.Post
 import uno.lux.mosaic.post.domain.PostId
 import uno.lux.mosaic.post.domain.PostWithUsers
 import uno.lux.mosaic.post.ui.PostDetailUiState.Content
+import uno.lux.mosaic.post.ui.report.PostReport
+import uno.lux.mosaic.post.ui.report.ReportDialogEvent
+import uno.lux.mosaic.post.ui.report.ReportSendState
 import uno.lux.mosaic.testing.ViewModelTest
 import uno.lux.mosaic.testing.backStackOf
 import uno.lux.mosaic.testing.screens
