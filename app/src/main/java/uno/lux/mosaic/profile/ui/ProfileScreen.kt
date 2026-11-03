@@ -35,8 +35,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -263,29 +265,20 @@ private fun ProfileTabEffects(
     listState: LazyListState,
     onEvent: (UiEvent) -> Unit,
 ) {
-    when (selectedTab) {
-        ProfileTab.POSTS -> LoadMoreEffect(
+    val onDemand = data.onDemandTab(selectedTab)
+
+    if (onDemand == null) {
+        LoadMoreEffect(
             listState = listState,
             endReached = data.postsEndReached,
             loadMoreFailed = data.postsLoadMoreFailed,
             onLoadMore = { onEvent(UiEvent.LoadMorePosts) },
         )
-
-        ProfileTab.LIKES -> OnDemandTabEffects(
-            listState = listState,
-            list = data.likes,
-            loadFailed = data.likesLoadFailed,
-            onShown = { onEvent(UiEvent.LikesTabShown) },
-            onLoadMore = { onEvent(UiEvent.LoadMoreLikes) },
-        )
-
-        ProfileTab.BOOKMARKS -> OnDemandTabEffects(
-            listState = listState,
-            list = data.bookmarks,
-            loadFailed = data.bookmarksLoadFailed,
-            onShown = { onEvent(UiEvent.BookmarksTabShown) },
-            onLoadMore = { onEvent(UiEvent.LoadMoreBookmarks) },
-        )
+    } else {
+        // Keyed so a switch straight from one on-demand tab to the other restarts its effects.
+        key(selectedTab) {
+            OnDemandTabEffects(listState = listState, tab = onDemand, onEvent = onEvent)
+        }
     }
 }
 
@@ -295,32 +288,16 @@ private fun LazyListScope.tabItems(
     isCurrentUser: Boolean,
     onEvent: (UiEvent) -> Unit,
 ) {
-    when (selectedTab) {
-        ProfileTab.POSTS -> postItems(
+    val onDemand = data.onDemandTab(selectedTab)
+
+    if (onDemand == null) {
+        postItems(
             screenData = data,
             onEvent = onEvent,
             isCurrentUser = isCurrentUser,
         )
-
-        ProfileTab.LIKES -> onDemandTabItems(
-            list = data.likes,
-            loadFailed = data.likesLoadFailed,
-            onFirstLoad = { onEvent(UiEvent.LikesTabShown) },
-            onLoadMore = { onEvent(UiEvent.LoadMoreLikes) },
-            onEvent = onEvent,
-            keyPrefix = "likes",
-            emptyMessageRes = R.string.profile_empty_likes,
-        )
-
-        ProfileTab.BOOKMARKS -> onDemandTabItems(
-            list = data.bookmarks,
-            loadFailed = data.bookmarksLoadFailed,
-            onFirstLoad = { onEvent(UiEvent.BookmarksTabShown) },
-            onLoadMore = { onEvent(UiEvent.LoadMoreBookmarks) },
-            onEvent = onEvent,
-            keyPrefix = "bookmarks",
-            emptyMessageRes = R.string.profile_empty_saved,
-        )
+    } else {
+        onDemandTabItems(tab = onDemand, onEvent = onEvent)
     }
 }
 
@@ -334,6 +311,40 @@ private enum class ProfileTab(
     LIKES(R.string.profile_tab_likes),
     BOOKMARKS(R.string.profile_tab_saved, true),
 }
+
+@Immutable
+private data class OnDemandTab(
+    val list: ProfilePostList?,
+    val loadFailed: Boolean,
+    val shown: UiEvent,
+    val loadMore: UiEvent,
+    val keyPrefix: String,
+    @get:StringRes val emptyMessageRes: Int,
+)
+
+/** Null for [ProfileTab.POSTS], which loads with the profile rather than on first open. */
+private fun ProfileScreenData.onDemandTab(tab: ProfileTab): OnDemandTab? =
+    when (tab) {
+        ProfileTab.POSTS -> null
+
+        ProfileTab.LIKES -> OnDemandTab(
+            list = likes,
+            loadFailed = likesLoadFailed,
+            shown = UiEvent.LikesTabShown,
+            loadMore = UiEvent.LoadMoreLikes,
+            keyPrefix = "likes",
+            emptyMessageRes = R.string.profile_empty_likes,
+        )
+
+        ProfileTab.BOOKMARKS -> OnDemandTab(
+            list = bookmarks,
+            loadFailed = bookmarksLoadFailed,
+            shown = UiEvent.BookmarksTabShown,
+            loadMore = UiEvent.LoadMoreBookmarks,
+            keyPrefix = "bookmarks",
+            emptyMessageRes = R.string.profile_empty_saved,
+        )
+    }
 
 @Composable
 private fun ProfileTabs(
@@ -406,37 +417,32 @@ private fun LazyListScope.postItems(
 @Composable
 private fun OnDemandTabEffects(
     listState: LazyListState,
-    list: ProfilePostList?,
-    loadFailed: Boolean,
-    onShown: () -> Unit,
-    onLoadMore: () -> Unit,
+    tab: OnDemandTab,
+    onEvent: (UiEvent) -> Unit,
 ) {
-    LaunchedEffect(Unit) { onShown() }
+    LaunchedEffect(Unit) { onEvent(tab.shown) }
 
     LoadMoreEffect(
         listState = listState,
-        endReached = list?.endReached ?: true,
-        loadMoreFailed = loadFailed,
-        onLoadMore = onLoadMore,
+        endReached = tab.list?.endReached ?: true,
+        loadMoreFailed = tab.loadFailed,
+        onLoadMore = { onEvent(tab.loadMore) },
     )
 }
 
-private fun LazyListScope.onDemandTabItems(
-    list: ProfilePostList?,
-    loadFailed: Boolean,
-    onFirstLoad: () -> Unit,
-    onLoadMore: () -> Unit,
-    onEvent: (UiEvent) -> Unit,
-    keyPrefix: String,
-    @StringRes emptyMessageRes: Int,
-) {
+private fun LazyListScope.onDemandTabItems(tab: OnDemandTab, onEvent: (UiEvent) -> Unit) {
+    val list = tab.list
+    val keyPrefix = tab.keyPrefix
+
     if (list == null) {
-        item(key = "$keyPrefix-loading") { LoadMoreFooter(failed = loadFailed, onRetry = onFirstLoad) }
+        item(key = "$keyPrefix-loading") {
+            LoadMoreFooter(failed = tab.loadFailed, onRetry = { onEvent(tab.shown) })
+        }
         return
     }
 
     if (list.posts.isEmpty()) {
-        item(key = "$keyPrefix-empty") { EmptyTab(emptyMessageRes) }
+        item(key = "$keyPrefix-empty") { EmptyTab(tab.emptyMessageRes) }
         return
     }
 
@@ -460,7 +466,9 @@ private fun LazyListScope.onDemandTabItems(
     }
 
     if (!list.endReached) {
-        item(key = "$keyPrefix-loading-more") { LoadMoreFooter(failed = loadFailed, onRetry = onLoadMore) }
+        item(key = "$keyPrefix-loading-more") {
+            LoadMoreFooter(failed = tab.loadFailed, onRetry = { onEvent(tab.loadMore) })
+        }
     }
 }
 

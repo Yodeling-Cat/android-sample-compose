@@ -66,7 +66,7 @@ class ProfileScrollRestorationTest {
         InstrumentationRegistry.getInstrumentation().targetContext.getString(id)
 }
 
-private fun profileData(): ProfileScreenData {
+internal fun profileData(): ProfileScreenData {
     val user = SampleUsers.first()
     val posts = SamplePosts.filter { it.authorId == user.id }
 
